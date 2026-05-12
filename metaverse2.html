@@ -236,6 +236,33 @@
     .fi{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(0,212,255,.1));margin-bottom:8px}
     .fn{font-size:13px;font-weight:500;margin-bottom:2px}
     .fd{font-size:11px;color:var(--txt3);line-height:1.3}
+
+    /* 数字人对话 */
+    .digi-section{margin:0 16px 8px;background:linear-gradient(180deg,rgba(108,99,255,.08),rgba(0,212,255,.04));border:1px solid rgba(0,212,255,.12);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+    .digi-section::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(108,99,255,.05),transparent 60%);pointer-events:none}
+    .digi-hdr{display:flex;align-items:center;gap:12px;margin-bottom:12px;position:relative}
+    .digi-avatar{width:56px;height:56px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,212,255,.3);flex-shrink:0;background:var(--card)}
+    .digi-avatar img{width:100%;height:100%;object-fit:cover}
+    .digi-info{flex:1}
+    .digi-name{font-size:15px;font-weight:600}
+    .digi-status{font-size:10px;color:var(--sec);display:flex;align-items:center;gap:4px}
+    .digi-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--sec);animation:digiPulse 1.5s ease-in-out infinite}
+    @keyframes digiPulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .digi-chat{background:rgba(10,10,26,.5);border-radius:12px;padding:12px;max-height:180px;overflow-y:auto;margin-bottom:10px;position:relative}
+    .digi-msg{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start}
+    .digi-msg:last-child{margin-bottom:0}
+    .digi-msg .dm-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(0,212,255,.2)}
+    .digi-msg .dm-avatar img{width:100%;height:100%;object-fit:cover}
+    .digi-msg .dm-bubble{background:var(--card);border-radius:4px 12px 12px 12px;padding:8px 12px;font-size:12px;line-height:1.5;max-width:calc(100% - 36px);color:var(--txt2)}
+    .digi-msg.dm-user{flex-direction:row-reverse}
+    .digi-msg.dm-user .dm-bubble{background:rgba(108,99,255,.2);border-radius:12px 4px 12px 12px;color:var(--txt)}
+    .digi-input{display:flex;gap:8px;position:relative}
+    .digi-input input{flex:1;padding:10px 12px;border:1px solid rgba(0,212,255,.15);border-radius:10px;background:rgba(10,10,26,.6);color:var(--txt);font-size:12px;outline:none}
+    .digi-input input::placeholder{color:var(--txt3)}
+    .digi-input input:focus{border-color:var(--pri)}
+    .digi-input .digi-send{width:40px;height:40px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .digi-input .digi-send:active{transform:scale(.93)}
+
     .f-prods{display:flex;gap:10px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none}
     .f-prods::-webkit-scrollbar{display:none}
     .f-p-card{flex-shrink:0;width:110px;background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,212,255,.08)}
@@ -796,6 +823,17 @@
     const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
     currentBusiness=biz;
     let html='<div class="biz-header"><div class="biz-btn-back" onclick="showPage(\'mapPage\')"><span>‹</span> 返回</div><div class="biz-cover">'+biz.cover+'</div><div class="biz-title">'+biz.name+'</div><div class="biz-desc">'+biz.description+'</div></div>';
+    // 泸州老窖 → 数字人李白
+    if(bizId==='lz1'){
+      html+='<div class="sec-title"><h3>🤖 数字人 · 诗酒李太白</h3></div>';
+      html+='<div class="digi-section" id="digiSection">';
+      html+='<div class="digi-hdr"><div class="digi-avatar"><img src="李白说话.gif" alt="李白"></div><div class="digi-info"><div class="digi-name">李太白</div><div class="digi-status">在线·随时为您解答</div></div></div>';
+      html+='<div class="digi-chat" id="digiChat">';
+      html+='<div class="digi-msg"><div class="dm-avatar"><img src="李白说话.gif" alt="李白"></div><div class="dm-bubble">客官来啦？快请坐！关于泸州老窖的美酒文化，您尽管问！</div></div>';
+      html+='</div>';
+      html+='<div class="digi-input"><input type="text" id="digiInput" placeholder="输入你的问题..." onkeypress="if(event.key===\'Enter\')sendDigiMsg()"><button class="digi-send" onclick="sendDigiMsg()">➤</button></div>';
+      html+='</div>';
+    }
     html+='<div class="sec-title"><h3>🏪 空间功能</h3></div><div class="f-grid">';
     biz.features.forEach((f,i)=>{html+='<div class="f-card" onclick="handleFeature(\''+f.id+'\',\''+biz.id+'\')" style="animation:fadeInUp .4s ease '+(i*0.1)+'s forwards;opacity:0"><div class="fi">'+f.icon+'</div><div class="fn">'+f.name+'</div><div class="fd">'+f.desc+'</div></div>';});
     html+='</div>';
@@ -804,6 +842,37 @@
     html+='</div>';
     document.getElementById('businessContent').innerHTML=html;
     showPage('businessPage');
+  }
+
+  // 数字人问答（演示模式）
+  function sendDigiMsg(){
+    const input=document.getElementById('digiInput');
+    const chat=document.getElementById('digiChat');
+    if(!input||!chat||!input.value.trim())return;
+    const q=input.value.trim();
+    input.value='';
+    // 用户消息
+    chat.innerHTML+='<div class="digi-msg dm-user"><div class="dm-bubble">'+q+'</div></div>';
+    chat.scrollTop=chat.scrollHeight;
+    // 李白回复（演示）
+    const replies={
+      '泸州老窖':'泸州老窖始于明朝万历年间（公元1573年），被誉为"浓香鼻祖"，是国家级非物质文化遗产。其国宝窖池群连续使用至今已超过440年！',
+      '价格':'好酒不问价，醺然自得意。国窖1573系列从千元起，窖龄酒、珍藏版各有千秋，丰俭由君。',
+      '怎么买':'在咱们元宇宙商城里就可以选购！点击下方「精选酒品」进入商品列表，线上下单，美酒送到家。',
+      '酒窖':'泸州老窖拥有世界上最大的白酒窖池群——1573国宝窖池群，被列为全国重点文物保护单位，您可以点击「酒窖漫游」VR参观！',
+      '白酒':'白酒分为酱香、浓香、清香、米香等香型。泸州老窖是浓香型白酒的典型代表，以其"窖香浓郁、绵甜甘冽"著称。',
+      '你好':'小生这厢有礼了！欢迎来到泸州老窖·数字酒庄，想了解什么尽管开口～',
+      '谢谢':'不客气！愿君多饮几杯，诗酒趁年华。🍶',
+      'default':'好问题！小生以为，泸州老窖之美，在于其"天地同酿、人间共生"的匠心。待我为您细细道来...您可以试试问问价格、酒窖或怎么购买。'
+    };
+    let reply=replies['default'];
+    for(const[key,val]of Object.entries(replies)){
+      if(q.includes(key)){reply=val;break;}
+    }
+    setTimeout(function(){
+      chat.innerHTML+='<div class="digi-msg"><div class="dm-avatar"><img src="李白说话.gif" alt="李白"></div><div class="dm-bubble">'+reply+'</div></div>';
+      chat.scrollTop=chat.scrollHeight;
+    },600);
   }
 
   let previousWebviewPage='businessPage';
