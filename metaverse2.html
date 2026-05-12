@@ -188,6 +188,9 @@
     .coord-panel .cp-item:last-child{border-bottom:none}
     .coord-panel .cp-name{color:var(--txt)}
     .coord-panel .cp-coord{color:var(--txt3);font-family:monospace}
+    .cp-export{display:block;width:100%;margin-top:8px;padding:8px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;font-size:12px;font-weight:500;cursor:pointer}
+    .cp-export:active{transform:scale(.97)}
+    .cp-copied{font-size:10px;color:var(--sec);text-align:center;margin-top:4px;display:none}
 
     /* 底部提示 */
     .map-hint{
@@ -321,7 +324,9 @@
     <div class="coord-panel" id="coordPanel">
       <div class="cp-title">📍 拖拽标记调整坐标</div>
       <div id="coordList"></div>
-      <div style="margin-top:6px;font-size:10px;color:var(--txt3)">拖拽标记到正确位置后关闭即可保存 ✨</div>
+      <button class="cp-export" id="exportBtn">📋 导出坐标 · 粘贴到HTML永久保存</button>
+      <div class="cp-copied" id="copiedHint">✅ 已复制！请粘贴到HTML文件的 cityPositions 中替换</div>
+      <div style="margin-top:6px;font-size:10px;color:var(--txt3)">拖拽标记到正确位置即可自动保存 ✨</div>
     </div>
     <div class="map-hint">✦ 点击光点查看商家 ✦</div>
     <div class="sidebar" id="sidebar">
@@ -382,7 +387,29 @@
       features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'体验火把节盛况'},{id:'products',name:'彝绣好物',icon:'🧵',desc:'彝族刺绣工艺品'},{id:'story',name:'火把文化',icon:'📖',desc:'千年传承'},{id:'ar',name:'AR互动',icon:'🥽',desc:'AR火把点燃体验'}],
       products:[{id:'xc2-1',name:'彝绣披肩',price:588,image:'🧣',specs:['传统黑','火焰红','星空蓝'],desc:'手工刺绣披肩。'},{id:'xc2-2',name:'火把节数字门票',price:88,image:'🎟️',specs:['单日','三日','全程'],desc:'含AR互动体验。'},{id:'xc2-3',name:'彝族漆器餐具',price:358,image:'🥢',specs:['单人','双人','家庭'],desc:'非遗漆器技艺。'},{id:'xc2-4',name:'月亮女儿数字藏品',price:166,image:'🌙',specs:['普通','限量','典藏'],desc:'NFT数字艺术品。'}]}];
 
-  const cityPositions={'cd1':{x:52,y:48},'cd2':{x:58,y:52},'lz1':{x:85,y:68},'xc1':{x:48,y:78},'xc2':{x:55,y:82}};
+  // ★ 坐标配置：调整好后点击「导出坐标」替换下方代码即可永久保存
+  const cityPositions = {
+  "cd1": {
+    "x": 52,
+    "y": 48
+  },
+  "cd2": {
+    "x": 55.967674769831476,
+    "y": 48.353166273149014
+  },
+  "lz1": {
+    "x": 75.71428571428571,
+    "y": 57.55294081744026
+  },
+  "xc1": {
+    "x": 39.04761904761905,
+    "y": 63.19999964096967
+  },
+  "xc2": {
+    "x": 50,
+    "y": 62.96470552332261
+  }
+  };
   let currentBusiness=null,currentProduct=null,selectedSpec=null,previousPage='mapPage',cart=[],is3D=false;
 
   // ===== 缩放状态 =====
@@ -570,6 +597,23 @@
     try{localStorage.setItem('sc_biz_positions_v2',JSON.stringify(cityPositions));}catch(e){}
   }
 
+  function exportCoords(){
+    const json=JSON.stringify(cityPositions,null,2);
+    const code="  const cityPositions = "+json+";";
+    navigator.clipboard.writeText(code).then(function(){
+      var hint=document.getElementById('copiedHint');
+      hint.style.display='block';
+      setTimeout(function(){hint.style.display='none';},3000);
+    }).catch(function(){
+      // 降级方案：选中文本
+      var ta=document.createElement('textarea');
+      ta.value=code;document.body.appendChild(ta);
+      ta.select();document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✅ 坐标已复制到剪贴板');
+    });
+  }
+
   function toggleEditMode(){
     isEditMode=!isEditMode;
     const wrapper=document.getElementById('mapWrapper');
@@ -647,6 +691,7 @@
     });
     document.getElementById('menuToggle').addEventListener('click',toggleSidebar);
     document.getElementById('editToggle').addEventListener('click',toggleEditMode);
+    document.getElementById('exportBtn').addEventListener('click',exportCoords);
     document.getElementById('zoomIn').addEventListener('click',zoomIn);
     document.getElementById('zoomOut').addEventListener('click',zoomOut);
     document.getElementById('zoomReset').addEventListener('click',zoomReset);
