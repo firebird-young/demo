@@ -163,6 +163,25 @@
     .btn-icon:active{background:rgba(108,99,255,.25)}
     .btn-icon.active{background:rgba(108,99,255,.25);border-color:var(--pri)}
 
+    /* 地图切换滑块 */
+    .map-swiper{
+      position:absolute;top:96px;left:0;right:0;z-index:240;
+      padding:0 16px;display:flex;gap:8px;overflow-x:auto;
+      scrollbar-width:none;pointer-events:none
+    }
+    .map-swiper::-webkit-scrollbar{display:none}
+    .map-swiper>*{pointer-events:auto}
+    .map-tab{
+      flex-shrink:0;padding:6px 14px;border-radius:16px;
+      border:1px solid rgba(0,212,255,.25);
+      background:rgba(10,10,26,.75);backdrop-filter:blur(8px);
+      color:var(--txt2);font-size:13px;cursor:pointer;
+      transition:all .2s;display:flex;align-items:center;gap:6px;
+      white-space:nowrap
+    }
+    .map-tab.active{background:rgba(108,99,255,.3);border-color:var(--pri);color:var(--txt);box-shadow:0 0 12px rgba(108,99,255,.2)}
+    .map-tab .tab-icon{font-size:16px}
+
     /* 坐标调整模式 */
     .edit-mode{ cursor:crosshair }
     .edit-mode .biz-marker{ cursor:grab }
@@ -278,6 +297,16 @@
     /* Toast */
     .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(18,18,38,.96);color:#fff;padding:12px 20px;border-radius:10px;font-size:12px;opacity:0;pointer-events:none;transition:all .3s ease;z-index:9999;border:1px solid rgba(0,212,255,.3);box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:pre-line;text-align:center;max-width:calc(100vw - 60px)}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    /* Webview 内嵌页面 */
+    .webview-page{position:absolute;top:44px;left:0;width:100%;height:calc(100% - 44px);z-index:999;background:var(--bg);display:none;flex-direction:column}
+    .webview-page.active{display:flex}
+    .webview-hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(10,10,26,.95);border-bottom:1px solid rgba(0,212,255,.1);flex-shrink:0}
+    .webview-hdr .wb{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--card);cursor:pointer}
+    .webview-hdr .wb:active{background:var(--card2)}
+    .webview-hdr .wt{flex:1;font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt2)}
+    .webview-iframe{flex:1;border:none;width:100%}
+
     @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
@@ -299,10 +328,11 @@
         <div class="btn-icon" id="menuToggle" title="商家列表">☰</div>
       </div>
     </div>
+    <div class="map-swiper" id="mapSwiper"></div>
     <div class="map-wrapper" id="mapWrapper">
       <div class="map-container" id="mapContainer">
         <div class="map-zoom-wrap" id="mapZoomWrap">
-          <img class="map-image" src="sichuan.a6bcb82efc.png" alt="四川赛博地图" id="mapImage">
+          <img class="map-image" alt="地图背景" id="mapImage">
           <div id="markersLayer"></div>
         </div>
         <div class="zoom-controls">
@@ -322,7 +352,7 @@
       </div>
     </div>
     <div class="coord-panel" id="coordPanel">
-      <div class="cp-title">📍 拖拽标记调整坐标</div>
+      <div class="cp-title">📍 拖拽标记调整坐标 · <span id="currentMapName">四川</span></div>
       <div id="coordList"></div>
       <button class="cp-export" id="exportBtn">📋 导出坐标 · 粘贴到HTML永久保存</button>
       <div class="cp-copied" id="copiedHint">✅ 已复制！请粘贴到HTML文件的 cityPositions 中替换</div>
@@ -361,55 +391,65 @@
     <div id="cartContent" style="display:flex;flex-direction:column;height:100%"></div>
   </div>
 
+  <!-- ==================== 内嵌网页(VR全景等) ==================== -->
+  <div class="webview-page" id="webviewPage">
+    <div class="webview-hdr">
+      <span class="wb" id="webviewBack">‹</span>
+      <span class="wt" id="webviewTitle">云参观空间</span>
+    </div>
+    <iframe class="webview-iframe" id="webviewIframe" allow="fullscreen; gyroscope; accelerometer; magnetometer" allowfullscreen></iframe>
+  </div>
+
   <div class="toast" id="toast"></div>
 </div>
 
 <script>
-  const businesses=[
-    {id:'cd1',name:'春熙里·数字商业街',city:'成都',cover:'🏙️',
-      description:'成都核心商圈的元宇宙数字化呈现，汇聚潮流品牌与数字艺术空间。',
-      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°VR全景漫游'},{id:'products',name:'潮流商品',icon:'🛍️',desc:'精选数字藏品与实体商品'},{id:'story',name:'品牌故事',icon:'📖',desc:'了解发展历程'},{id:'ar',name:'AR试穿',icon:'🥽',desc:'虚拟试穿潮流服饰'}],
-      products:[{id:'cd1-1',name:'蜀绣数字丝巾',price:299,image:'🧣',specs:['经典红','墨竹绿','锦缎金'],desc:'传统蜀绣工艺与现代数字艺术的限量丝巾。'},{id:'cd1-2',name:'熊猫文创马克杯',price:89,image:'☕',specs:['萌熊款','功夫款','汉服款'],desc:'成都特色熊猫文创马克杯。'},{id:'cd1-3',name:'川剧变脸潮T',price:159,image:'👕',specs:['S','M','L','XL'],desc:'国潮设计师联名款。'},{id:'cd1-4',name:'数字藏品·宽窄巷子',price:199,image:'🖼️',specs:['普通版','限量版','典藏版'],desc:'宽窄巷子NFT数字藏品。'}]},
-    {id:'cd2',name:'天府·元宇宙中心',city:'成都',cover:'🌐',
-      description:'成都元宇宙核心枢纽，融合虚拟现实技术的未来商业综合体。',
-      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'探索未来建筑'},{id:'products',name:'科技好物',icon:'🔮',desc:'前沿科技产品'},{id:'story',name:'品牌故事',icon:'📖',desc:'从概念到建成'},{id:'ar',name:'AR体验',icon:'🥽',desc:'互动体验与导览'}],
-      products:[{id:'cd2-1',name:'VR眼镜·天府版',price:1299,image:'🥽',specs:['标准版','Pro版','Ultra版'],desc:'元宇宙体验优化的VR设备。'},{id:'cd2-2',name:'数字孪生城市模型',price:599,image:'🏙️',specs:['成都版','重庆版','西安版'],desc:'高精度3D打印城市模型。'},{id:'cd2-3',name:'元宇宙通行证NFT',price:99,image:'🎫',specs:['月度','季度','年度'],desc:'专属权益通行证。'}]},
-    {id:'lz1',name:'泸州老窖·数字酒庄',city:'泸州',cover:'🍶',
-      description:'中国四大名酒泸州老窖数字化酒文化体验空间。',
-      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'线上参观1573国宝窖池'},{id:'products',name:'精选酒品',icon:'🍶',desc:'限量版白酒'},{id:'story',name:'酿酒工艺',icon:'📖',desc:'非遗技艺传承'},{id:'ar',name:'AR品酒',icon:'🥽',desc:'AR品酒体验'}],
-      products:[{id:'lz1-1',name:'国窖1573·元宇宙限定',price:1299,image:'🍾',specs:['500ml','1L','礼盒装'],desc:'附赠数字藏品证书。'},{id:'lz1-2',name:'窖龄酒·数字珍藏',price:699,image:'🍷',specs:['30年','60年','90年'],desc:'区块链溯源证书。'},{id:'lz1-3',name:'酒文化数字藏品',price:399,image:'🏺',specs:['普通版','稀有版','传说版'],desc:'NFT数字艺术品。'}]},
-    {id:'xc1',name:'邛海·云上湿地',city:'西昌',cover:'🌊',
-      description:'西昌邛海湿地元宇宙生态旅游体验平台。',
-      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°全景漫游'},{id:'products',name:'生态特产',icon:'🌿',desc:'凉山特色农产品'},{id:'story',name:'湿地生态',icon:'📖',desc:'湿地保护故事'},{id:'ar',name:'AR观鸟',icon:'🥽',desc:'识别湿地鸟类'}],
-      products:[{id:'xc1-1',name:'苦荞茶·高山生态',price:128,image:'🍵',specs:['250g','500g','礼盒装'],desc:'大凉山有机苦荞茶。'},{id:'xc1-2',name:'彝族银饰手链',price:268,image:'💍',specs:['经典款','花丝款','镶嵌款'],desc:'国家级非遗银饰。'},{id:'xc1-3',name:'邛海湿地数字年票',price:199,image:'🎫',specs:['个人','家庭','VIP'],desc:'全年无限次入园。'}]},
-    {id:'xc2',name:'火把广场·数字街区',city:'西昌',cover:'🔥',
-      description:'西昌彝族火把节文化主题数字商业街区。',
-      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'体验火把节盛况'},{id:'products',name:'彝绣好物',icon:'🧵',desc:'彝族刺绣工艺品'},{id:'story',name:'火把文化',icon:'📖',desc:'千年传承'},{id:'ar',name:'AR互动',icon:'🥽',desc:'AR火把点燃体验'}],
-      products:[{id:'xc2-1',name:'彝绣披肩',price:588,image:'🧣',specs:['传统黑','火焰红','星空蓝'],desc:'手工刺绣披肩。'},{id:'xc2-2',name:'火把节数字门票',price:88,image:'🎟️',specs:['单日','三日','全程'],desc:'含AR互动体验。'},{id:'xc2-3',name:'彝族漆器餐具',price:358,image:'🥢',specs:['单人','双人','家庭'],desc:'非遗漆器技艺。'},{id:'xc2-4',name:'月亮女儿数字藏品',price:166,image:'🌙',specs:['普通','限量','典藏'],desc:'NFT数字艺术品。'}]}];
-
-  // ★ 坐标配置：调整好后点击「导出坐标」替换下方代码即可永久保存
-  const cityPositions = {
-  "cd1": {
-    "x": 52,
-    "y": 48
-  },
-  "cd2": {
-    "x": 55.967674769831476,
-    "y": 48.353166273149014
-  },
-  "lz1": {
-    "x": 75.71428571428571,
-    "y": 57.55294081744026
-  },
-  "xc1": {
-    "x": 39.04761904761905,
-    "y": 63.19999964096967
-  },
-  "xc2": {
-    "x": 50,
-    "y": 62.96470552332261
-  }
+  // ==================== 多地图配置 ====================
+  const mapsData = {
+    sichuan: {
+      label: '四川', icon: '🌶️', image: 'sichuan.a6bcb82efc.png',
+      businesses: [
+        {id:'cd1',name:'春熙里·数字商业街',city:'成都',cover:'🏙️',
+          description:'成都核心商圈的元宇宙数字化呈现，汇聚潮流品牌与数字艺术空间。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°VR全景漫游'},{id:'products',name:'潮流商品',icon:'🛍️',desc:'精选数字藏品与实体商品'},{id:'story',name:'品牌故事',icon:'📖',desc:'了解发展历程'},{id:'ar',name:'AR试穿',icon:'🥽',desc:'虚拟试穿潮流服饰'}],
+          products:[{id:'cd1-1',name:'蜀绣数字丝巾',price:299,image:'🧣',specs:['经典红','墨竹绿','锦缎金'],desc:'传统蜀绣工艺与现代数字艺术的限量丝巾。'},{id:'cd1-2',name:'熊猫文创马克杯',price:89,image:'☕',specs:['萌熊款','功夫款','汉服款'],desc:'成都特色熊猫文创马克杯。'},{id:'cd1-3',name:'川剧变脸潮T',price:159,image:'👕',specs:['S','M','L','XL'],desc:'国潮设计师联名款。'},{id:'cd1-4',name:'数字藏品·宽窄巷子',price:199,image:'🖼️',specs:['普通版','限量版','典藏版'],desc:'宽窄巷子NFT数字藏品。'}]},
+        {id:'cd2',name:'天府·元宇宙中心',city:'成都',cover:'🌐',
+          description:'成都元宇宙核心枢纽，融合虚拟现实技术的未来商业综合体。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'探索未来建筑'},{id:'products',name:'科技好物',icon:'🔮',desc:'前沿科技产品'},{id:'story',name:'品牌故事',icon:'📖',desc:'从概念到建成'},{id:'ar',name:'AR体验',icon:'🥽',desc:'互动体验与导览'}],
+          products:[{id:'cd2-1',name:'VR眼镜·天府版',price:1299,image:'🥽',specs:['标准版','Pro版','Ultra版'],desc:'元宇宙体验优化的VR设备。'},{id:'cd2-2',name:'数字孪生城市模型',price:599,image:'🏙️',specs:['成都版','重庆版','西安版'],desc:'高精度3D打印城市模型。'},{id:'cd2-3',name:'元宇宙通行证NFT',price:99,image:'🎫',specs:['月度','季度','年度'],desc:'专属权益通行证。'}]},
+        {id:'lz1',name:'泸州老窖·数字酒庄',city:'泸州',cover:'🍶',
+          description:'中国四大名酒泸州老窖数字化酒文化体验空间。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'线上参观1573国宝窖池'},{id:'products',name:'精选酒品',icon:'🍶',desc:'限量版白酒'},{id:'story',name:'酿酒工艺',icon:'📖',desc:'非遗技艺传承'},{id:'ar',name:'AR品酒',icon:'🥽',desc:'AR品酒体验'}],
+          products:[{id:'lz1-1',name:'国窖1573·元宇宙限定',price:1299,image:'🍾',specs:['500ml','1L','礼盒装'],desc:'附赠数字藏品证书。'},{id:'lz1-2',name:'窖龄酒·数字珍藏',price:699,image:'🍷',specs:['30年','60年','90年'],desc:'区块链溯源证书。'},{id:'lz1-3',name:'酒文化数字藏品',price:399,image:'🏺',specs:['普通版','稀有版','传说版'],desc:'NFT数字艺术品。'}]},
+        {id:'xc1',name:'邛海·云上湿地',city:'西昌',cover:'🌊',
+          description:'西昌邛海湿地元宇宙生态旅游体验平台。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°全景漫游'},{id:'products',name:'生态特产',icon:'🌿',desc:'凉山特色农产品'},{id:'story',name:'湿地生态',icon:'📖',desc:'湿地保护故事'},{id:'ar',name:'AR观鸟',icon:'🥽',desc:'识别湿地鸟类'}],
+          products:[{id:'xc1-1',name:'苦荞茶·高山生态',price:128,image:'🍵',specs:['250g','500g','礼盒装'],desc:'大凉山有机苦荞茶。'},{id:'xc1-2',name:'彝族银饰手链',price:268,image:'💍',specs:['经典款','花丝款','镶嵌款'],desc:'国家级非遗银饰。'},{id:'xc1-3',name:'邛海湿地数字年票',price:199,image:'🎫',specs:['个人','家庭','VIP'],desc:'全年无限次入园。'}]},
+        {id:'xc2',name:'火把广场·数字街区',city:'西昌',cover:'🔥',
+          description:'西昌彝族火把节文化主题数字商业街区。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'体验火把节盛况'},{id:'products',name:'彝绣好物',icon:'🧵',desc:'彝族刺绣工艺品'},{id:'story',name:'火把文化',icon:'📖',desc:'千年传承'},{id:'ar',name:'AR互动',icon:'🥽',desc:'AR火把点燃体验'}],
+          products:[{id:'xc2-1',name:'彝绣披肩',price:588,image:'🧣',specs:['传统黑','火焰红','星空蓝'],desc:'手工刺绣披肩。'},{id:'xc2-2',name:'火把节数字门票',price:88,image:'🎟️',specs:['单日','三日','全程'],desc:'含AR互动体验。'},{id:'xc2-3',name:'彝族漆器餐具',price:358,image:'🥢',specs:['单人','双人','家庭'],desc:'非遗漆器技艺。'},{id:'xc2-4',name:'月亮女儿数字藏品',price:166,image:'🌙',specs:['普通','限量','典藏'],desc:'NFT数字艺术品。'}]}],
+      positions: {"cd1":{"x":52,"y":48},"cd2":{"x":55.967674769831476,"y":48.353166273149014},"lz1":{"x":75.71428571428571,"y":57.55294081744026},"xc1":{"x":39.04761904761905,"y":63.19999964096967},"xc2":{"x":50,"y":62.96470552332261}}
+    },
+    guizhou: {
+      label: '贵州', icon: '🏔️', image: 'guizhou.png',
+      businesses: [
+        {id:'gz1',name:'黄果树·数字瀑布',city:'安顺',cover:'🌊',
+          description:'亚洲第一大瀑布黄果树的元宇宙数字孪生体验空间。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°全景漫游大瀑布'},{id:'products',name:'贵州好物',icon:'🎁',desc:'贵州特色产品'},{id:'story',name:'瀑布传说',icon:'📖',desc:'了解黄果树的故事'},{id:'ar',name:'AR漂流',icon:'🥽',desc:'虚拟漂流体验'}],
+          products:[{id:'gz1-1',name:'茅台镇酱香白酒',price:899,image:'🍶',specs:['53度500ml','53度1L','礼盒装'],desc:'贵州茅台镇传统酱香白酒，纯粮酿造。'},{id:'gz1-2',name:'苗族银饰手镯',price:399,image:'💍',specs:['经典款','花丝款'],desc:'贵州苗族传统手工银饰，非遗技艺。'}]},
+        {id:'gz2',name:'千户苗寨·元宇宙',city:'黔东南',cover:'🏘️',
+          description:'西江千户苗寨的数字化呈现，体验苗族文化。',
+          features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'VR漫游苗寨'},{id:'products',name:'苗绣好物',icon:'🧵',desc:'苗族刺绣工艺品'},{id:'story',name:'苗族文化',icon:'📖',desc:'探索苗族千年文化'},{id:'ar',name:'AR换装',icon:'🥽',desc:'AR试穿苗族服饰'}],
+          products:[{id:'gz2-1',name:'苗绣香囊',price:88,image:'🪡',specs:['传统款','现代款'],desc:'手工苗绣香囊，可作车载挂饰。'},{id:'gz2-2',name:'贵州高山绿茶',price:168,image:'🍵',specs:['250g','500g'],desc:'贵州都匀毛尖高山有机绿茶。'}]}
+      ],
+      positions: {"gz1":{"x":35.714285714285715,"y":57.55294081744026},"gz2":{"x":71.19047619047619,"y":57.905881993910846}}
+    }
   };
+
+  let activeMapId='sichuan';
+  let businesses=mapsData.sichuan.businesses;
+  let cityPositions=mapsData.sichuan.positions;
   let currentBusiness=null,currentProduct=null,selectedSpec=null,previousPage='mapPage',cart=[],is3D=false;
 
   // ===== 缩放状态 =====
@@ -421,7 +461,9 @@
   document.addEventListener('DOMContentLoaded',()=>{
     updateStatusTime();
     setInterval(updateStatusTime,30000);
-    initMap();initSidebar();initEvents();
+    initSwiper();
+    switchMap('sichuan');
+    initEvents();
   });
 
   function updateStatusTime(){
@@ -429,55 +471,82 @@
     document.getElementById('statusTime').textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
   }
 
-  let isEditMode=false, dragBizId=null;
+  // ==================== 多地图切换 ====================
+  function initSwiper(){
+    const swiper=document.getElementById('mapSwiper');
+    swiper.innerHTML=Object.keys(mapsData).map(id=>{
+      const m=mapsData[id];
+      return '<div class="map-tab" data-map="'+id+'" onclick="switchMap(\''+id+'\')"><span class="tab-icon">'+m.icon+'</span>'+m.label+'</div>';
+    }).join('');
+  }
 
-  function initMap(){
-    const container=document.getElementById('mapContainer');
-    const markersLayer=document.getElementById('markersLayer');
-    const cc={成都:'chengdu',泸州:'luzhou',西昌:'xichang'};
-
-    // 从localStorage加载已保存的坐标
+  function switchMap(id){
+    const m=mapsData[id];
+    if(!m)return;
+    activeMapId=id;
+    businesses=m.businesses;
+    cityPositions=m.positions;
+    // 更新tab高亮
+    document.querySelectorAll('.map-tab').forEach(t=>t.classList.toggle('active',t.dataset.map===id));
+    // 更新图片
+    const img=document.getElementById('mapImage');
+    img.src=m.image;
+    img.onerror=function(){this.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect fill="%230a0a1a" width="400" height="500"/><text fill="%2300d4ff" x="50%25" y="50%25" text-anchor="middle" font-family="sans-serif">地图图片加载失败</text></svg>';};
+    // 重置缩放
+    zoomScale=1;panX=0;panY=0;
+    updateZoomTransform();
+    // 加载保存的坐标
     loadSavedPositions();
+    // 重新渲染标记
+    renderMarkers();
+    // 更新侧边栏
+    initSidebar();
+    // 关闭弹窗
+    hidePopup();
+  }
 
-    // 放置商家标记
+  function loadSavedPositions(){
+    try{
+      const saved=localStorage.getItem('sc_biz_positions_'+activeMapId);
+      if(saved){const p=JSON.parse(saved);Object.assign(cityPositions,p);}
+    }catch(e){}
+  }
+
+  function renderMarkers(){
+    const markersLayer=document.getElementById('markersLayer');
+    markersLayer.innerHTML='';
+    const cc={成都:'chengdu',泸州:'luzhou',西昌:'xichang',安顺:'luzhou',黔东南:'xichang'};
     businesses.forEach(biz=>{
       const pos=cityPositions[biz.id];
       if(!pos)return;
       const m=document.createElement('div');
-      m.className='biz-marker marker-'+cc[biz.city];
+      m.className='biz-marker marker-'+(cc[biz.city]||'chengdu');
       m.dataset.bizId=biz.id;
       m.style.left=pos.x+'%';m.style.top=pos.y+'%';
       m.innerHTML='<div class="marker-label">'+biz.name.split('·')[0]+'</div>'+
         '<div class="pulse-marker"><div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-dot"></div></div>'+
-        '<div class="coord-tag" id="coord_'+biz.id+'">'+pos.x+'% '+pos.y+'%</div>';
+        '<div class="coord-tag" id="coord_'+biz.id+'">'+Math.round(pos.x)+'% '+Math.round(pos.y)+'%</div>';
       m.addEventListener('click',e=>{if(isEditMode)return;e.stopPropagation();showPopup(biz);});
       setupMarkerDrag(m,biz.id);
       markersLayer.appendChild(m);
     });
-
-    // 点击空白关闭弹窗（标记点击已 stopPropagation）
-    container.addEventListener('click',()=>hidePopup());
-
-    // 图片加载失败回退
-    const img=document.getElementById('mapImage');
-    img.onerror=function(){this.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect fill="%230a0a1a" width="400" height="500"/><text fill="%2300d4ff" x="50%25" y="50%25" text-anchor="middle" font-family="sans-serif">请上传四川地图图片</text></svg>';};
-
-    // ===== 拖拽 =====
-    container.addEventListener('mousedown',onDragStart);
-    document.addEventListener('mousemove',onDragMove);
-    document.addEventListener('mouseup',onDragEnd);
-
-    // 触屏拖拽
-    container.addEventListener('touchstart',onTouchStart,{passive:false});
-    container.addEventListener('touchmove',onTouchMove,{passive:false});
-    container.addEventListener('touchend',onTouchEnd,{passive:false});
-
-    // 滚轮缩放
-    container.addEventListener('wheel',onWheel,{passive:false});
-
-    // 更新初始变换
+    // 绑定地图拖拽事件（只绑定一次）
+    if(!window._dragBound){
+      const container=document.getElementById('mapContainer');
+      container.addEventListener('mousedown',onDragStart);
+      document.addEventListener('mousemove',onDragMove);
+      document.addEventListener('mouseup',onDragEnd);
+      container.addEventListener('touchstart',onTouchStart,{passive:false});
+      container.addEventListener('touchmove',onTouchMove,{passive:false});
+      container.addEventListener('touchend',onTouchEnd,{passive:false});
+      container.addEventListener('wheel',onWheel,{passive:false});
+      container.addEventListener('click',()=>hidePopup());
+      window._dragBound=true;
+    }
     updateZoomTransform();
   }
+
+  let isEditMode=false, dragBizId=null;
 
   // ==================== 缩放/拖拽核心 ====================
   function updateZoomTransform(){
@@ -587,14 +656,8 @@
   // ==================== 缩放结束 ====================
 
   // ==================== 坐标调整 ====================
-  function loadSavedPositions(){
-    try{
-      const saved=localStorage.getItem('sc_biz_positions_v2');
-      if(saved){const p=JSON.parse(saved);Object.assign(cityPositions,p);}
-    }catch(e){}
-  }
   function savePositions(){
-    try{localStorage.setItem('sc_biz_positions_v2',JSON.stringify(cityPositions));}catch(e){}
+    try{localStorage.setItem('sc_biz_positions_'+activeMapId,JSON.stringify(cityPositions));}catch(e){}
   }
 
   function exportCoords(){
@@ -623,7 +686,7 @@
     btn.classList.toggle('active',isEditMode);
     btn.textContent=isEditMode?'✔️':'✏️';
     panel.classList.toggle('show',isEditMode);
-    if(isEditMode)updateCoordList();
+    if(isEditMode){document.getElementById('currentMapName').textContent=mapsData[activeMapId].label;updateCoordList();}
   }
 
   function updateCoordList(){
@@ -692,6 +755,7 @@
     document.getElementById('menuToggle').addEventListener('click',toggleSidebar);
     document.getElementById('editToggle').addEventListener('click',toggleEditMode);
     document.getElementById('exportBtn').addEventListener('click',exportCoords);
+    document.getElementById('webviewBack').addEventListener('click',closeWebview);
     document.getElementById('zoomIn').addEventListener('click',zoomIn);
     document.getElementById('zoomOut').addEventListener('click',zoomOut);
     document.getElementById('zoomReset').addEventListener('click',zoomReset);
@@ -741,10 +805,31 @@
     showPage('businessPage');
   }
 
+  let previousWebviewPage='businessPage';
+  function openWebview(url,title){
+    // 记录当前页面
+    const cur=document.querySelector('.page.active');
+    previousWebviewPage=cur?cur.id:'businessPage';
+    document.getElementById('webviewTitle').textContent=title||'全景浏览';
+    document.getElementById('webviewIframe').src=url;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('webviewPage').classList.add('active');
+  }
+  function closeWebview(){
+    document.getElementById('webviewPage').classList.remove('active');
+    document.getElementById('webviewIframe').src='';
+    showPage(previousWebviewPage);
+  }
+
   function handleFeature(fid,bizId){
     if(fid==='products'){showProductList(bizId);return;}
     const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
     const f=biz.features.find(x=>x.id===fid);if(!f)return;
+    // 泸州老窖云参观 → 720yun全景
+    if(bizId==='lz1'&&fid==='tour'){
+      openWebview('https://www.720yun.com/t/0d22amfvuus?scene_id=498283','泸州老窖·云参观空间');
+      return;
+    }
     const msgs={tour:'🎬 正在进入「'+f.name+'」...\n（演示模式：VR全景漫游）',story:'📖 「'+f.name+'」\n（演示模式：品牌故事展览）',ar:'🥽 正在启动AR模块...\n（演示模式：虚拟试穿/体验）'};
     showToast(msgs[fid]||'🚧 「'+f.name+'」开发中...');
   }
