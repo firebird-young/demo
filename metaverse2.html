@@ -358,7 +358,7 @@
       <div class="cp-copied" id="copiedHint">✅ 已复制！请粘贴到HTML文件的 cityPositions 中替换</div>
       <div style="margin-top:6px;font-size:10px;color:var(--txt3)">拖拽标记到正确位置即可自动保存 ✨</div>
     </div>
-    <div class="map-hint">✦ 点击光点查看商家 ✦</div>
+    <div class="map-hint">✦ 点击省份切换 · 右上角列表查看商家 ✦</div>
     <div class="sidebar" id="sidebar">
       <div class="sb-handle"></div>
       <div class="sb-hdr">
@@ -756,6 +756,7 @@
     document.getElementById('editToggle').addEventListener('click',toggleEditMode);
     document.getElementById('exportBtn').addEventListener('click',exportCoords);
     document.getElementById('webviewBack').addEventListener('click',closeWebview);
+
     document.getElementById('zoomIn').addEventListener('click',zoomIn);
     document.getElementById('zoomOut').addEventListener('click',zoomOut);
     document.getElementById('zoomReset').addEventListener('click',zoomReset);
