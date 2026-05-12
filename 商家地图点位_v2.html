@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>商家地图点位 - 赛博朋克版</title>
+  <style>
+    :root{--bg:#0a0a1a;--card:#121226;--card2:#1a1a35;--txt:#fff;--txt2:#b8b8d0;--txt3:#8888a0;--pri:#6c63ff;--sec:#00d4ff;--accent:#ff6b6b;--shadow:0 4px 20px rgba(0,0,0,.4)}
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+      background:#fff;
+      color:var(--txt);overflow:hidden;
+      display:flex;align-items:center;justify-content:center;
+      height:100vh;width:100vw
+    }
+    /* 手机外壳 */
+    .phone-frame{
+      width:100vw;height:100vh;
+      max-width:420px;max-height:932px;
+      position:relative;overflow:hidden;
+      background:var(--bg);
+      box-shadow:0 0 0 1px rgba(0,212,255,.15),
+                 0 20px 80px rgba(0,0,0,.8),
+                 0 0 40px rgba(108,99,255,.1);
+      border-radius:0;
+    }
+    @media(min-width:500px){
+      .phone-frame{border-radius:40px;max-height:850px}
+      body{padding:20px}
+    }
+
+    .page{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column}
+    .page.active{display:flex}
+
+    /* ===== 状态栏 ===== */
+    .status-bar{
+      height:44px;flex-shrink:0;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;
+      background:rgba(10,10,26,.6);backdrop-filter:blur(10px);
+      z-index:300;font-size:11px;color:var(--txt3);
+      border-bottom:1px solid rgba(0,212,255,.05);
+    }
+    .status-bar .time{font-weight:600}
+    .status-icons{display:flex;gap:6px;font-size:12px}
+
+    /* 地图页面 */
+    .map-wrapper{flex:1;position:relative;overflow:hidden;touch-action:none}
+    .map-container{width:100%;height:100%;position:relative;background:var(--bg);overflow:hidden}
+    .map-image{width:100%;height:100%;object-fit:contain;background:#0a0a1a;display:block;pointer-events:none}
+    
+    /* 缩放容器 - 图片与标记一起缩放 */
+    .map-zoom-wrap{
+      position:absolute;top:0;left:0;width:100%;height:100%;
+      transform-origin:0 0;
+      will-change:transform;
+    }
+    /* 标记层跟随缩放 */
+    #markersLayer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+    .biz-marker{pointer-events:auto}
+
+    /* 缩放控件 */
+    .zoom-controls{
+      position:absolute;right:12px;bottom:50px;z-index:150;
+      display:flex;flex-direction:column;gap:2px
+    }
+    .zoom-btn{
+      width:40px;height:40px;border:none;border-radius:10px;
+      background:rgba(10,10,26,.8);backdrop-filter:blur(8px);
+      color:var(--sec);font-size:20px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(0,212,255,.2);
+      transition:all .2s;
+      -webkit-backdrop-filter:blur(8px)
+    }
+    .zoom-btn:active{background:rgba(108,99,255,.3)}
+    .zoom-level{
+      text-align:center;font-size:10px;color:rgba(255,255,255,.4);
+      padding:2px 0;user-select:none
+    }
+    
+    /* 3D倾斜 */
+    .map-3d-mode .map-container{perspective:1200px}
+    .map-3d-mode .map-image{transform:rotateX(30deg) scale(0.9);transform-origin:center center;transition:transform .5s ease}
+
+    /* 商家标记 */
+    .biz-marker{position:absolute;transform:translate(-50%,-100%);cursor:pointer;z-index:100}
+    .pulse-marker{position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+    .pulse-ring{position:absolute;width:36px;height:36px;border-radius:50%;border:3px solid var(--pri);animation:pulse 2s ease-out infinite;opacity:0}
+    .pulse-ring:nth-child(2){animation-delay:.5s}
+    .pulse-dot{width:14px;height:14px;border-radius:50%;background:var(--pri);box-shadow:0 0 20px var(--pri);z-index:2}
+    .marker-label{position:absolute;top:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;color:var(--sec);text-shadow:0 0 10px var(--sec);font-weight:500;background:rgba(10,10,26,.85);padding:2px 8px;border-radius:8px;border:1px solid rgba(0,212,255,.3)}
+    @keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.5);opacity:0}}
+
+    .marker-chengdu .pulse-ring{border-color:#6c63ff}
+    .marker-chengdu .pulse-dot{background:#6c63ff;box-shadow:0 0 20px #6c63ff}
+    .marker-chengdu .marker-label{color:#6c63ff;text-shadow:0 0 10px #6c63ff;border-color:rgba(108,99,255,.3)}
+    .marker-luzhou .pulse-ring{border-color:#00d4ff}
+    .marker-luzhou .pulse-dot{background:#00d4ff;box-shadow:0 0 20px #00d4ff}
+    .marker-luzhou .marker-label{color:#00d4ff;text-shadow:0 0 10px #00d4ff;border-color:rgba(0,212,255,.3)}
+    .marker-xichang .pulse-ring{border-color:#ff6b6b}
+    .marker-xichang .pulse-dot{background:#ff6b6b;box-shadow:0 0 20px #ff6b6b}
+    .marker-xichang .marker-label{color:#ff6b6b;text-shadow:0 0 10px #ff6b6b;border-color:rgba(255,107,107,.3)}
+
+    /* 弹窗 */
+    .popup{position:absolute;left:50%!important;top:auto!important;bottom:100px;transform:translateX(-50%);width:calc(100% - 32px);max-width:360px;background:rgba(18,18,38,.96);border:1px solid rgba(0,212,255,.3);border-radius:16px;padding:16px;box-shadow:0 8px 40px rgba(0,0,0,.6),0 0 20px rgba(108,99,255,.1);backdrop-filter:blur(10px);z-index:200;display:none;animation:popUp .35s ease}
+    .popup.show{display:block}
+    @keyframes popUp{from{opacity:0;transform:translateX(-50%) translateY(20px) scale(.95)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+    .popup .pop-cover{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--card2);margin-bottom:8px}
+    .popup .pop-name{font-size:15px;font-weight:600;margin-bottom:2px}
+    .popup .pop-city{font-size:11px;color:var(--sec);margin-bottom:6px}
+    .popup .pop-desc{font-size:12px;color:var(--txt2);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .popup .pop-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+    .popup .pop-tag{font-size:10px;color:var(--txt3);background:rgba(108,99,255,.15);padding:2px 8px;border-radius:6px}
+    .popup .pop-btn{width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff;font-size:14px;font-weight:500;cursor:pointer}
+
+    /* 侧边栏 - 底部滑出 */
+    .sidebar{
+      position:absolute;bottom:0;left:0;right:0;max-height:65vh;
+      background:rgba(10,10,26,.96);backdrop-filter:blur(20px);
+      border-radius:20px 20px 0 0;
+      border-top:1px solid rgba(0,212,255,.2);
+      box-shadow:0 -4px 30px rgba(108,99,255,.1);
+      z-index:300;
+      transform:translateY(100%);transition:transform .35s cubic-bezier(0.4,0,0.2,1);
+      display:flex;flex-direction:column
+    }
+    .sidebar.open{transform:translateY(0)}
+
+    .sb-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,212,255,.3);margin:8px auto;flex-shrink:0}
+    .sb-hdr{padding:0 16px 10px;border-bottom:1px solid rgba(0,212,255,.1);flex-shrink:0}
+    .sb-title{font-size:16px;font-weight:600;margin-bottom:10px}
+    .sb-search{position:relative}
+    .sb-search input{width:100%;padding:10px 12px 10px 32px;border:1px solid rgba(0,212,255,.2);border-radius:10px;background:rgba(255,255,255,.05);color:var(--txt);font-size:13px;outline:none}
+    .sb-search input::placeholder{color:var(--txt3)}
+    .sb-search::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;opacity:.5}
+    .sb-list{flex:1;overflow-y:auto;padding:4px 0;padding-bottom:calc(20px + env(safe-area-inset-bottom,10px))}
+    .sb-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .2s;border-bottom:1px solid rgba(0,212,255,.04)}
+    .sb-item:active{background:rgba(108,99,255,.12)}
+    .sb-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--card2);flex-shrink:0;border:1px solid rgba(108,99,255,.2)}
+    .sb-info{flex:1;min-width:0}
+    .sb-name{font-size:13px;font-weight:500;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .sb-meta{font-size:11px;color:var(--txt3)}
+
+    /* 顶部导航栏 */
+    .nav-bar{
+      position:absolute;top:44px;left:0;right:0;
+      height:52px;padding:0 16px;
+      display:flex;align-items:center;justify-content:space-between;
+      z-index:250;pointer-events:none
+    }
+    .nav-bar>*{pointer-events:auto}
+    .nav-title{font-size:17px;font-weight:700;background:linear-gradient(135deg,var(--pri),var(--sec));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+    .nav-actions{display:flex;gap:8px}
+    .btn-icon{
+      width:38px;height:38px;border-radius:10px;
+      border:1px solid rgba(0,212,255,.25);
+      background:rgba(10,10,26,.75);backdrop-filter:blur(8px);
+      color:var(--txt);display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:15px;transition:all .2s
+    }
+    .btn-icon:active{background:rgba(108,99,255,.25)}
+    .btn-icon.active{background:rgba(108,99,255,.25);border-color:var(--pri)}
+
+    /* 坐标调整模式 */
+    .edit-mode{ cursor:crosshair }
+    .edit-mode .biz-marker{ cursor:grab }
+    .edit-mode .biz-marker.dragging{ cursor:grabbing;z-index:500 }
+    .coord-tag{
+      position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);
+      font-size:9px;color:#00d4ff;background:rgba(10,10,26,.85);
+      padding:1px 6px;border-radius:6px;white-space:nowrap;pointer-events:none;
+      border:1px solid rgba(0,212,255,.3);display:none;font-family:monospace
+    }
+    .edit-mode .coord-tag{display:block}
+    .coord-panel{
+      position:absolute;top:96px;left:50%;transform:translateX(-50%);
+      background:rgba(10,10,26,.92);backdrop-filter:blur(12px);
+      border:1px solid rgba(0,212,255,.3);border-radius:12px;
+      padding:10px 14px;z-index:260;min-width:220px;
+      text-align:center;font-size:11px;color:var(--txt2);
+      display:none;box-shadow:0 8px 32px rgba(0,0,0,.5)
+    }
+    .coord-panel.show{display:block}
+    .coord-panel .cp-title{font-size:13px;font-weight:600;color:var(--sec);margin-bottom:6px}
+    .coord-panel .cp-item{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(0,212,255,.06)}
+    .coord-panel .cp-item:last-child{border-bottom:none}
+    .coord-panel .cp-name{color:var(--txt)}
+    .coord-panel .cp-coord{color:var(--txt3);font-family:monospace}
+
+    /* 底部提示 */
+    .map-hint{
+      position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+      font-size:10px;color:rgba(255,255,255,.3);
+      background:rgba(10,10,26,.6);backdrop-filter:blur(8px);
+      padding:4px 14px;border-radius:16px;z-index:100;
+      letter-spacing:1px;pointer-events:none
+    }
+
+    /* ===== 商家空间 ===== */
+    .business-scroll{flex:1;overflow-y:auto;padding-bottom:calc(30px + env(safe-area-inset-bottom,10px))}
+    .biz-header{background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(0,212,255,.08));padding:16px 16px 20px;position:relative}
+    .biz-btn-back{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--txt2);cursor:pointer;margin-bottom:10px}
+    .biz-cover{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;background:rgba(255,255,255,.08);margin-bottom:10px}
+    .biz-title{font-size:19px;font-weight:600;margin-bottom:4px}
+    .biz-desc{font-size:12px;color:var(--txt2);line-height:1.5}
+    .sec-title{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 10px}
+    .sec-title h3{font-size:15px;font-weight:600}
+    .sec-title .ml{font-size:12px;color:var(--pri);cursor:pointer}
+    .f-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 16px}
+    .f-card{background:var(--card);border:1px solid rgba(0,212,255,.08);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s}
+    .f-card:active{transform:scale(.97);border-color:var(--pri)}
+    .fi{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(0,212,255,.1));margin-bottom:8px}
+    .fn{font-size:13px;font-weight:500;margin-bottom:2px}
+    .fd{font-size:11px;color:var(--txt3);line-height:1.3}
+    .f-prods{display:flex;gap:10px;overflow-x:auto;padding:0 16px 16px;scrollbar-width:none}
+    .f-prods::-webkit-scrollbar{display:none}
+    .f-p-card{flex-shrink:0;width:110px;background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,212,255,.08)}
+    .f-p-card:active{transform:scale(.97)}
+    .pi{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px}
+    .pib{padding:8px 10px}
+    .pn{font-size:11px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pp{font-size:12px;font-weight:600;color:var(--pri)}
+
+    /* 商品列表 */
+    .pl-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(0,212,255,.08);flex-shrink:0}
+    .pl-hdr h2{flex:1;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .bb{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--card);cursor:pointer;flex-shrink:0}
+    .bb:active{background:var(--card2)}
+    .ci{position:relative;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--card);cursor:pointer;flex-shrink:0}
+    .cart-badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:var(--accent);color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600}
+    .p-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 16px;flex:1;align-content:start;overflow-y:auto}
+    .p-card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid rgba(0,212,255,.08)}
+    .p-card:active{transform:scale(.97)}
+    .pi-big{height:120px;display:flex;align-items:center;justify-content:center;font-size:50px}
+    .pbody{padding:10px}
+    .pn2{font-size:13px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pp2{font-size:14px;font-weight:600;color:var(--pri)}
+
+    /* 商品详情 */
+    .pd-detail{flex:1;overflow-y:auto}
+    .pd-hdr{height:220px;display:flex;align-items:center;justify-content:center;position:relative}
+    .pd-back,.pd-cart-btn{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(0,0,0,.4);color:#fff;cursor:pointer;backdrop-filter:blur(8px)}
+    .pd-back{left:12px;top:12px}.pd-cart-btn{right:12px;top:12px}
+    .pd-info{padding:16px}
+    .pd-name{font-size:18px;font-weight:600;margin-bottom:6px}
+    .pd-price{font-size:22px;font-weight:700;color:var(--pri);margin-bottom:14px}
+    .pd-st{font-size:12px;color:var(--txt3);margin-bottom:8px}
+    .pd-specs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .pd-spec{padding:6px 14px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(255,255,255,.04);color:var(--txt2);font-size:12px;cursor:pointer;transition:all .2s}
+    .pd-spec.selected{border-color:var(--pri);background:rgba(108,99,255,.15);color:var(--txt)}
+    .pd-desc{font-size:13px;color:var(--txt2);line-height:1.7;padding-bottom:20px}
+    .buy-bar{display:flex;gap:10px;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,8px));border-top:1px solid rgba(0,212,255,.08);background:var(--card);flex-shrink:0}
+    .bb2,.bbb{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer}
+    .bb2{background:var(--card2);color:var(--txt)}
+    .bbb{background:linear-gradient(135deg,var(--pri),var(--sec));color:#fff}
+    .bb2:active,.bbb:active{transform:scale(.97)}
+
+    /* 购物车 */
+    .cart-hdr{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(0,212,255,.08);flex-shrink:0}
+    .cart-hdr h2{flex:1;font-size:16px}
+    .cart-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px}
+    .ei{font-size:50px;margin-bottom:12px;opacity:.4}
+    .et{font-size:14px;color:var(--txt2)}
+    .cart-list{flex:1;overflow-y:auto;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,8px))}
+    .cart-item{display:flex;gap:10px;padding:10px;background:var(--card);border-radius:10px;margin-bottom:8px}
+    .ci-img{width:60px;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+    .ci-info{flex:1;display:flex;flex-direction:column;justify-content:center}
+    .ci-name{font-size:13px;font-weight:500;margin-bottom:3px}
+    .ci-spec{font-size:11px;color:var(--txt3);margin-bottom:4px}
+    .ci-bot{display:flex;justify-content:space-between;align-items:center}
+    .ci-price{font-size:14px;font-weight:600;color:var(--pri)}
+
+    /* Toast */
+    .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(18,18,38,.96);color:#fff;padding:12px 20px;border-radius:10px;font-size:12px;opacity:0;pointer-events:none;transition:all .3s ease;z-index:9999;border:1px solid rgba(0,212,255,.3);box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:pre-line;text-align:center;max-width:calc(100vw - 60px)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+  <!-- ===== 全局状态栏 ===== -->
+  <div class="status-bar">
+    <span class="time" id="statusTime">9:41</span>
+    <span class="status-icons">📶 🔋</span>
+  </div>
+
+  <!-- ==================== 地图页 ==================== -->
+  <div class="page active" id="mapPage">
+    <div class="nav-bar">
+      <div class="nav-title">🌌 元 · 商场</div>
+      <div class="nav-actions">
+        <div class="btn-icon" id="viewToggle" title="2D/3D">🔄</div>
+        <div class="btn-icon" id="editToggle" title="调整坐标">✏️</div>
+        <div class="btn-icon" id="menuToggle" title="商家列表">☰</div>
+      </div>
+    </div>
+    <div class="map-wrapper" id="mapWrapper">
+      <div class="map-container" id="mapContainer">
+        <div class="map-zoom-wrap" id="mapZoomWrap">
+          <img class="map-image" src="sichuan.a6bcb82efc.png" alt="四川赛博地图" id="mapImage">
+          <div id="markersLayer"></div>
+        </div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" id="zoomIn">＋</button>
+          <div class="zoom-level" id="zoomLevel">100%</div>
+          <button class="zoom-btn" id="zoomOut">－</button>
+          <button class="zoom-btn" id="zoomReset" title="重置">⟲</button>
+        </div>
+        <div class="popup" id="mapPopup">
+          <div class="pop-cover" id="popCover">🏪</div>
+          <div class="pop-name" id="popName">商家</div>
+          <div class="pop-city" id="popCity">◆ 城市</div>
+          <div class="pop-desc" id="popDesc">描述</div>
+          <div class="pop-tags" id="popTags"></div>
+          <button class="pop-btn" id="popBtn">进入商家空间 ›</button>
+        </div>
+      </div>
+    </div>
+    <div class="coord-panel" id="coordPanel">
+      <div class="cp-title">📍 拖拽标记调整坐标</div>
+      <div id="coordList"></div>
+      <div style="margin-top:6px;font-size:10px;color:var(--txt3)">拖拽标记到正确位置后关闭即可保存 ✨</div>
+    </div>
+    <div class="map-hint">✦ 点击光点查看商家 ✦</div>
+    <div class="sidebar" id="sidebar">
+      <div class="sb-handle"></div>
+      <div class="sb-hdr">
+        <div class="sb-title">商家列表</div>
+        <div class="sb-search">
+          <input type="text" placeholder="搜索商家名称或城市..." id="searchInput">
+        </div>
+      </div>
+      <div class="sb-list" id="sidebarList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 商家空间 ==================== -->
+  <div class="page" id="businessPage">
+    <div class="business-scroll" id="businessContent"></div>
+  </div>
+
+  <!-- ==================== 商品列表 ==================== -->
+  <div class="page" id="productListPage">
+    <div id="productListContent" style="display:flex;flex-direction:column;height:100%"></div>
+  </div>
+
+  <!-- ==================== 商品详情 ==================== -->
+  <div class="page" id="productDetailPage">
+    <div id="productDetailContent" style="display:flex;flex-direction:column;height:100%"></div>
+  </div>
+
+  <!-- ==================== 购物车 ==================== -->
+  <div class="page" id="cartPage">
+    <div id="cartContent" style="display:flex;flex-direction:column;height:100%"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  const businesses=[
+    {id:'cd1',name:'春熙里·数字商业街',city:'成都',cover:'🏙️',
+      description:'成都核心商圈的元宇宙数字化呈现，汇聚潮流品牌与数字艺术空间。',
+      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°VR全景漫游'},{id:'products',name:'潮流商品',icon:'🛍️',desc:'精选数字藏品与实体商品'},{id:'story',name:'品牌故事',icon:'📖',desc:'了解发展历程'},{id:'ar',name:'AR试穿',icon:'🥽',desc:'虚拟试穿潮流服饰'}],
+      products:[{id:'cd1-1',name:'蜀绣数字丝巾',price:299,image:'🧣',specs:['经典红','墨竹绿','锦缎金'],desc:'传统蜀绣工艺与现代数字艺术的限量丝巾。'},{id:'cd1-2',name:'熊猫文创马克杯',price:89,image:'☕',specs:['萌熊款','功夫款','汉服款'],desc:'成都特色熊猫文创马克杯。'},{id:'cd1-3',name:'川剧变脸潮T',price:159,image:'👕',specs:['S','M','L','XL'],desc:'国潮设计师联名款。'},{id:'cd1-4',name:'数字藏品·宽窄巷子',price:199,image:'🖼️',specs:['普通版','限量版','典藏版'],desc:'宽窄巷子NFT数字藏品。'}]},
+    {id:'cd2',name:'天府·元宇宙中心',city:'成都',cover:'🌐',
+      description:'成都元宇宙核心枢纽，融合虚拟现实技术的未来商业综合体。',
+      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'探索未来建筑'},{id:'products',name:'科技好物',icon:'🔮',desc:'前沿科技产品'},{id:'story',name:'品牌故事',icon:'📖',desc:'从概念到建成'},{id:'ar',name:'AR体验',icon:'🥽',desc:'互动体验与导览'}],
+      products:[{id:'cd2-1',name:'VR眼镜·天府版',price:1299,image:'🥽',specs:['标准版','Pro版','Ultra版'],desc:'元宇宙体验优化的VR设备。'},{id:'cd2-2',name:'数字孪生城市模型',price:599,image:'🏙️',specs:['成都版','重庆版','西安版'],desc:'高精度3D打印城市模型。'},{id:'cd2-3',name:'元宇宙通行证NFT',price:99,image:'🎫',specs:['月度','季度','年度'],desc:'专属权益通行证。'}]},
+    {id:'lz1',name:'泸州老窖·数字酒庄',city:'泸州',cover:'🍶',
+      description:'中国四大名酒泸州老窖数字化酒文化体验空间。',
+      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'线上参观1573国宝窖池'},{id:'products',name:'精选酒品',icon:'🍶',desc:'限量版白酒'},{id:'story',name:'酿酒工艺',icon:'📖',desc:'非遗技艺传承'},{id:'ar',name:'AR品酒',icon:'🥽',desc:'AR品酒体验'}],
+      products:[{id:'lz1-1',name:'国窖1573·元宇宙限定',price:1299,image:'🍾',specs:['500ml','1L','礼盒装'],desc:'附赠数字藏品证书。'},{id:'lz1-2',name:'窖龄酒·数字珍藏',price:699,image:'🍷',specs:['30年','60年','90年'],desc:'区块链溯源证书。'},{id:'lz1-3',name:'酒文化数字藏品',price:399,image:'🏺',specs:['普通版','稀有版','传说版'],desc:'NFT数字艺术品。'}]},
+    {id:'xc1',name:'邛海·云上湿地',city:'西昌',cover:'🌊',
+      description:'西昌邛海湿地元宇宙生态旅游体验平台。',
+      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'360°全景漫游'},{id:'products',name:'生态特产',icon:'🌿',desc:'凉山特色农产品'},{id:'story',name:'湿地生态',icon:'📖',desc:'湿地保护故事'},{id:'ar',name:'AR观鸟',icon:'🥽',desc:'识别湿地鸟类'}],
+      products:[{id:'xc1-1',name:'苦荞茶·高山生态',price:128,image:'🍵',specs:['250g','500g','礼盒装'],desc:'大凉山有机苦荞茶。'},{id:'xc1-2',name:'彝族银饰手链',price:268,image:'💍',specs:['经典款','花丝款','镶嵌款'],desc:'国家级非遗银饰。'},{id:'xc1-3',name:'邛海湿地数字年票',price:199,image:'🎫',specs:['个人','家庭','VIP'],desc:'全年无限次入园。'}]},
+    {id:'xc2',name:'火把广场·数字街区',city:'西昌',cover:'🔥',
+      description:'西昌彝族火把节文化主题数字商业街区。',
+      features:[{id:'tour',name:'云参观空间',icon:'🎬',desc:'体验火把节盛况'},{id:'products',name:'彝绣好物',icon:'🧵',desc:'彝族刺绣工艺品'},{id:'story',name:'火把文化',icon:'📖',desc:'千年传承'},{id:'ar',name:'AR互动',icon:'🥽',desc:'AR火把点燃体验'}],
+      products:[{id:'xc2-1',name:'彝绣披肩',price:588,image:'🧣',specs:['传统黑','火焰红','星空蓝'],desc:'手工刺绣披肩。'},{id:'xc2-2',name:'火把节数字门票',price:88,image:'🎟️',specs:['单日','三日','全程'],desc:'含AR互动体验。'},{id:'xc2-3',name:'彝族漆器餐具',price:358,image:'🥢',specs:['单人','双人','家庭'],desc:'非遗漆器技艺。'},{id:'xc2-4',name:'月亮女儿数字藏品',price:166,image:'🌙',specs:['普通','限量','典藏'],desc:'NFT数字艺术品。'}]}];
+
+  const cityPositions={'cd1':{x:52,y:48},'cd2':{x:58,y:52},'lz1':{x:85,y:68},'xc1':{x:48,y:78},'xc2':{x:55,y:82}};
+  let currentBusiness=null,currentProduct=null,selectedSpec=null,previousPage='mapPage',cart=[],is3D=false;
+
+  // ===== 缩放状态 =====
+  let zoomScale=1,zoomMin=0.5,zoomMax=4;
+  let panX=0,panY=0;
+  let isDragging=false,startX=0,startY=0,lastPanX=0,lastPanY=0;
+  let lastDist=0,lastZoomScale=0;
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    updateStatusTime();
+    setInterval(updateStatusTime,30000);
+    initMap();initSidebar();initEvents();
+  });
+
+  function updateStatusTime(){
+    const d=new Date();
+    document.getElementById('statusTime').textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+  }
+
+  let isEditMode=false, dragBizId=null;
+
+  function initMap(){
+    const container=document.getElementById('mapContainer');
+    const markersLayer=document.getElementById('markersLayer');
+    const cc={成都:'chengdu',泸州:'luzhou',西昌:'xichang'};
+
+    // 从localStorage加载已保存的坐标
+    loadSavedPositions();
+
+    // 放置商家标记
+    businesses.forEach(biz=>{
+      const pos=cityPositions[biz.id];
+      if(!pos)return;
+      const m=document.createElement('div');
+      m.className='biz-marker marker-'+cc[biz.city];
+      m.dataset.bizId=biz.id;
+      m.style.left=pos.x+'%';m.style.top=pos.y+'%';
+      m.innerHTML='<div class="marker-label">'+biz.name.split('·')[0]+'</div>'+
+        '<div class="pulse-marker"><div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-dot"></div></div>'+
+        '<div class="coord-tag" id="coord_'+biz.id+'">'+pos.x+'% '+pos.y+'%</div>';
+      m.addEventListener('click',e=>{if(isEditMode)return;e.stopPropagation();showPopup(biz);});
+      setupMarkerDrag(m,biz.id);
+      markersLayer.appendChild(m);
+    });
+
+    // 点击空白关闭弹窗（标记点击已 stopPropagation）
+    container.addEventListener('click',()=>hidePopup());
+
+    // 图片加载失败回退
+    const img=document.getElementById('mapImage');
+    img.onerror=function(){this.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect fill="%230a0a1a" width="400" height="500"/><text fill="%2300d4ff" x="50%25" y="50%25" text-anchor="middle" font-family="sans-serif">请上传四川地图图片</text></svg>';};
+
+    // ===== 拖拽 =====
+    container.addEventListener('mousedown',onDragStart);
+    document.addEventListener('mousemove',onDragMove);
+    document.addEventListener('mouseup',onDragEnd);
+
+    // 触屏拖拽
+    container.addEventListener('touchstart',onTouchStart,{passive:false});
+    container.addEventListener('touchmove',onTouchMove,{passive:false});
+    container.addEventListener('touchend',onTouchEnd,{passive:false});
+
+    // 滚轮缩放
+    container.addEventListener('wheel',onWheel,{passive:false});
+
+    // 更新初始变换
+    updateZoomTransform();
+  }
+
+  // ==================== 缩放/拖拽核心 ====================
+  function updateZoomTransform(){
+    const wrap=document.getElementById('mapZoomWrap');
+    if(wrap)wrap.style.transform='translate('+panX+'px,'+panY+'px) scale('+zoomScale+')';
+    const level=document.getElementById('zoomLevel');
+    if(level)level.textContent=Math.round(zoomScale*100)+'%';
+  }
+
+  function applyZoom(newScale,cx,cy){
+    const container=document.getElementById('mapContainer');
+    const rect=container.getBoundingClientRect();
+    const cw=rect.width,ch=rect.height;
+    // 如果没有指定中心点，使用容器中心
+    if(cx===undefined){cx=cw/2;cy=ch/2;}
+    // 计算中心点在当前变换下的位置
+    const prevCx=(cx-panX)/zoomScale;
+    const prevCy=(cy-panY)/zoomScale;
+    zoomScale=Math.max(zoomMin,Math.min(zoomMax,newScale));
+    // 调整平移使中心点不变
+    panX=cx-prevCx*zoomScale;
+    panY=cy-prevCy*zoomScale;
+    clampPan();
+    updateZoomTransform();
+  }
+
+  function clampPan(){
+    const container=document.getElementById('mapContainer');
+    const cw=container.offsetWidth,ch=container.offsetHeight;
+    const minX=cw*(1-zoomScale),minY=ch*(1-zoomScale);
+    panX=Math.min(0,Math.max(minX,panX));
+    panY=Math.min(0,Math.max(minY,panY));
+  }
+
+  // 鼠标拖拽
+  function onDragStart(e){
+    if(e.button!==0||isEditMode)return;
+    isDragging=true;startX=e.clientX;startY=e.clientY;
+    lastPanX=panX;lastPanY=panY;
+  }
+  function onDragMove(e){
+    if(!isDragging)return;
+    panX=lastPanX+(e.clientX-startX);
+    panY=lastPanY+(e.clientY-startY);
+    updateZoomTransform();
+  }
+  function onDragEnd(){isDragging=false;}
+
+  // 触屏
+  let touchIds={};
+  function onTouchStart(e){
+    if(e.touches.length===1&&!isEditMode){
+      isDragging=true;startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+      lastPanX=panX;lastPanY=panY;
+    }else if(e.touches.length===2){
+      isDragging=false;
+      const t=e.touches;lastDist=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      lastZoomScale=zoomScale;
+    }
+  }
+  function onTouchMove(e){
+    if(e.touches.length===1&&isDragging){
+      panX=lastPanX+(e.touches[0].clientX-startX);
+      panY=lastPanY+(e.touches[0].clientY-startY);
+      updateZoomTransform();
+    }else if(e.touches.length===2){
+      const t=e.touches;const dist=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      if(lastDist>0){
+        const midX=(t[0].clientX+t[1].clientX)/2,midY=(t[0].clientY+t[1].clientY)/2;
+        applyZoom(lastZoomScale*(dist/lastDist),midX,midY);
+      }
+    }
+  }
+  // 双击缩放
+  let lastTap=0;
+  function onTouchEnd(e){
+    if(e.touches.length<2)isDragging=false;
+    // 双击检测
+    if(e.changedTouches&&e.changedTouches.length===1){
+      const now=Date.now();
+      if(now-lastTap<300){
+        const t=e.changedTouches[0];
+        if(zoomScale<1.8){
+          applyZoom(zoomScale*2,t.clientX,t.clientY);
+        }else{
+          zoomReset();
+        }
+        lastTap=0;
+      }else{
+        lastTap=now;
+      }
+    }
+  }
+
+  // 滚轮
+  function onWheel(e){
+    e.preventDefault();
+    const delta=e.deltaY>0?-1:1;
+    const factor=1+delta*0.12;
+    applyZoom(zoomScale*factor,e.clientX,e.clientY);
+  }
+
+  // 缩放按钮
+  function zoomIn(){applyZoom(zoomScale*1.3);}
+  function zoomOut(){applyZoom(zoomScale*0.77);}
+  function zoomReset(){zoomScale=1;panX=0;panY=0;updateZoomTransform();}
+  // ==================== 缩放结束 ====================
+
+  // ==================== 坐标调整 ====================
+  function loadSavedPositions(){
+    try{
+      const saved=localStorage.getItem('sc_biz_positions_v2');
+      if(saved){const p=JSON.parse(saved);Object.assign(cityPositions,p);}
+    }catch(e){}
+  }
+  function savePositions(){
+    try{localStorage.setItem('sc_biz_positions_v2',JSON.stringify(cityPositions));}catch(e){}
+  }
+
+  function toggleEditMode(){
+    isEditMode=!isEditMode;
+    const wrapper=document.getElementById('mapWrapper');
+    const btn=document.getElementById('editToggle');
+    const panel=document.getElementById('coordPanel');
+    wrapper.classList.toggle('edit-mode',isEditMode);
+    btn.classList.toggle('active',isEditMode);
+    btn.textContent=isEditMode?'✔️':'✏️';
+    panel.classList.toggle('show',isEditMode);
+    if(isEditMode)updateCoordList();
+  }
+
+  function updateCoordList(){
+    const list=document.getElementById('coordList');
+    list.innerHTML=businesses.map(b=>{
+      const p=cityPositions[b.id];
+      return '<div class="cp-item"><span class="cp-name">'+b.cover+' '+b.name.split('·')[0]+'</span><span class="cp-coord">'+Math.round(p.x)+'%  '+Math.round(p.y)+'%</span></div>';
+    }).join('');
+  }
+
+  // 标记拖拽调整
+  function setupMarkerDrag(marker,bizId){
+    let dragging=false,offX=0,offY=0;
+
+    function onPointerDown(e){
+      if(!isEditMode)return;
+      e.stopPropagation();
+      dragging=true;
+      marker.classList.add('dragging');
+      const rect=marker.parentElement.getBoundingClientRect();
+      const cx=e.clientX||e.touches[0].clientX;
+      const cy=e.clientY||e.touches[0].clientY;
+      offX=cx-rect.left;offY=cy-rect.top;
+    }
+    function onPointerMove(e){
+      if(!dragging||!isEditMode)return;
+      e.preventDefault();
+      const rect=marker.parentElement.getBoundingClientRect();
+      const cx=e.clientX||e.touches[0].clientX;
+      const cy=e.clientY||e.touches[0].clientY;
+      let px=Math.max(0,Math.min(100,(cx-rect.left)/rect.width*100));
+      let py=Math.max(0,Math.min(100,(cy-rect.top)/rect.height*100));
+      marker.style.left=px+'%';marker.style.top=py+'%';
+      cityPositions[bizId]={x:px,y:py};
+      const tag=document.getElementById('coord_'+bizId);
+      if(tag)tag.textContent=Math.round(px)+'% '+Math.round(py)+'%';
+    }
+    function onPointerUp(){
+      if(dragging){
+        dragging=false;marker.classList.remove('dragging');
+        savePositions();
+        updateCoordList();
+      }
+    }
+
+    marker.addEventListener('mousedown',onPointerDown);
+    document.addEventListener('mousemove',onPointerMove);
+    document.addEventListener('mouseup',onPointerUp);
+    marker.addEventListener('touchstart',onPointerDown,{passive:false});
+    document.addEventListener('touchmove',onPointerMove,{passive:false});
+    document.addEventListener('touchend',onPointerUp);
+  }
+
+  function initSidebar(){
+    const list=document.getElementById('sidebarList');
+    list.innerHTML=businesses.map(b=>'<div class="sb-item" onclick="enterBusiness(\''+b.id+'\');toggleSidebar()"><div class="sb-icon">'+b.cover+'</div><div class="sb-info"><div class="sb-name">'+b.name+'</div><div class="sb-meta">'+b.city+' · '+b.products.length+'件好物</div></div></div>').join('');
+  }
+
+  function initEvents(){
+    document.getElementById('viewToggle').addEventListener('click',()=>{
+      is3D=!is3D;
+      const w=document.getElementById('mapWrapper'),b=document.getElementById('viewToggle');
+      w.classList.toggle('map-3d-mode',is3D);b.classList.toggle('active',is3D);
+      b.textContent=is3D?'2D':'🔄';
+    });
+    document.getElementById('menuToggle').addEventListener('click',toggleSidebar);
+    document.getElementById('editToggle').addEventListener('click',toggleEditMode);
+    document.getElementById('zoomIn').addEventListener('click',zoomIn);
+    document.getElementById('zoomOut').addEventListener('click',zoomOut);
+    document.getElementById('zoomReset').addEventListener('click',zoomReset);
+    document.getElementById('searchInput').addEventListener('input',function(){
+      const v=this.value.toLowerCase();
+      document.querySelectorAll('.sb-item').forEach(item=>{
+        const onclick=item.getAttribute('onclick')||'';
+        const match=onclick.match(/'([^']+)'/);
+        const id=match?match[1]:'';
+        const b=businesses.find(x=>x.id===id);
+        item.style.display=b&&(b.name.toLowerCase().includes(v)||b.city.toLowerCase().includes(v))?'flex':'none';
+      });
+    });
+  }
+
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+  function showPopup(biz){
+    hidePopup();
+    document.getElementById('popCover').textContent=biz.cover;
+    document.getElementById('popName').textContent=biz.name;
+    document.getElementById('popCity').textContent='◆ '+biz.city;
+    document.getElementById('popDesc').textContent=biz.description;
+    document.getElementById('popTags').innerHTML=biz.products.slice(0,3).map(p=>'<span class="pop-tag">'+p.name+'</span>').join('');
+    document.getElementById('popBtn').onclick=function(){enterBusiness(biz.id);hidePopup();};
+    document.getElementById('mapPopup').classList.add('show');
+  }
+  function hidePopup(){document.getElementById('mapPopup').classList.remove('show');}
+
+  function showPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+  function goBackFromCart(){showPage(previousPage);}
+
+  function enterBusiness(bizId){
+    const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
+    currentBusiness=biz;
+    let html='<div class="biz-header"><div class="biz-btn-back" onclick="showPage(\'mapPage\')"><span>‹</span> 返回</div><div class="biz-cover">'+biz.cover+'</div><div class="biz-title">'+biz.name+'</div><div class="biz-desc">'+biz.description+'</div></div>';
+    html+='<div class="sec-title"><h3>🏪 空间功能</h3></div><div class="f-grid">';
+    biz.features.forEach((f,i)=>{html+='<div class="f-card" onclick="handleFeature(\''+f.id+'\',\''+biz.id+'\')" style="animation:fadeInUp .4s ease '+(i*0.1)+'s forwards;opacity:0"><div class="fi">'+f.icon+'</div><div class="fn">'+f.name+'</div><div class="fd">'+f.desc+'</div></div>';});
+    html+='</div>';
+    html+='<div class="sec-title"><h3>🛒 推荐商品</h3><span class="ml" onclick="showProductList(\''+biz.id+'\')">查看全部 ›</span></div><div class="f-prods">';
+    biz.products.slice(0,4).forEach(p=>{html+='<div class="f-p-card" onclick="showProductDetail(\''+p.id+'\',\''+biz.id+'\')"><div class="pi" style="background:'+getGradient(p)+'">'+p.image+'</div><div class="pib"><div class="pn">'+p.name+'</div><div class="pp">'+p.price+'</div></div></div>';});
+    html+='</div>';
+    document.getElementById('businessContent').innerHTML=html;
+    showPage('businessPage');
+  }
+
+  function handleFeature(fid,bizId){
+    if(fid==='products'){showProductList(bizId);return;}
+    const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
+    const f=biz.features.find(x=>x.id===fid);if(!f)return;
+    const msgs={tour:'🎬 正在进入「'+f.name+'」...\n（演示模式：VR全景漫游）',story:'📖 「'+f.name+'」\n（演示模式：品牌故事展览）',ar:'🥽 正在启动AR模块...\n（演示模式：虚拟试穿/体验）'};
+    showToast(msgs[fid]||'🚧 「'+f.name+'」开发中...');
+  }
+
+  function getGradient(p){
+    const colors={'🏙️':'linear-gradient(135deg,#667eea,#764ba2)','🌐':'linear-gradient(135deg,#f093fb,#f5576c)','🍶':'linear-gradient(135deg,#4facfe,#00f2fe)','🌊':'linear-gradient(135deg,#43e97b,#38f9d7)','🔥':'linear-gradient(135deg,#fa709a,#fee140)','🧣':'linear-gradient(135deg,#a8edea,#fed6e3)','☕':'linear-gradient(135deg,#d299c2,#fef9d7)','👕':'linear-gradient(135deg,#89f7fe,#66a6ff)','🖼️':'linear-gradient(135deg,#fddb92,#d1fdff)','🥽':'linear-gradient(135deg,#e0c3fc,#8ec5fc)','🎫':'linear-gradient(135deg,#ffecd2,#fcb69f)','🍾':'linear-gradient(135deg,#ff9a9e,#fecfef)','🍷':'linear-gradient(135deg,#a18cd1,#fbc2eb)','🏺':'linear-gradient(135deg,#fad0c4,#ffd1ff)','🍵':'linear-gradient(135deg,#84fab0,#8fd3f4)','💍':'linear-gradient(135deg,#a6c0fe,#f68084)','🎟️':'linear-gradient(135deg,#fccb90,#d57eeb)','🥢':'linear-gradient(135deg,#e0c3fc,#8ec5fc)','🌙':'linear-gradient(135deg,#43e97b,#38f9d7)'};
+    return colors[p.image]||'linear-gradient(135deg,'+getComputedStyle(document.documentElement).getPropertyValue('--pri').trim()+','+getComputedStyle(document.documentElement).getPropertyValue('--sec').trim()+')';
+  }
+
+  function showProductList(bizId){
+    const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
+    currentBusiness=biz;
+    let html='<div class="pl-hdr"><span class="bb" onclick="showPage(\'businessPage\')">‹</span><h2>'+biz.name+'</h2><span class="ci" onclick="showCartPage()">🛒<span class="cart-badge" id="cartBadge2"></span></span></div><div class="p-grid">';
+    biz.products.forEach(p=>{html+='<div class="p-card" onclick="showProductDetail(\''+p.id+'\',\''+biz.id+'\')"><div class="pi-big" style="background:'+getGradient(p)+'">'+p.image+'</div><div class="pbody"><div class="pn2">'+p.name+'</div><div class="pp2">¥'+p.price+'</div></div></div>';});
+    html+='</div>';
+    document.getElementById('productListContent').innerHTML=html;
+    const b2=document.getElementById('cartBadge2');if(b2){const c=cart.reduce((s,i)=>s+i.quantity,0);b2.textContent=c;b2.style.display=c>0?'flex':'none';}
+    showPage('productListPage');
+  }
+
+  function showProductDetail(pid,bizId){
+    const biz=businesses.find(b=>b.id===bizId);if(!biz)return;
+    const p=biz.products.find(x=>x.id===pid);if(!p)return;
+    currentProduct=p;currentBusiness=biz;selectedSpec=p.specs[0];
+    let html='<div class="pd-detail"><div class="pd-hdr" style="background:'+getGradient(p)+'"><span style="font-size:70px">'+p.image+'</span><div class="pd-back" onclick="showProductList(\''+biz.id+'\')">‹</div><div class="pd-cart-btn" onclick="showCartPage()">🛒</div></div><div class="pd-info"><div class="pd-name">'+p.name+'</div><div class="pd-price">¥'+p.price+'</div><div class="pd-st">选择规格</div><div class="pd-specs" id="specOptions">';
+    p.specs.forEach((s,i)=>{html+='<button class="pd-spec'+(i===0?' selected':'')+'" onclick="selectSpec(this,\''+s+'\')">'+s+'</button>';});
+    html+='</div><div class="pd-desc">'+p.desc+'</div></div></div><div class="buy-bar"><button class="bb2" onclick="addToCartFromDetail()">🛒 加入购物车</button><button class="bbb" onclick="buyNow()">立即购买</button></div>';
+    document.getElementById('productDetailContent').innerHTML=html;
+    showPage('productDetailPage');
+  }
+
+  function selectSpec(btn,spec){document.querySelectorAll('.pd-spec').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');selectedSpec=spec;}
+  function addToCartFromDetail(){
+    if(!currentProduct||!currentBusiness)return;
+    const e=cart.find(i=>i.product.id===currentProduct.id&&i.spec===selectedSpec);
+    e?e.quantity++:cart.push({product:currentProduct,spec:selectedSpec,quantity:1,businessName:currentBusiness.name});
+    updateCartBadge();
+    showToast('✅ 已加入购物车\n'+currentProduct.name+'（'+selectedSpec+'）');
+  }
+  function buyNow(){addToCartFromDetail();showToast('🎉 感谢您的购买！\n订单已提交，商家将尽快发货');}
+
+  function showCartPage(){
+    previousPage=document.querySelector('.page.active').id;
+    const c=document.getElementById('cartContent');
+    if(cart.length===0){
+      c.innerHTML='<div class="cart-hdr"><span class="bb" onclick="goBackFromCart()">‹</span><h2>购物车</h2></div><div class="cart-empty"><div class="ei">🛒</div><div class="et">购物车还是空的</div></div>';
+    }else{
+      let html='<div class="cart-hdr"><span class="bb" onclick="goBackFromCart()">‹</span><h2>购物车</h2><span style="font-size:12px;color:var(--txt3)">共'+cart.reduce((s,i)=>s+i.quantity,0)+'件</span></div><div class="cart-list">';
+      cart.forEach(item=>{html+='<div class="cart-item"><div class="ci-img" style="background:'+getGradient(item.product)+'">'+item.product.image+'</div><div class="ci-info"><div class="ci-name">'+item.product.name+'</div><div class="ci-spec">'+item.spec+' × '+item.quantity+'</div><div class="ci-bot"><span class="ci-price">¥'+(item.product.price*item.quantity)+'</span><span style="font-size:11px;color:var(--txt3)">'+item.businessName+'</span></div></div></div>';});
+      html+='</div>';
+      c.innerHTML=html;
+    }
+    showPage('cartPage');
+  }
+  function updateCartBadge(){
+    const b=document.getElementById('cartBadge');
+    if(b){const c=cart.reduce((s,i)=>s+i.quantity,0);b.textContent=c;b.style.display=c>0?'flex':'none';}
+  }
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+</script>
+</body>
+</html>
