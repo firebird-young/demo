@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>贵州茅台 · 空间</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#fff;font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+    display:flex;justify-content:center;align-items:center;
+    min-height:100vh;overflow:hidden;user-select:none;
+  }
+  .phone{
+    position:relative;width:860px;height:430px;
+    border-radius:36px;background:#1a1a2e;padding:12px;
+    box-shadow:0 30px 80px rgba(0,0,0,.7),inset 0 0 0 2px #333;
+    animation:in .7s ease-out;
+  }
+  @keyframes in{0%{opacity:0;transform:translateY(60px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
+  .screen{
+    position:relative;width:100%;height:100%;border-radius:24px;
+    overflow:hidden;background:#000;
+  }
+  .screen::before{
+    content:'';position:absolute;inset:0;
+    background:url('茅台空间.png')center/cover no-repeat;
+    z-index:0;
+  }
+
+  /* ── 覆盖层 ── */
+  .overlay{position:absolute;inset:0;z-index:1;pointer-events:none}
+  .overlay>*{pointer-events:auto}
+
+  /* ── 返回箭头 ── */
+  .back-btn{
+    position:absolute;top:14px;left:14px;z-index:10;
+    cursor:pointer;
+    animation:bounce 1.2s ease-in-out infinite;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
+    transition:transform .25s;
+  }
+  .back-btn:hover{animation:none;transform:scale(1.12)}
+  .back-btn:active{transform:scale(.92)}
+  .back-btn img{display:block;width:36px;height:auto;transform:rotate(-90deg)}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+  /* ── 场景名称 ── */
+  .scene-title{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:10;
+    color:#fff;font-size:15px;font-weight:600;
+    text-shadow:0 2px 12px rgba(0,0,0,.7);
+    background:rgba(0,0,0,.45);padding:5px 16px;
+    backdrop-filter:blur(6px);letter-spacing:1px;
+    border:1px solid rgba(255,255,255,.1);
+  }
+  .scene-title .title-logo{width:20px;height:20px;vertical-align:middle;margin-right:4px;display:inline-block;object-fit:cover}
+
+  /* ── 起点（李白待机） ── */
+  .origin{
+    position:absolute;width:64px;height:64px;cursor:default;z-index:10;
+    transition:left 1.6s cubic-bezier(.34,1.56,.64,1),top 1.6s cubic-bezier(.34,1.56,.64,1);
+  }
+  .origin-dot{
+    width:100%;height:100%;border-radius:50%;
+    background:url('李白待机.gif')center/cover no-repeat;
+    box-shadow:0 0 24px rgba(100,200,255,.6);
+    animation:float 2.4s ease-in-out infinite;
+  }
+  .origin-ring{
+    position:absolute;inset:-8px;border-radius:50%;
+    border:2px solid rgba(100,200,255,.4);
+    animation:ringPulse 2s ease-out infinite;
+  }
+  .origin-ring:nth-child(2){animation-delay:.7s}
+  .origin-ring:nth-child(3){animation-delay:1.4s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes ringPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.6);opacity:0}}
+
+  /* ── 点位 ── */
+  .spot{
+    position:absolute;cursor:pointer;z-index:8;
+    transition:transform .25s;
+  }
+  .spot:hover .spot-label{background:rgba(70,180,255,.7);transform:translateX(-50%) scale(1.06);box-shadow:0 0 16px rgba(0,180,255,.4)}
+  .spot .spot-label{
+    white-space:nowrap;color:#fff;font-size:13px;font-weight:600;
+    text-shadow:0 1px 6px rgba(0,0,0,.8);
+    background:rgba(0,0,0,.6);padding:6px 18px;
+    backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.12);
+    transition:transform .25s,background .25s,box-shadow .25s;
+    letter-spacing:.5px;
+  }
+  .spot:hover .spot-label{background:rgba(70,180,255,.7);transform:translateX(-50%) scale(1.06);box-shadow:0 0 16px rgba(0,180,255,.4)}
+
+  @media (max-width:920px){
+    .phone{width:calc(100vw - 40px);height:calc((100vw - 40px)*.5)}
+  }
+  @media (max-height:500px){
+    .phone{height:calc(100vh - 40px);width:calc((100vh - 40px)*2)}
+  }
+  @media (max-width:768px){
+    body{background:#000}
+    .phone{width:100vw;height:100vh;border-radius:0;padding:0;box-shadow:none;animation:none}
+    .screen{border-radius:0}
+    .spot .spot-label{font-size:10px;padding:3px 10px}
+    .spot .spot-icon{width:32px;height:32px;font-size:15px}
+    .back-btn{font-size:11px;padding:4px 10px;top:8px;left:8px}
+    .origin{width:44px;height:44px}
+    .scene-title{font-size:12px;padding:3px 12px;top:8px}
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen">
+    <div class="overlay">
+
+      <!-- 返回按钮 -->
+      <div class="back-btn" onclick="history.back()"><img src="arrow.png" alt="返回"></div>
+
+      <!-- 场景名称 -->
+      <div class="scene-title"><img src="贵州茅台.jpg" class="title-logo"> 贵州茅台 · 元宇宙空间</div>
+
+      <!-- 起点 -->
+      <div class="origin" id="origin" style="left:30%;top:80%;transform:translate(-50%,-50%)">
+        <div class="origin-ring"></div>
+        <div class="origin-ring"></div>
+        <div class="origin-dot"></div>
+      </div>
+
+      <!-- 四个点位 -->
+      <div class="spot" style="left:12%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('vr')">
+        <div class="spot-label">VR云参观</div>
+      </div>
+      <div class="spot" style="left:32%;top:60%;transform:translate(-50%,-50%)" onclick="goSpot('assets')">
+        <div class="spot-label">数字资产商城</div>
+      </div>
+      <div class="spot" style="left:68%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('brew')">
+        <div class="spot-label">酿酒工艺演示</div>
+      </div>
+      <div class="spot" style="left:88%;top:70%;transform:translate(-50%,-50%)" onclick="goSpot('digital')">
+        <div class="spot-label">茅小美·数字人</div>
+      </div>
+      <div class="spot" style="left:50%;top:90%;transform:translate(-50%,-50%)" onclick="goSpot('miniapp')">
+        <div class="spot-label">📱 茅台小程序</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 小程序弹窗 -->
+<div class="mp-mask" id="mpMask" onclick="hideMP()">
+  <div class="mp-box" onclick="event.stopPropagation()">
+    <h3>📱 茅台小程序</h3>
+    <p>请使用微信扫码打开</p>
+    <div class="mp-qr" id="mpQr"></div>
+    <button class="mp-btn" onclick="openWechat()">打开微信</button>
+    <span class="mp-close" onclick="hideMP()">关闭</span>
+  </div>
+</div>
+
+<style>
+  .mp-mask{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+  .mp-mask.show{opacity:1;pointer-events:auto}
+  .mp-box{background:#1c1c38;border-radius:16px;padding:24px 28px 20px;width:280px;text-align:center;border:1px solid rgba(255,255,255,.08);transform:scale(.88);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .mp-mask.show .mp-box{transform:scale(1)}
+  .mp-box h3{color:#fff;font-size:15px;margin-bottom:4px}
+  .mp-box p{color:rgba(255,255,255,.5);font-size:11px;margin-bottom:14px}
+  .mp-qr{width:140px;height:140px;margin:0 auto 14px;overflow:hidden;border:2px solid rgba(255,255,255,.1)}
+  .mp-qr img{width:100%;height:100%;object-fit:cover;display:block}
+  .mp-btn{width:100%;padding:10px;border:none;background:linear-gradient(135deg,#07c160,#06ad56);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+  .mp-btn:active{transform:scale(.97)}
+  .mp-close{display:block;margin-top:8px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer}
+</style>
+
+<script>
+  const origin=document.getElementById('origin');
+
+  function goSpot(type){
+    const spots={
+      vr:{left:12,top:50},
+      assets:{left:32,top:60},
+      brew:{left:68,top:50},
+      digital:{left:88,top:70},
+      miniapp:{left:50,top:90},
+    };
+    const s=spots[type];
+    if(!s)return;
+
+    // 停在点位上方，不遮挡
+    origin.style.left=s.left+'%';
+    origin.style.top=(s.top-8)+'%';
+
+    // 1.6s 后跳转
+    setTimeout(()=>{
+      switch(type){
+        case 'vr': window.location.href='vr_maotai.html';break;
+        case 'assets': window.location.href='assets_maotai.html';break;
+        case 'brew': window.location.href='brew_maotai.html';break;
+        case 'digital': window.location.href='chat_maotai.html';break;
+        case 'miniapp': showMP();break;
+      }
+    },1700);
+  }
+
+  function showMP(){
+    const m=document.getElementById('mpMask');m.classList.add('show');
+    const q=document.getElementById('mpQr');
+    if(!q.querySelector('img')){
+      const i=document.createElement('img');
+      i.src='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+encodeURIComponent('weixin://dl/business/?appid=wx1c34cb879c935c1a&path=pages/voice/index&env_version=release');
+      i.alt='茅台小程序码';q.appendChild(i);
+    }
+  }
+  function hideMP(){document.getElementById('mpMask').classList.remove('show')}
+  function openWechat(){
+    window.location.href='weixin://dl/business/?appid=wx1c34cb879c935c1a&path=pages/voice/index&env_version=release';
+    setTimeout(hideMP,800);
+  }
+</script>
+</body>
+</html>
