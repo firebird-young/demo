@@ -85,10 +85,17 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 .goods-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .goods-card{background:#fff;border-radius:20px;overflow:hidden;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.04);transition:transform .2s,box-shadow .2s}
 .goods-card:active{transform:scale(.96);box-shadow:0 4px 14px rgba(0,0,0,.08)}
-.goods-card img{width:100%;height:130px;object-fit:cover;display:block}
+.goods-img{width:100%;height:130px;background-position:center;background-size:cover;position:relative}
+.goods-img .gi-badge{position:absolute;top:8px;left:8px;font-size:9px;padding:2px 8px;border-radius:4px;color:#fff;font-weight:600}
+.ba-food{background:#D70C1F}.ba-ent{background:#6c5ce7}.ba-tour{background:#00b894}.ba-film{background:#d35400}
 .goods-card h4{font-size:13px;font-weight:600;padding:10px 12px 0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.goods-card .tags{padding:0 12px;margin-top:4px}
-.goods-card .tags span{display:inline-block;font-size:9px;color:#D70C1F;background:#FFF2F3;padding:2px 8px;border-radius:4px;font-weight:500}
+.goods-card .tags{padding:0 12px;margin-top:4px;display:flex;gap:4px;flex-wrap:wrap}
+.goods-card .tags span{display:inline-block;font-size:9px;padding:2px 8px;border-radius:4px;font-weight:500}
+.goods-card .tags .cat-tag{color:#D70C1F;background:#FFF2F3}
+.t-sale-all{color:#2980b9;background:#E8F4FD}
+.t-sale-prior{color:#f0ad4e;background:#FFF8EC}
+.t-sale-lottery{color:#6c5ce7;background:#F3F0FF}
+.t-sale-combo{color:#00b894;background:#E6F9F0}
 .goods-card .price{color:#D70C1F;font-size:22px;font-weight:700;padding:4px 12px 0}
 .goods-card .price small{font-size:11px;font-weight:400;color:#999}
 .goods-card .sold{color:#999;font-size:10px;padding:0 12px 12px}
@@ -102,6 +109,51 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 .bnav .ni.on{color:#D70C1F}
 .bnav .ni.on .ico{transform:scale(1.05)}
 .bnav .ni span:last-child{font-size:10px;display:block}
+
+/* ── 发售日历 ── */
+.calendar-wrap{background:#fff;border-radius:16px;padding:10px 14px 6px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.cal-day-block{margin-bottom:6px}
+.cal-day-block:last-child{margin-bottom:0}
+.cal-day-hdr{font-size:12px;font-weight:700;color:#1a1a2e;padding:4px 0 6px;display:flex;align-items:center;gap:6px}
+.cal-day-hdr::before{content:'';width:14px;height:14px;border-radius:50%;border:3px solid #D70C1F;background:#fff;flex-shrink:0}
+.cal-day-hdr::after{content:'';flex:1;height:1px;background:#f0f0f0;margin-left:0}
+.cal-prod{display:flex;align-items:center;gap:10px;padding:6px 0 6px 8px;border-left:2px solid #f5f5f7;margin-left:6px;cursor:pointer;transition:background .12s}
+.cal-day-block:last-child .cal-prod:last-child{border-left-color:transparent}
+.cal-prod:active{background:#fafafa}
+.cal-prod-img{width:44px;height:54px;border-radius:8px;background-position:center;background-size:cover;flex-shrink:0}
+.cal-prod-info{flex:1;min-width:0}
+.cal-prod-name{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-prod-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.cal-prod-tags span{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:500}
+.cal-prod-time{font-size:10px;color:#bbb}
+.cal-prod-price{font-size:15px;font-weight:700;color:#D70C1F;flex-shrink:0}
+.cal-prod-price small{font-size:10px;font-weight:400;color:#999}
+
+/* ── 发售日历弹窗 ── */
+.cal-modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.cal-modal-mask.show{opacity:1;pointer-events:auto}
+.cal-modal{width:100%;max-width:430px;max-height:75vh;background:#f6f7fb;border-radius:20px 20px 0 0;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.cal-modal-mask.show .cal-modal{transform:translateY(0)}
+.cal-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;background:#fff;border-radius:20px 20px 0 0;position:sticky;top:0;z-index:2}
+.cal-modal-hdr h3{font-size:17px;font-weight:700;color:#1a1a2e}
+.cal-modal-close{width:32px;height:32px;border-radius:50%;background:#f5f5f7;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.cal-modal-close svg{width:18px;height:18px;color:#999}
+.cal-modal-body{padding:12px 16px 20px}
+.cal-day-group{margin-bottom:16px}
+.cal-day-title{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:8px;padding-left:6px;display:flex;align-items:center;gap:8px}
+.cal-day-title::before{content:'';width:4px;height:16px;background:#D70C1F;border-radius:2px;flex-shrink:0}
+.cal-modal-item{display:flex;gap:12px;background:#fff;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.04);cursor:pointer;transition:transform .15s}
+.cal-modal-item:active{transform:scale(.98)}
+.cal-modal-item .cmi-img{width:60px;height:74px;border-radius:10px;background-position:center;background-size:cover;flex-shrink:0}
+.cal-modal-item .cmi-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.cal-modal-item .cmi-info .cmi-name{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:4px}
+.cal-modal-item .cmi-info .cmi-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.cal-modal-item .cmi-info .cmi-meta .cmi-badge{font-size:9px;padding:2px 6px;border-radius:3px;color:#fff;font-weight:500}
+.cal-modal-item .cmi-info .cmi-meta .cmi-limit{font-size:10px;color:#999}
+.cal-modal-item .cmi-info .cmi-time{font-size:11px;color:#aaa}
+.cal-modal-item .cmi-price{font-size:16px;font-weight:700;color:#D70C1F;flex-shrink:0;align-self:center}
+.cal-modal-item .cmi-price small{font-size:10px;font-weight:400;color:#999}
+.cal-status-open{font-size:10px;color:#00b894;font-weight:600;margin-top:2px}
 
 /* ── 动画 ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -224,6 +276,15 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
     </div>
   </section>
 
+  <!-- 发售日历 -->
+  <section class="section" style="animation:fadeUp .4s ease-out .18s both">
+    <div class="section-title">
+      <span>发售日历</span>
+      <a onclick="showCalendarModal()">查看全部</a>
+    </div>
+    <div class="calendar-wrap" id="calendarPreview"></div>
+  </section>
+
   <!-- 数字资产市场 -->
   <section class="section">
     <div class="section-title">
@@ -232,32 +293,46 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
     </div>
     <div class="goods-grid">
       <div class="goods-card" onclick="window.location.href='product_maotai1935.html'">
-        <img src="茅台1935.png">
+        <div class="goods-img" style="background-image:url('茅台1935.png')"><span class="gi-badge ba-food">酒水食品</span></div>
         <h4>茅台1935·时光窖藏</h4>
-        <div class="tags"><span>酒水食品</span></div>
+        <div class="tags"><span class="t-sale-combo">组合购</span></div>
         <div class="price">¥599</div>
         <div class="sold">已售 67</div>
       </div>
       <div class="goods-card">
-        <img src="王者荣耀·传说皮肤.png">
+        <div class="goods-img" style="background-image:url('王者荣耀·传说皮肤.png')"><span class="gi-badge ba-ent">文娱</span></div>
         <h4>王者荣耀·传说皮肤</h4>
-        <div class="tags"><span>文娱</span></div>
+        <div class="tags"><span class="t-sale-all">全民购</span></div>
         <div class="price">¥999</div>
         <div class="sold">已售 45</div>
       </div>
       <div class="goods-card">
-        <img src="五粮液·数字珍藏.png">
+        <div class="goods-img" style="background-image:url('五粮液·数字珍藏.png')"><span class="gi-badge ba-food">酒水食品</span></div>
         <h4>五粮液·数字珍藏</h4>
-        <div class="tags"><span>酒水食品</span></div>
+        <div class="tags"><span class="t-sale-lottery">抽签购</span></div>
         <div class="price">¥599</div>
         <div class="sold">已售 67</div>
       </div>
       <div class="goods-card">
-        <img src="杜甫草堂·文旅数字藏品.png">
+        <div class="goods-img" style="background-image:url('杜甫草堂·文旅数字藏品.png')"><span class="gi-badge ba-tour">文旅</span></div>
         <h4>杜甫草堂·文旅数字藏品</h4>
-        <div class="tags"><span>文旅</span></div>
+        <div class="tags"><span class="t-sale-prior">优先购</span></div>
         <div class="price">¥99</div>
         <div class="sold">已售 400</div>
+      </div>
+      <div class="goods-card">
+        <div class="goods-img" style="background-image:url('鬼吹灯.png')"><span class="gi-badge ba-film">影视</span></div>
+        <h4>鬼吹灯·数字资产</h4>
+        <div class="tags"><span class="t-sale-lottery">抽签购</span></div>
+        <div class="price">¥499</div>
+        <div class="sold">已售 128</div>
+      </div>
+      <div class="goods-card">
+        <div class="goods-img" style="background-image:url('三体.png')"><span class="gi-badge ba-film">影视</span></div>
+        <h4>三体·数字资产</h4>
+        <div class="tags"><span class="t-sale-prior">优先购</span></div>
+        <div class="price">¥699</div>
+        <div class="sold">已售 256</div>
       </div>
     </div>
   </section>
@@ -287,6 +362,106 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
     <span>我的</span>
   </button>
 </div>
+
+<!-- 发售日历弹窗 -->
+<div class="cal-modal-mask" id="calendarModal" onclick="closeCalendar(event)">
+  <div class="cal-modal" onclick="event.stopPropagation()">
+    <div class="cal-modal-hdr">
+      <h3>发售日历</h3>
+      <div class="cal-modal-close" onclick="closeCalendar()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="cal-modal-body" id="calendarFull"></div>
+  </div>
+</div>
+
+<script>
+// ═══ 发售日历数据 ═══
+var calendarData = [
+  { date:'06月11日', time:'14:00', name:'茅台1935·乙巳蛇年', img:'茅台1935.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量999份', price:'¥899', status:'开启优先购' },
+  { date:'06月11日', time:'12:00', name:'王者荣耀·限定史诗', img:'王者荣耀·传说皮肤.png', cat:'ent', catLabel:'文娱', sale:'抽签购', saleCls:'t-sale-lottery', limit:'限量2000份', price:'¥499', status:'开启抽签' },
+  { date:'06月10日', time:'14:00', name:'妙可蓝多·星球创世', img:'妙可蓝多.jpeg', cat:'food', catLabel:'酒水食品', sale:'组合购', saleCls:'t-sale-combo', limit:'限量888份', price:'¥1299', status:'开启组合购' },
+  { date:'06月10日', time:'12:00', name:'飞天茅台·甲辰龙年', img:'飞天茅台·元宇宙酒票.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量666份', price:'¥2999', status:'开启优先购' },
+  { date:'06月12日', time:'10:00', name:'杜甫草堂·周年典藏', img:'杜甫草堂·文旅数字藏品.png', cat:'tour', catLabel:'文旅', sale:'全民购', saleCls:'t-sale-all', limit:'限量3000份', price:'¥199', status:'即将开启' }
+];
+
+var catBadgeCls = { food:'ba-food', ent:'ba-ent', tour:'ba-tour' };
+
+// ═══ 首页预览（时间线样式，最多2条） ═══
+function renderCalendarPreview(){
+  var list = calendarData.slice(0, 2);
+  var grouped = {};
+  list.forEach(function(item){
+    if(!grouped[item.date]) grouped[item.date] = [];
+    grouped[item.date].push(item);
+  });
+  var html = '';
+  Object.keys(grouped).forEach(function(date){
+    html += '<div class="cal-day-block">';
+    html +=   '<div class="cal-day-hdr">'+date+'</div>';
+    grouped[date].forEach(function(item){
+      html +=
+        '<div class="cal-prod" onclick="showCalendarModal()">'+
+          '<div class="cal-prod-img" style="background-image:url(\''+item.img+'\')"></div>'+
+          '<div class="cal-prod-info">'+
+            '<div class="cal-prod-name">'+item.name+'</div>'+
+            '<div class="cal-prod-tags">'+
+              '<span class="'+item.saleCls+'">'+item.sale+'</span>'+
+              '<span style="color:#999;background:#f5f5f7">'+item.limit+'</span>'+
+            '</div>'+
+            '<div class="cal-prod-time">'+item.time+' · '+item.status+'</div>'+
+          '</div>'+
+          '<div class="cal-prod-price">'+item.price+'</div>'+
+        '</div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('calendarPreview').innerHTML = html;
+}
+
+// ═══ 弹窗完整列表 ═══
+function renderCalendarFull(){
+  var grouped = {};
+  calendarData.forEach(function(item){
+    if(!grouped[item.date]) grouped[item.date] = [];
+    grouped[item.date].push(item);
+  });
+  var html = '';
+  Object.keys(grouped).forEach(function(date){
+    html += '<div class="cal-day-group"><div class="cal-day-title">'+date+'</div>';
+    grouped[date].forEach(function(item){
+      html +=
+        '<div class="cal-modal-item">'+
+          '<div class="cmi-img" style="background-image:url(\''+item.img+'\')"></div>'+
+          '<div class="cmi-info">'+
+            '<div class="cmi-name">'+item.name+'</div>'+
+            '<div class="cmi-meta">'+
+              '<span class="cmi-badge '+catBadgeCls[item.cat]+'">'+item.catLabel+'</span>'+
+              '<span class="cmi-limit">'+item.limit+'</span>'+
+            '</div>'+
+            '<div class="cmi-time">'+item.time+' · '+item.sale+'</div>'+
+            '<div class="cal-status-open">'+item.status+'</div>'+
+          '</div>'+
+          '<div class="cmi-price">'+item.price+'</div>'+
+        '</div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('calendarFull').innerHTML = html;
+}
+
+function showCalendarModal(){
+  renderCalendarFull();
+  document.getElementById('calendarModal').classList.add('show');
+}
+function closeCalendar(e){
+  if(e && e.target !== document.getElementById('calendarModal')) return;
+  document.getElementById('calendarModal').classList.remove('show');
+}
+
+renderCalendarPreview();
+</script>
 
 </body>
 </html>

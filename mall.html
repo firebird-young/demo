@@ -222,29 +222,30 @@
   .next-scene-btn {
     position: absolute;
     top: 52px;
-    left: 50%;
-    transform: translateX(-50%);
     z-index: 31;
     pointer-events: auto;
     cursor: pointer;
-    animation: arrowBounce 1.2s ease-in-out infinite;
+    transform: translate(-50%, -50%);
     filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
     transition: transform .25s;
   }
-  .next-scene-btn:hover {
-    animation: none;
-    transform: translateX(-50%) scale(1.12);
-  }
-  .next-scene-btn:active { transform: translateX(-50%) scale(.92); }
+  .next-scene-btn:hover { transform: translate(-50%, -50%) scale(1.12); }
+  .next-scene-btn:active { transform: translate(-50%, -50%) scale(.92); }
+  .next-scene-btn.left-arrow { animation: arrowBounceLeft 1.2s ease-in-out infinite; }
+  .next-scene-btn.right-arrow { animation: arrowBounceRight 1.2s ease-in-out infinite; }
   .next-scene-btn img {
     display: block;
-    width: 56px;
+    width: 52px;
     height: auto;
   }
 
-  @keyframes arrowBounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(8px); }
+  @keyframes arrowBounceLeft {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(8px); }
+  }
+  @keyframes arrowBounceRight {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(8px); }
   }
 
   /* ── 气泡弹窗 ── */
@@ -375,6 +376,14 @@
       </div>
     </div>
 
+    <!-- 场景3 -->
+    <div class="scene-layer hidden" id="scene3"
+         style="background-image:url('scene3.png')">
+      <div class="scene-overlay" data-scene="3">
+        <div class="scene-title">影视区</div>
+      </div>
+    </div>
+
   </div><!-- /phone-screen -->
 </div><!-- /phone -->
 
@@ -386,13 +395,17 @@
 const SCENES = {
   1: {
     name: '食品区',
-    origin: { left: 50, top: 80 },                             // 起点位置 (%)
+    origin: { left: 50, top: 80 },
     spots: [
       { left: 25, top: 40, label: '妙可蓝多' },
       { left: 30, top: 80, label: '黄老五食品' },
       { left: 60, top: 50, label: '五粮液' },
       { left: 80, top: 60, label: '贵州茅台' },
     ],
+    arrows: [
+      { to: 2, x: 42, y: 8, rot: -45, cls: 'top-arrow' },
+      { to: 3, x: 58, y: 8, rot: 45,  cls: 'top-arrow' }
+    ]
   },
   2: {
     name: '文旅区',
@@ -404,6 +417,25 @@ const SCENES = {
       { left: 75, top: 40, label: '王者荣耀' },
       { left: 80, top: 70, label: '故宫博物院' },
     ],
+    arrows: [
+      { to: 3, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
+      { to: 1, x: 50, y: 92, rot: 180, cls: 'bot-arrow' }
+    ]
+  },
+  3: {
+    name: '影视区',
+    origin: { left: 50, top: 80 },
+    spots: [
+      { left: 20, top: 35, label: '魔童哪吒' },
+      { left: 50, top: 35, label: '鬼吹灯' },
+      { left: 80, top: 40, label: '甄嬛传' },
+      { left: 20, top: 70, label: '三体' },
+      { left: 70, top: 70, label: '庆余年' },
+    ],
+    arrows: [
+      { to: 2, x: 50, y: 8, rot: -90, cls: 'top-arrow' },
+      { to: 1, x: 50, y: 92, rot: 180, cls: 'bot-arrow' }
+    ]
   },
 };
 
@@ -461,7 +493,7 @@ function renderScene(sceneId) {
   navPopup.className = 'nav-popup';
   navPopup.innerHTML = '<div class="popup-content"></div>';
   const popupContent = navPopup.querySelector('.popup-content');
-  [1, 2].forEach(id => {
+  [1, 2, 3].forEach(id => {
     const item = document.createElement('div');
     item.className = 'popup-item' + (id === sceneId ? ' active' : '');
     item.textContent = SCENES[id].name;
@@ -492,29 +524,30 @@ function renderScene(sceneId) {
   });
 
   // ── 下一场景按钮（箭头图片） ──
-  const nextBtn = document.createElement('div');
-  nextBtn.className = 'next-scene-btn';
-  const nTarget = sceneId === 1 ? 2 : 1;
-  nextBtn.innerHTML = `<img src="arrow.png" alt="下一场景">`;
-  nextBtn.addEventListener('click', () => {
-    // 先获取箭头在屏幕中的中心百分比位置
-    const r = nextBtn.getBoundingClientRect();
-    const c = overlay.getBoundingClientRect();
-    const ax = ((r.left - c.left + r.width / 2) / c.width) * 100;
-    const ay = ((r.top - c.top + r.height / 2) / c.height) * 100;
-
-    // 人物走到箭头处
-    const origin = overlay.querySelector('.origin');
-    if (origin) {
-      if (window._moveTimer) clearTimeout(window._moveTimer);
-      origin.style.left = ax + '%';
-      origin.style.top = ay + '%';
-      window._moveTimer = setTimeout(() => switchScene(nTarget), 1700);
-    } else {
-      switchScene(nTarget);
-    }
+  data.arrows.forEach(function(ar){
+    const nextBtn = document.createElement('div');
+    nextBtn.className = 'next-scene-btn ' + ar.cls;
+    nextBtn.style.left = ar.x + '%';
+    nextBtn.style.top = ar.y + '%';
+    var rotStyle = ar.rot ? 'transform:rotate('+ar.rot+'deg)' : '';
+    nextBtn.innerHTML = '<img src="arrow.png" alt="下一场景" style="'+rotStyle+'">';
+    nextBtn.addEventListener('click', function(){
+      const r = nextBtn.getBoundingClientRect();
+      const c = overlay.getBoundingClientRect();
+      const ax = ((r.left - c.left + r.width / 2) / c.width) * 100;
+      const ay = ((r.top - c.top + r.height / 2) / c.height) * 100;
+      const origin = overlay.querySelector('.origin');
+      if (origin) {
+        if (window._moveTimer) clearTimeout(window._moveTimer);
+        origin.style.left = ax + '%';
+        origin.style.top = ay + '%';
+        window._moveTimer = setTimeout(function(){ switchScene(ar.to); }, 1700);
+      } else {
+        switchScene(ar.to);
+      }
+    });
+    overlay.appendChild(nextBtn);
   });
-  overlay.appendChild(nextBtn);
 
 }
 
@@ -552,6 +585,7 @@ function switchScene(targetId) {
   // DOM 已创建，只需切换显示
   document.getElementById('scene1').classList.toggle('hidden', targetId !== 1);
   document.getElementById('scene2').classList.toggle('hidden', targetId !== 2);
+  document.getElementById('scene3').classList.toggle('hidden', targetId !== 3);
 
   // 重新渲染新场景（确保点击事件绑定）
   renderScene(targetId);
@@ -572,9 +606,10 @@ function updateNavButtons(activeId) {
 // ═══════════════════════════════════════════════════════
 // 为每个场景预创建 DOM（避免切换闪烁）
 // ═══════════════════════════════════════════════════════
-[1, 2].forEach(id => renderScene(id));
+[1, 2, 3].forEach(function(id){ renderScene(id); });
 document.getElementById('scene1').classList.remove('hidden');
 document.getElementById('scene2').classList.add('hidden');
+document.getElementById('scene3').classList.add('hidden');
 
 // 第一次渲染后同步导航
 updateNavButtons(1);

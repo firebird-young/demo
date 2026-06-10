@@ -87,6 +87,27 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .d3-hint { color: rgba(255,255,255,0.3); font-size: 11px; margin-bottom: 16px; }
 .d3-close { height: 44px; padding: 0 36px; border: none; border-radius: 22px; background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); }
 .d3-close:active { background: rgba(255,255,255,0.2); }
+
+/* ── 发售时间轴 ── */
+.sale-timeline { margin: 12px 16px; background: #fff; border-radius: 16px; padding: 16px 18px 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.sale-timeline .stl-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.sale-timeline .stl-title::before { content: ''; width: 4px; height: 16px; background: #D70C1F; border-radius: 2px; }
+.stl-scroll { max-height: 170px; overflow-y: auto; scrollbar-width: none; }
+.stl-scroll::-webkit-scrollbar { display: none; }
+.stl-item { display: flex; gap: 10px; padding: 6px 0; position: relative; }
+.stl-dot-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 14px; }
+.stl-dot { width: 10px; height: 10px; border-radius: 50%; background: #D70C1F; flex-shrink: 0; position: relative; z-index: 1; }
+.stl-dot.done { background: #bbb; }
+.stl-line { width: 2px; flex: 1; background: #f0f0f0; min-height: 20px; }
+.stl-info { flex: 1; padding-bottom: 13px; }
+.stl-info .stl-label { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; }
+.stl-info .stl-label.done { color: #bbb; }
+.stl-info .stl-desc { font-size: 11px; color: #999; }
+.stl-info .stl-desc .active { color: #D70C1F; font-weight: 600; }
+.stl-item:last-child .stl-line { display: none; }
+.tl-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+.tl-tag.now { background: #FFF2F3; color: #D70C1F; }
+.tl-tag.done-tag { background: #f5f5f7; color: #bbb; }
 </style>
 </head>
 <body>
@@ -125,6 +146,34 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 <!-- 3D欣赏 -->
 <div class="block-3d" onclick="show3D()" style="padding:0;overflow:hidden">
   <img src="3d.png" alt="3D欣赏" style="width:100%;display:block">
+</div>
+
+<!-- 发售时间轴 -->
+<div class="sale-timeline">
+  <div class="stl-title">发售时间轴</div>
+  <div class="stl-scroll">
+    <div class="stl-item">
+      <div class="stl-dot-wrap"><div class="stl-dot done"></div><div class="stl-line"></div></div>
+      <div class="stl-info">
+        <div class="stl-label done">提前预约 <span class="tl-tag done-tag">已结束</span></div>
+        <div class="stl-desc">06月01日 10:00 - 06月05日 23:59</div>
+      </div>
+    </div>
+    <div class="stl-item">
+      <div class="stl-dot-wrap"><div class="stl-dot done"></div><div class="stl-line"></div></div>
+      <div class="stl-info">
+        <div class="stl-label done">优先购阶段 <span class="tl-tag done-tag">已结束</span></div>
+        <div class="stl-desc">06月06日 10:00 - 14:00 · 仅限白银及以上用户</div>
+      </div>
+    </div>
+    <div class="stl-item">
+      <div class="stl-dot-wrap"><div class="stl-dot"></div></div>
+      <div class="stl-info">
+        <div class="stl-label">公开销售 <span class="tl-tag now">进行中</span></div>
+        <div class="stl-desc"><span class="active">06月09日 10:00起</span> · 售完即止</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 发行信息 -->

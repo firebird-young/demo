@@ -44,11 +44,15 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .goods-card:active { transform: scale(0.96); }
 .goods-card .img-wrap { height: 120px; background-position: center; background-size: cover; position: relative; }
 .goods-card .img-wrap .badge { position: absolute; top: 8px; left: 8px; font-size: 9px; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: 600; }
-.badge-food { background: #D70C1F; } .badge-ent { background: #6c5ce7; } .badge-tour { background: #00b894; }
+.badge-food { background: #D70C1F; } .badge-ent { background: #6c5ce7; } .badge-tour { background: #00b894; } .badge-film { background: #d35400; }
+.badge-sale { position: absolute; top: 8px; right: 8px; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #fff; }
+.sale-all { background: #2980b9; } .sale-prior { background: #f0ad4e; } .sale-lottery { background: #6c5ce7; } .sale-combo { background: #00b894; }
 .goods-card .info { padding: 10px 10px 12px; }
 .goods-card .info h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1a1a2e; }
 .goods-card .info .meta { font-size: 9px; color: #999; margin-bottom: 4px; display: flex; gap: 4px; }
 .goods-card .info .meta span { background: #f5f5f7; padding: 1px 6px; border-radius: 3px; }
+.goods-card .info .meta .meta-sale { color: #fff; font-weight: 500; }
+.meta-sale-all { background: #2980b9 !important; } .meta-sale-prior { background: #f0ad4e !important; } .meta-sale-lottery { background: #6c5ce7 !important; } .meta-sale-combo { background: #00b894 !important; }
 .goods-card .info .price { color: #D70C1F; font-size: 18px; font-weight: 700; }
 .goods-card .info .price small { font-size: 10px; font-weight: 400; color: #999; }
 .goods-card .info .sold { color: #999; font-size: 9px; margin-top: 4px; }
@@ -90,6 +94,17 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
       <div class="filter-dropdown-item" data-value="food" onclick="selectFilter('category', 'food', this)"><span>酒水食品</span><span class="check"></span></div>
       <div class="filter-dropdown-item" data-value="ent" onclick="selectFilter('category', 'ent', this)"><span>文娱</span><span class="check"></span></div>
       <div class="filter-dropdown-item" data-value="tour" onclick="selectFilter('category', 'tour', this)"><span>文旅</span><span class="check"></span></div>
+      <div class="filter-dropdown-item" data-value="film" onclick="selectFilter('category', 'film', this)"><span>影视</span><span class="check"></span></div>
+    </div>
+  </div>
+  <div class="filter-wrap">
+    <button class="filter-btn" id="saleBtn" onclick="toggleDropdown('sale')">销售类型 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="filter-dropdown" id="saleDropdown">
+      <div class="filter-dropdown-item" data-value="" onclick="selectFilter('sale', '', this)"><span>全部</span><span class="check on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+      <div class="filter-dropdown-item" data-value="all" onclick="selectFilter('sale', 'all', this)"><span>全民购</span><span class="check"></span></div>
+      <div class="filter-dropdown-item" data-value="prior" onclick="selectFilter('sale', 'prior', this)"><span>优先购</span><span class="check"></span></div>
+      <div class="filter-dropdown-item" data-value="lottery" onclick="selectFilter('sale', 'lottery', this)"><span>抽签购</span><span class="check"></span></div>
+      <div class="filter-dropdown-item" data-value="combo" onclick="selectFilter('sale', 'combo', this)"><span>组合购</span><span class="check"></span></div>
     </div>
   </div>
   <div class="filter-wrap">
@@ -134,27 +149,34 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 
 <script>
 const assets = [
-  { id: 0, name: '茅台1935·时光窖藏', img: '茅台1935.png', cat: 'food', price: 599, total: 1935, sold: 677, date: '2026-06-01' },
-  { id: 1, name: '飞天茅台·元宇宙酒票', img: '飞天茅台·元宇宙酒票.png', cat: 'food', price: 299, total: 3000, sold: 2280, date: '2026-05-20' },
-  { id: 2, name: '王者荣耀·传说皮肤', img: '王者荣耀·传说皮肤.png', cat: 'ent', price: 999, total: 999, sold: 450, date: '2026-06-05' },
-  { id: 3, name: '五粮液·数字珍藏', img: '五粮液·数字珍藏.png', cat: 'food', price: 599, total: 2024, sold: 607, date: '2026-05-15' },
-  { id: 4, name: '杜甫草堂·文旅数字藏品', img: '杜甫草堂·文旅数字藏品.png', cat: 'tour', price: 99, total: 5000, sold: 4400, date: '2026-06-10' },
-  { id: 5, name: '巴拿马金奖·复刻', img: '巴拿马金奖·复刻.png', cat: 'food', price: 1999, total: 500, sold: 160, date: '2026-05-01' },
-  { id: 6, name: '国酒·数字徽章', img: '国酒·数字徽章.png', cat: 'food', price: 99, total: 8888, sold: 3210, date: '2026-04-20' },
-  { id: 7, name: '茅台生肖兔·典藏', img: '茅台生肖兔·典藏.png', cat: 'food', price: 2999, total: 365, sold: 289, date: '2026-03-15' },
-  { id: 8, name: '海底捞·黑海会员数字卡', img: '海底捞·黑海会员数字卡.png', cat: 'food', price: 199, total: 888, sold: 195, date: '2026-04-01' },
+  { id: 0, name: '茅台1935·时光窖藏', img: '茅台1935.png', cat: 'food', sale: 'combo', price: 599, total: 1935, sold: 677, date: '2026-06-01' },
+  { id: 1, name: '飞天茅台·元宇宙酒票', img: '飞天茅台·元宇宙酒票.png', cat: 'food', sale: 'lottery', price: 299, total: 3000, sold: 2280, date: '2026-05-20' },
+  { id: 2, name: '王者荣耀·传说皮肤', img: '王者荣耀·传说皮肤.png', cat: 'ent', sale: 'all', price: 999, total: 999, sold: 450, date: '2026-06-05' },
+  { id: 3, name: '五粮液·数字珍藏', img: '五粮液·数字珍藏.png', cat: 'food', sale: 'lottery', price: 599, total: 2024, sold: 607, date: '2026-05-15' },
+  { id: 4, name: '杜甫草堂·文旅数字藏品', img: '杜甫草堂·文旅数字藏品.png', cat: 'tour', sale: 'prior', price: 99, total: 5000, sold: 4400, date: '2026-06-10' },
+  { id: 5, name: '巴拿马金奖·复刻', img: '巴拿马金奖·复刻.png', cat: 'food', sale: 'prior', price: 1999, total: 500, sold: 160, date: '2026-05-01' },
+  { id: 6, name: '国酒·数字徽章', img: '国酒·数字徽章.png', cat: 'food', sale: 'all', price: 99, total: 8888, sold: 3210, date: '2026-04-20' },
+  { id: 7, name: '茅台生肖兔·典藏', img: '茅台生肖兔·典藏.png', cat: 'food', sale: 'combo', price: 2999, total: 365, sold: 289, date: '2026-03-15' },
+  { id: 8, name: '海底捞·黑海会员数字卡', img: '海底捞·黑海会员数字卡.png', cat: 'food', sale: 'combo', price: 199, total: 888, sold: 195, date: '2026-04-01' },
+  { id: 9, name: '鬼吹灯·数字资产', img: '鬼吹灯.png', cat: 'film', sale: 'lottery', price: 499, total: 888, sold: 128, date: '2026-06-10' },
+  { id: 10, name: '三体·数字资产', img: '三体.png', cat: 'film', sale: 'prior', price: 699, total: 666, sold: 256, date: '2026-06-12' },
 ];
 
-const catLabels = { food: '酒水食品', ent: '文娱', tour: '文旅' };
-const catBadge = { food: 'badge-food', ent: 'badge-ent', tour: 'badge-tour' };
+const catLabels = { food: '酒水食品', ent: '文娱', tour: '文旅', film: '影视' };
+const catBadge = { food: 'badge-food', ent: 'badge-ent', tour: 'badge-tour', film: 'badge-film' };
+const saleLabels = { all: '全民购', prior: '优先购', lottery: '抽签购', combo: '组合购' };
+const saleCls = { all: 'sale-all', prior: 'sale-prior', lottery: 'sale-lottery', combo: 'sale-combo' };
+const metaSaleCls = { all: 'meta-sale-all', prior: 'meta-sale-prior', lottery: 'meta-sale-lottery', combo: 'meta-sale-combo' };
 let currentCategory = '';
 let currentDateSort = '';
+let currentSale = '';
 
 function render() {
   const searchTerm = document.getElementById('searchInput').value.toLowerCase();
   let list = [...assets];
   if (searchTerm) list = list.filter(a => a.name.includes(searchTerm));
   if (currentCategory) list = list.filter(a => a.cat === currentCategory);
+  if (currentSale) list = list.filter(a => a.sale === currentSale);
   if (currentDateSort === 'desc') list.sort((a, b) => b.date.localeCompare(a.date));
   else if (currentDateSort === 'asc') list.sort((a, b) => a.date.localeCompare(b.date));
   const grid = document.getElementById('goodsGrid');
@@ -165,10 +187,11 @@ function render() {
     <div class="goods-card" onclick="window.location.href='${a.id === 0 ? 'product_maotai1935.html' : '#'}'">
       <div class="img-wrap" style="background-image:url('${a.img}')">
         <span class="badge ${catBadge[a.cat]}">${catLabels[a.cat]}</span>
+        <span class="badge-sale ${saleCls[a.sale]}">${saleLabels[a.sale]}</span>
       </div>
       <div class="info">
         <h4>${a.name}</h4>
-        <div class="meta"><span>限量${a.total}</span></div>
+        <div class="meta"><span>限量${a.total}</span><span class="meta-sale ${metaSaleCls[a.sale]}">${saleLabels[a.sale]}</span></div>
         <div class="price">¥${a.price}<small>起</small></div>
         <div class="sold">已售 ${a.sold}/${a.total}</div>
       </div>
@@ -187,6 +210,7 @@ function selectFilter(type, value, el) {
   el.querySelector('.check').classList.add('on');
   if (type === 'category') currentCategory = value;
   else if (type === 'date') currentDateSort = value;
+  else if (type === 'sale') currentSale = value;
   document.getElementById(dropdownId).classList.remove('show');
   render();
 }
