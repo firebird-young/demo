@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>元宇宙商场</title>
+<style>
+  /* ── 全局重置 ── */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── 手机外框 ── */
+  .phone {
+    position: relative;
+    width: 860px;
+    height: 430px;
+    border-radius: 36px;
+    background: #1a1a2e;
+    padding: 12px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.7),
+      inset 0 0 0 2px #333;
+  }
+  .phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #000;
+  }
+
+  /* ── 场景图层 ── */
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: opacity .8s ease, transform .8s ease;
+  }
+  .scene-layer.hidden {
+    opacity: 0;
+    transform: scale(1.06);
+    pointer-events: none;
+  }
+
+  /* ── 信息覆盖层 ── */
+  .scene-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .scene-overlay > * { pointer-events: auto; }
+
+  /* ── 场景名称 ── */
+  .scene-title {
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 2px 12px rgba(0,0,0,.7);
+    background: rgba(0,0,0,.45);
+    padding: 5px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    letter-spacing: 1px;
+  }
+
+  /* ── 起点（李白待机） ── */
+  .origin {
+    position: absolute;
+    width: 64px; height: 64px;
+    cursor: default;
+    z-index: 10;
+    /* 位置在 JS 中设定 */
+  }
+  .origin-dot {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: url('李白待机.gif') center / cover no-repeat;
+    box-shadow: 0 0 24px rgba(100,200,255,.6);
+    animation: float 2.4s ease-in-out infinite;
+  }
+  .origin-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(100,200,255,.4);
+    animation: ringPulse 2s ease-out infinite;
+  }
+  .origin-ring:nth-child(2) { animation-delay: .7s; }
+  .origin-ring:nth-child(3) { animation-delay: 1.4s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes ringPulse {
+    0% { transform: scale(1); opacity: .6; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  /* ── 商场点位 ── */
+  .mall-spot {
+    position: absolute;
+    cursor: pointer;
+    z-index: 8;
+    transition: transform .25s ease;
+    /* 位置在 JS 中设定 */
+  }
+  .mall-spot:hover .label {
+    background: rgba(70,180,255,.7);
+    transform: translateX(-50%) scale(1.08);
+    box-shadow: 0 0 20px rgba(0,180,255,.5);
+  }
+  .mall-spot .label {
+    white-space: nowrap;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-shadow: 0 1px 6px rgba(0,0,0,.8);
+    background: rgba(0,0,0,.55);
+    padding: 4px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,.15);
+    transition: transform .25s, background .25s, box-shadow .25s;
+    letter-spacing: .5px;
+  }
+
+  /* ── 起点可移动 ── */
+  .origin {
+    transition: left 1.6s cubic-bezier(.34,1.56,.64,1),
+                top  1.6s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  /* ── 导航按钮 ── */
+  .nav-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 20;
+    pointer-events: auto;
+    cursor: pointer;
+    animation: navBounce 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+    transition: transform .25s;
+  }
+  .nav-btn:hover {
+    animation: none;
+    transform: scale(1.12);
+  }
+  .nav-btn:active { transform: scale(.92); }
+  .nav-btn img {
+    display: block;
+    width: 48px;
+    height: auto;
+  }
+
+  @keyframes navBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* ── 导航弹窗（场景列表） ── */
+  .nav-popup {
+    position: absolute;
+    bottom: 80px;
+    right: 16px;
+    z-index: 25;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(.9) translateY(10px);
+    transition: opacity .25s, transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .nav-popup.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(0);
+  }
+  .nav-popup .popup-content {
+    background: rgba(20,20,42,.92);
+    backdrop-filter: blur(12px);
+    border-radius: 14px;
+    padding: 8px 0;
+    min-width: 140px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .nav-popup .popup-item {
+    padding: 10px 20px;
+    color: rgba(255,255,255,.7);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .nav-popup .popup-item:hover {
+    background: rgba(255,255,255,.08);
+    color: #fff;
+  }
+  .nav-popup .popup-item.active {
+    color: #667eea;
+    font-weight: 700;
+  }
+
+  /* ── 下一场景按钮 ── */
+  .next-scene-btn {
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 31;
+    pointer-events: auto;
+    cursor: pointer;
+    animation: arrowBounce 1.2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+    transition: transform .25s;
+  }
+  .next-scene-btn:hover {
+    animation: none;
+    transform: translateX(-50%) scale(1.12);
+  }
+  .next-scene-btn:active { transform: translateX(-50%) scale(.92); }
+  .next-scene-btn img {
+    display: block;
+    width: 56px;
+    height: auto;
+  }
+
+  @keyframes arrowBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ── 气泡弹窗 ── */
+  .scene-bubble {
+    position: absolute;
+    z-index: 30;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translate(-50%, -100%) translateY(-10px) scale(.92);
+    transition: opacity .3s, transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .scene-bubble.show {
+    opacity: 1;
+    transform: translate(-50%, -100%) translateY(-16px) scale(1);
+  }
+  .bubble-content {
+    background: #1c1c38;
+    border-radius: 14px;
+    padding: 16px 20px 14px;
+    width: 240px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.08);
+    position: relative;
+  }
+  /* 向下三角箭头 */
+  .bubble-content::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #1c1c38;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+  }
+  .bubble-content h3 {
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .bubble-content p {
+    color: rgba(255,255,255,.55);
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .bubble-content .btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .bubble-content .btns button {
+    border: none;
+    padding: 7px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .2s;
+  }
+  .bubble-content .btns button:active { transform: scale(.93); }
+  .bubble-content .btns .btn-cancel {
+    background: rgba(255,255,255,.08);
+    color: rgba(255,255,255,.6);
+  }
+  .bubble-content .btns .btn-cancel:hover { background: rgba(255,255,255,.15); }
+  .bubble-content .btns .btn-enter {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #1a1a2e;
+  }
+
+  /* ── 入场动画 ── */
+  .phone { animation: phoneIn .7s ease-out; }
+  @keyframes phoneIn {
+    0% { opacity: 0; transform: translateY(60px) scale(.92); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── 响应式 ── */
+  @media (max-width: 920px) {
+    .phone { width: calc(100vw - 40px); height: calc((100vw - 40px) * .5); }
+  }
+  @media (max-height: 500px) {
+    .phone { height: calc(100vh - 40px); width: calc((100vh - 40px) * 2); }
+  }
+  /* ── 手机端横屏全屏适配 ── */
+  @media (max-width: 768px) and (orientation: portrait) {
+    body { overflow: auto; background: #000; }
+    .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
+    .phone-screen { border-radius: 0; }
+    .scene-title { font-size: 13px; top: 8px; left: 10px; padding: 3px 10px; }
+    .mall-spot .label { font-size: 11px; padding: 3px 10px; }
+    .next-scene-btn img { width: 32px; }
+    .nav-btn img { width: 36px; }
+    .origin { width: 48px; height: 48px; }
+    .origin-ring { inset: -6px; }
+  }
+  @media (max-width: 768px) and (orientation: landscape) {
+    body { background: #000; }
+    .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
+    .phone-screen { border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="phone-screen">
+
+    <!-- 场景1 -->
+    <div class="scene-layer" id="scene1"
+         style="background-image:url('scene1.png')">
+      <div class="scene-overlay" data-scene="1">
+        <div class="scene-title">珍品区</div>
+        <!-- 起点（绝对定位由 JS 设定） -->
+        <!-- 四个商场点位（绝对定位由 JS 设定） -->
+        <!-- 移动光点 -->
+      </div>
+    </div>
+
+    <!-- 场景2 -->
+    <div class="scene-layer hidden" id="scene2"
+         style="background-image:url('scene2.png')">
+      <div class="scene-overlay" data-scene="2">
+        <div class="scene-title">典藏区</div>
+      </div>
+    </div>
+
+  </div><!-- /phone-screen -->
+</div><!-- /phone -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// 配置：每个场景的 商场点位 坐标（百分比）
+// 如需调整，修改下方百分比即可
+// ═══════════════════════════════════════════════════════
+const SCENES = {
+  1: {
+    name: '食品区',
+    origin: { left: 50, top: 80 },                             // 起点位置 (%)
+    spots: [
+      { left: 25, top: 40, label: '妙可蓝多' },
+      { left: 30, top: 80, label: '黄老五食品' },
+      { left: 60, top: 50, label: '五粮液' },
+      { left: 80, top: 60, label: '贵州茅台' },
+    ],
+  },
+  2: {
+    name: '文旅区',
+    origin: { left: 50, top: 80 },
+    spots: [
+      { left: 20, top: 40, label: '武侯祠' },
+      { left: 30, top: 70, label: '贵州村超' },
+      { left: 50, top: 50, label: '杜甫草堂博物馆'},
+      { left: 75, top: 40, label: '王者荣耀' },
+      { left: 80, top: 70, label: '故宫博物院' },
+    ],
+  },
+};
+
+let currentScene = 1;
+
+// ═══════════════════════════════════════════════════════
+// 渲染场景
+// ═══════════════════════════════════════════════════════
+function renderScene(sceneId) {
+  const data = SCENES[sceneId];
+  const container = document.getElementById(`scene${sceneId}`);
+  const overlay = container.querySelector('.scene-overlay');
+
+  // 更新标题
+  const titleEl = overlay.querySelector('.scene-title');
+  if (titleEl) titleEl.textContent = `🏬 ${data.name}`;
+
+  // 清除已有元素（保留 .scene-title）
+  overlay.querySelectorAll('.origin, .mall-spot, .nav-btn, .next-scene-btn, .nav-popup')
+         .forEach(el => el.remove());
+
+  // ── 起点 ──
+  const origin = document.createElement('div');
+  origin.className = 'origin';
+  origin.style.left = data.origin.left + '%';
+  origin.style.top  = data.origin.top + '%';
+  origin.style.transform = 'translate(-50%,-50%)';
+  origin.innerHTML = `
+    <div class="origin-ring"></div>
+    <div class="origin-ring"></div>
+    <div class="origin-dot"></div>
+  `;
+  overlay.appendChild(origin);
+
+  // ── 商场点位 ──
+  data.spots.forEach((s, i) => {
+    const spot = document.createElement('div');
+    spot.className = 'mall-spot';
+    spot.dataset.idx = i;
+    spot.style.left = s.left + '%';
+    spot.style.top  = s.top + '%';
+    spot.style.transform = 'translate(-50%,-50%)';
+    spot.innerHTML = `<div class="label">${s.label}</div>`;
+    spot.addEventListener('click', () => moveTo(sceneId, i));
+    overlay.appendChild(spot);
+  });
+
+  // ── 导航按钮 + 场景列表弹窗 ──
+  const navBtn = document.createElement('div');
+  navBtn.className = 'nav-btn';
+  navBtn.innerHTML = `<img src="daohang.png" alt="导航">`;
+  overlay.appendChild(navBtn);
+
+  const navPopup = document.createElement('div');
+  navPopup.className = 'nav-popup';
+  navPopup.innerHTML = '<div class="popup-content"></div>';
+  const popupContent = navPopup.querySelector('.popup-content');
+  [1, 2].forEach(id => {
+    const item = document.createElement('div');
+    item.className = 'popup-item' + (id === sceneId ? ' active' : '');
+    item.textContent = SCENES[id].name;
+    item.dataset.scene = id;
+    item.addEventListener('click', () => {
+      navPopup.classList.remove('show');
+      switchScene(id);
+    });
+    popupContent.appendChild(item);
+  });
+  // 分割线 + 数字资产平台入口
+  const divider = document.createElement('div');
+  divider.style.cssText = 'height:1px;background:rgba(255,255,255,.08);margin:4px 12px;';
+  popupContent.appendChild(divider);
+  const platformItem = document.createElement('div');
+  platformItem.className = 'popup-item';
+  platformItem.textContent = '💎 传统商城模式';
+  platformItem.addEventListener('click', () => {
+    navPopup.classList.remove('show');
+    window.location.href = 'index.html';
+  });
+  popupContent.appendChild(platformItem);
+  overlay.appendChild(navPopup);
+
+  navBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navPopup.classList.toggle('show');
+  });
+
+  // ── 下一场景按钮（箭头图片） ──
+  const nextBtn = document.createElement('div');
+  nextBtn.className = 'next-scene-btn';
+  const nTarget = sceneId === 1 ? 2 : 1;
+  nextBtn.innerHTML = `<img src="arrow.png" alt="下一场景">`;
+  nextBtn.addEventListener('click', () => {
+    // 先获取箭头在屏幕中的中心百分比位置
+    const r = nextBtn.getBoundingClientRect();
+    const c = overlay.getBoundingClientRect();
+    const ax = ((r.left - c.left + r.width / 2) / c.width) * 100;
+    const ay = ((r.top - c.top + r.height / 2) / c.height) * 100;
+
+    // 人物走到箭头处
+    const origin = overlay.querySelector('.origin');
+    if (origin) {
+      if (window._moveTimer) clearTimeout(window._moveTimer);
+      origin.style.left = ax + '%';
+      origin.style.top = ay + '%';
+      window._moveTimer = setTimeout(() => switchScene(nTarget), 1700);
+    } else {
+      switchScene(nTarget);
+    }
+  });
+  overlay.appendChild(nextBtn);
+
+}
+
+// ═══════════════════════════════════════════════════════
+// 移动光点 → 动画结束后直接跳转
+// ═══════════════════════════════════════════════════════
+function moveTo(sceneId, spotIdx) {
+  const data = SCENES[sceneId];
+  const spot = data.spots[spotIdx];
+  const container = document.getElementById(`scene${sceneId}`);
+  const origin = container.querySelector('.origin');
+  if (!origin) return;
+
+  if (window._moveTimer) clearTimeout(window._moveTimer);
+
+  // 人物悬停在点位上方，不遮挡点击区域
+  origin.style.left = spot.left + '%';
+  origin.style.top  = (spot.top - 16) + '%';
+
+  // 1.6s 过渡结束后跳转到对应商户空间
+  window._moveTimer = setTimeout(() => {
+    if (spot.label === '贵州茅台') {
+      window.location.href = 'guizhoumaotai.html';
+    }
+  }, 1700);
+}
+
+// ═══════════════════════════════════════════════════════
+// 切换场景
+// ═══════════════════════════════════════════════════════
+function switchScene(targetId) {
+  if (targetId === currentScene) return;
+  currentScene = targetId;
+
+  // DOM 已创建，只需切换显示
+  document.getElementById('scene1').classList.toggle('hidden', targetId !== 1);
+  document.getElementById('scene2').classList.toggle('hidden', targetId !== 2);
+
+  // 重新渲染新场景（确保点击事件绑定）
+  renderScene(targetId);
+
+  // 同步另一个场景的导航按钮
+  updateNavButtons(targetId);
+}
+
+function updateNavButtons(activeId) {
+  document.querySelectorAll('.scene-overlay').forEach(ov => {
+    const items = ov.querySelectorAll('.nav-popup .popup-item');
+    items.forEach(item => {
+      item.classList.toggle('active', parseInt(item.dataset.scene) === activeId);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// 为每个场景预创建 DOM（避免切换闪烁）
+// ═══════════════════════════════════════════════════════
+[1, 2].forEach(id => renderScene(id));
+document.getElementById('scene1').classList.remove('hidden');
+document.getElementById('scene2').classList.add('hidden');
+
+// 第一次渲染后同步导航
+updateNavButtons(1);
+
+// 点击非导航区域关闭所有导航弹窗
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.nav-popup.show').forEach(p => {
+    if (!e.target.closest('.nav-popup') && !e.target.closest('.nav-btn')) {
+      p.classList.remove('show');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

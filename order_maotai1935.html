@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>确认订单</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; }
+.page { max-width: 430px; min-height: 100vh; background: #f6f7fb; padding-bottom: 100px; position: relative; }
+@media(max-width:430px) { .page { max-width: 100%; } }
+
+/* ── 顶部导航 ── */
+.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; }
+.nav-back { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.nav-back svg { width: 20px; height: 20px; color: #333; display: block; }
+.nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a2e; }
+.nav-placeholder { width: 32px; }
+
+/* ── 商品信息 ── */
+.goods-card { margin: 12px 16px; background: #fff; border-radius: 16px; padding: 16px; display: flex; gap: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.goods-img { width: 80px; height: 80px; border-radius: 12px; background: url('茅台1935.png') center/contain no-repeat #f5f5f7; flex-shrink: 0; }
+.goods-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.goods-name { font-size: 15px; font-weight: 600; color: #1a1a2e; line-height: 1.4; }
+.goods-price { font-size: 18px; font-weight: 700; color: #D70C1F; }
+.goods-price small { font-size: 12px; font-weight: 400; color: #999; margin-left: 4px; }
+
+/* ── 数量选择 ── */
+.section-card { margin: 12px 16px; background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
+.sec-label { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; }
+.quantity-row { display: flex; align-items: center; justify-content: space-between; }
+.quantity-label { font-size: 14px; color: #666; }
+.quantity-ctrl { display: flex; align-items: center; gap: 0; border: 1px solid #e8e8ec; border-radius: 8px; overflow: hidden; }
+.quantity-ctrl button { width: 36px; height: 36px; border: none; background: #f5f5f7; font-size: 18px; color: #666; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.quantity-ctrl button:active { background: #e8e8ec; }
+.quantity-ctrl button:disabled { color: #ccc; cursor: not-allowed; }
+.quantity-ctrl input { width: 50px; height: 36px; border: none; border-left: 1px solid #e8e8ec; border-right: 1px solid #e8e8ec; text-align: center; font-size: 15px; font-weight: 600; color: #1a1a2e; outline: none; }
+
+/* ── 支付方式 ── */
+.pay-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #f5f5f7; cursor: pointer; }
+.pay-item:last-child { border-bottom: none; }
+.pay-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0; }
+.pay-icon.hf { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+.pay-icon.zj { background: linear-gradient(135deg, #c41e3a, #8b1a1a); }
+.pay-info { flex: 1; min-width: 0; }
+.pay-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+.pay-limit { font-size: 11px; color: #999; }
+.pay-status { font-size: 12px; color: #D70C1F; margin-right: 8px; }
+.pay-status.disabled { color: #999; }
+.pay-check { width: 20px; height: 20px; border: 2px solid #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+.pay-check.active { border-color: #D70C1F; background: #D70C1F; }
+.pay-check svg { width: 12px; height: 12px; color: #fff; display: none; }
+.pay-check.active svg { display: block; }
+
+/* ── 协议勾选 ── */
+.agreement-section { margin: 12px 16px; }
+.agreement-item { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.agreement-check { width: 18px; height: 18px; border: 2px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.2s; }
+.agreement-check.active { border-color: #D70C1F; background: #D70C1F; }
+.agreement-check svg { width: 12px; height: 12px; color: #fff; display: none; }
+.agreement-check.active svg { display: block; }
+.agreement-text { font-size: 12px; color: #666; line-height: 1.6; }
+.agreement-text a { color: #D70C1F; text-decoration: none; }
+.agreement-text .warning { color: #D70C1F; margin-top: 4px; display: block; }
+
+/* ── 底部结算栏 ── */
+.bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #fff; border-top: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 4px)); z-index: 100; display: flex; align-items: center; justify-content: space-between; }
+.total-price { display: flex; align-items: baseline; gap: 4px; }
+.total-label { font-size: 13px; color: #666; }
+.total-value { font-size: 22px; font-weight: 700; color: #D70C1F; }
+.total-value small { font-size: 13px; }
+.btn-submit { height: 44px; padding: 0 32px; border: none; border-radius: 22px; background: #D70C1F; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-submit:active { opacity: 0.9; }
+.btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+/* ── 提示弹窗 ── */
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 999; }
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- 顶部导航 -->
+<div class="nav-bar">
+  <div class="nav-back" onclick="history.back()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </div>
+  <div class="nav-title">确认订单</div>
+  <div class="nav-placeholder"></div>
+</div>
+
+<!-- 商品信息 -->
+<div class="goods-card">
+  <div class="goods-img"></div>
+  <div class="goods-info">
+    <div class="goods-name">茅台1935·时光窖藏</div>
+    <div class="goods-price">¥599<small>×<span id="priceQty">1</span></small></div>
+  </div>
+</div>
+
+<!-- 数量选择 -->
+<div class="section-card">
+  <div class="sec-label">购买数量</div>
+  <div class="quantity-row">
+    <span class="quantity-label">数量</span>
+    <div class="quantity-ctrl">
+      <button onclick="changeQty(-1)" id="btnMinus">−</button>
+      <input type="number" value="1" min="1" max="10" id="qtyInput" readonly>
+      <button onclick="changeQty(1)" id="btnPlus">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- 支付方式 -->
+<div class="section-card">
+  <div class="sec-label">选择支付方式</div>
+  <div class="pay-item" onclick="selectPay(this, false)">
+    <div class="pay-icon hf">汇</div>
+    <div class="pay-info">
+      <div class="pay-name">
+        汇付钱包
+        <span class="pay-status disabled">服务维护中</span>
+      </div>
+      <div class="pay-limit">查看限额</div>
+    </div>
+    <div class="pay-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  </div>
+  <div class="pay-item" onclick="selectPay(this, true)">
+    <div class="pay-icon zj">中</div>
+    <div class="pay-info">
+      <div class="pay-name">中金钱包</div>
+      <div class="pay-limit">查看限额</div>
+    </div>
+    <div class="pay-check active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  </div>
+</div>
+
+<!-- 协议勾选 -->
+<div class="agreement-section">
+  <div class="agreement-item" onclick="toggleAgreement()">
+    <div class="agreement-check" id="agreementCheck">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="agreement-text">
+      同意<a href="#">《深文数购买协议》</a>
+      <span class="warning">*您所购买商品因属性及价格的特殊性，同意购买商品后不支持7天无理由退款</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- 底部结算栏 -->
+<div class="bottom-bar">
+  <div class="total-price">
+    <span class="total-label">合计：</span>
+    <span class="total-value"><small>¥</small><span id="totalPrice">599</span></span>
+  </div>
+  <button class="btn-submit" id="submitBtn" onclick="submitOrder()">提交订单</button>
+</div>
+
+<!-- 提示 -->
+<div class="toast" id="toast"></div>
+
+<script>
+let quantity = 1;
+const unitPrice = 599;
+let agreementChecked = false;
+let selectedPay = '中金钱包';
+
+function changeQty(delta) {
+  const newQty = quantity + delta;
+  if (newQty < 1 || newQty > 10) return;
+  quantity = newQty;
+  document.getElementById('qtyInput').value = quantity;
+  document.getElementById('priceQty').textContent = quantity;
+  document.getElementById('totalPrice').textContent = unitPrice * quantity;
+  document.getElementById('btnMinus').disabled = quantity <= 1;
+}
+
+function selectPay(el, available) {
+  if (!available) {
+    showToast('该支付方式暂不可用');
+    return;
+  }
+  document.querySelectorAll('.pay-check').forEach(c => c.classList.remove('active'));
+  el.querySelector('.pay-check').classList.add('active');
+  selectedPay = el.querySelector('.pay-name').childNodes[0].textContent.trim();
+}
+
+function toggleAgreement() {
+  agreementChecked = !agreementChecked;
+  document.getElementById('agreementCheck').classList.toggle('active', agreementChecked);
+}
+
+function submitOrder() {
+  if (!agreementChecked) {
+    showToast('请同意购买协议');
+    return;
+  }
+  window.location.href = 'pay_success.html?qty=' + quantity + '&pay=' + encodeURIComponent(selectedPay) + '&total=' + (unitPrice * quantity);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// 初始化
+changeQty(0);
+</script>
+
+</body>
+</html>

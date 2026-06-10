@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>我的</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; }
+.page { max-width: 430px; min-width: 320px; min-height: 100vh; background: #f6f7fb; padding: 0 16px 100px; position: relative; width: 100%; }
+
+/* ── 顶部导航 ── */
+.top-bar { display: flex; align-items: center; justify-content: center; padding: 12px 0; background: #f6f7fb; }
+.nav-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
+
+/* ── 用户卡片 ── */
+.user-card { margin: 8px 0 14px; background: linear-gradient(135deg, #D70C1F, #F12B3D); border-radius: 20px; padding: 20px; color: #fff; display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; }
+.user-card::after { content: ''; position: absolute; right: 0; top: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,255,255,0.08), transparent 70%); }
+.uc-avatar { width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); object-fit: cover; flex-shrink: 0; position: relative; z-index: 1; }
+.uc-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.uc-name { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+.uc-uid { font-size: 11px; opacity: 0.55; }
+.uc-badge { height: 28px; padding: 0 14px; border-radius: 14px; background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; flex-shrink: 0; position: relative; z-index: 1; border: none; }
+.uc-badge:active { background: rgba(255,255,255,0.35); }
+
+/* ── 数字资产面板 ── */
+.asset-panel { background: #fff; border-radius: 16px; padding: 16px 0; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); display: flex; justify-content: space-around; }
+.ap-item { text-align: center; cursor: pointer; }
+.ap-num { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+.ap-num.red { color: #D70C1F; }
+.ap-label { font-size: 11px; color: #999; }
+
+/* ── 菜单列表 ── */
+.menu-group { background: #fff; border-radius: 16px; margin-bottom: 14px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); overflow: hidden; }
+.menu-item { display: flex; align-items: center; padding: 15px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f7; transition: background 0.15s; }
+.menu-item:last-child { border-bottom: none; }
+.menu-item:active { background: #fafafa; }
+.menu-item .mi-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0; }
+.menu-item .mi-icon svg { width: 18px; height: 18px; display: block; }
+.mi-wallet { background: #FFF8E1; color: #d4a547; }
+.mi-order { background: #E8F5E9; color: #388e3c; }
+.mi-auth { background: #E3F2FD; color: #1976d2; }
+.mi-contact { background: #FCE4EC; color: #c2185b; }
+.mi-setting { background: #F5F5F5; color: #555; }
+.menu-item .mi-text { flex: 1; min-width: 0; }
+.menu-item .mi-name { font-size: 14px; font-weight: 500; color: #1a1a2e; margin-bottom: 1px; }
+.menu-item .mi-desc { font-size: 11px; color: #999; }
+.menu-item .mi-arrow svg { width: 16px; height: 16px; color: #ccc; }
+
+/* ── 底部TabBar ── */
+.bnav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 64px; background: rgba(255,255,255,.96); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid rgba(0,0,0,.05); display: flex; align-items: center; justify-content: space-around; padding: 0 16px; padding-bottom: env(safe-area-inset-bottom, 4px); z-index: 100; }
+.bnav .ni { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; border: none; background: none; padding: 4px 10px; font-size: 10px; color: #999; transition: color .2s; }
+.bnav .ni .ico { width: 22px; height: 22px; transition: transform .15s; }
+.bnav .ni .ico svg { display: block; width: 100%; height: 100%; }
+.bnav .ni:active .ico { transform: scale(.8); }
+.bnav .ni.on { color: #D70C1F; }
+.bnav .ni.on .ico { transform: scale(1.05); }
+.bnav .ni span:last-child { font-size: 10px; display: block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- 顶部导航 -->
+<div class="top-bar">
+  <div class="nav-title">我的</div>
+</div>
+
+<!-- 用户卡片 -->
+<div class="user-card">
+  <img class="uc-avatar" src="头像.jpg" alt="头像">
+  <div class="uc-info">
+    <div class="uc-name">元宇宙探索者</div>
+    <div class="uc-uid">UID: 888888</div>
+  </div>
+  <button class="uc-badge">认证藏家</button>
+</div>
+
+<!-- 数字资产面板 -->
+<div class="asset-panel">
+  <div class="ap-item" onclick="window.location.href='my_assets.html'" style="cursor:pointer">
+    <div class="ap-num red">5</div>
+    <div class="ap-label">持有资产</div>
+  </div>
+</div>
+
+<!-- 功能菜单 -->
+<div class="menu-group">
+  <div class="menu-item" onclick="window.location.href='wallet.html'">
+    <div class="mi-icon mi-wallet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="10" x2="12" y2="14"/><circle cx="12" cy="12" r="2"/></svg>
+    </div>
+    <div class="mi-text">
+      <div class="mi-name">我的钱包</div>
+      <div class="mi-desc">余额、充值、提现管理</div>
+    </div>
+    <div class="mi-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+  <div class="menu-item" onclick="window.location.href='order_list.html'">
+    <div class="mi-icon mi-order">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+    </div>
+    <div class="mi-text">
+      <div class="mi-name">订单管理</div>
+      <div class="mi-desc">查看全部订单与购买记录</div>
+    </div>
+    <div class="mi-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+  <div class="menu-item" onclick="window.location.href='auth.html'">
+    <div class="mi-icon mi-auth">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+    </div>
+    <div class="mi-text">
+      <div class="mi-name">实名认证</div>
+      <div class="mi-desc">已完成认证 · 交易更安全</div>
+    </div>
+    <div class="mi-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="menu-group">
+  <div class="menu-item">
+    <div class="mi-icon mi-contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="mi-text">
+      <div class="mi-name">联系我们</div>
+      <div class="mi-desc">客服热线与在线咨询</div>
+    </div>
+    <div class="mi-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+  <div class="menu-item">
+    <div class="mi-icon mi-setting">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </div>
+    <div class="mi-text">
+      <div class="mi-name">设置</div>
+      <div class="mi-desc">账号安全、通知与隐私</div>
+    </div>
+    <div class="mi-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- 底部TabBar -->
+<div class="bnav">
+  <button class="ni" onclick="window.location.href='index.html'">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+    <span>首页</span>
+  </button>
+  <button class="ni">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <span>发现</span>
+  </button>
+  <button class="ni" onclick="window.location.href='my_assets.html'">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 16 7 12 15 8 7 12 2"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="8" y1="19" x2="16" y2="19"/></svg></span>
+    <span>资产</span>
+  </button>
+  <button class="ni" onclick="window.location.href='asset_market.html'">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><line x1="6" y1="16" x2="6" y2="20"/><line x1="10" y1="12" x2="10" y2="20"/><line x1="14" y1="8" x2="14" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/></svg></span>
+    <span>市场</span>
+  </button>
+  <button class="ni on">
+    <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    <span>我的</span>
+  </button>
+</div>
+
+</body>
+</html>

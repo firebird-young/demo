@@ -82,6 +82,37 @@
     position:absolute;cursor:pointer;z-index:8;
     transition:transform .25s;
   }
+  /* ── 粒子动画容器 ── */
+  .particle-layer{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden}
+  .particle{
+    position:absolute;border-radius:50%;pointer-events:none;
+    animation:particleAnim var(--d) ease-in-out infinite;
+    opacity:0;
+  }
+  .particle.halo{
+    width:var(--s);height:var(--s);
+    background:radial-gradient(circle,var(--c1) 0%,var(--c2) 40%,transparent 70%);
+    box-shadow:0 0 calc(var(--s)*.6) var(--c1);
+  }
+  .particle.spark{
+    width:var(--s);height:var(--s);
+    background:var(--c1);
+    box-shadow:0 0 calc(var(--s)*.8) var(--c1);
+  }
+  .particle.star{
+    width:var(--s);height:var(--s);
+    background:var(--c1);
+    clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+    box-shadow:0 0 calc(var(--s)*.5) var(--c1);
+  }
+  @keyframes particleAnim{
+    0%{opacity:0;transform:translate(0,0) scale(.3)}
+    20%{opacity:var(--o)}
+    50%{opacity:var(--o);transform:translate(var(--mx),var(--my)) scale(1.2)}
+    80%{opacity:var(--o2,0)}
+    100%{opacity:0;transform:translate(calc(var(--mx)*1.5),calc(var(--my)*1.5)) scale(.2)}
+  }
+
   .spot:hover .spot-label{background:rgba(70,180,255,.7);transform:translateX(-50%) scale(1.06);box-shadow:0 0 16px rgba(0,180,255,.4)}
   .spot .spot-label{
     white-space:nowrap;color:#fff;font-size:13px;font-weight:600;
@@ -145,7 +176,7 @@
       <div class="spot" style="left:50%;top:90%;transform:translate(-50%,-50%)" onclick="goSpot('miniapp')">
         <div class="spot-label">📱 茅台小程序</div>
       </div>
-
+      <div class="particle-layer" id="particleLayer"></div>
     </div>
   </div>
 </div>
@@ -219,6 +250,23 @@
     window.location.href='weixin://dl/business/?appid=wx1c34cb879c935c1a&path=pages/voice/index&env_version=release';
     setTimeout(hideMP,800);
   }
+
+  // ── 随机粒子动画 ──
+  const layer=document.getElementById('particleLayer');
+  const W=()=>layer.offsetWidth,H=()=>layer.offsetHeight;
+  const types=['halo','spark','star'];
+  const colors=[['rgba(0,180,255,.6)','rgba(0,212,255,.15)'],['rgba(255,200,50,.7)','rgba(255,150,0,.15)'],['rgba(255,100,100,.6)','rgba(255,50,50,.1)'],['rgba(0,230,200,.5)','rgba(0,200,180,.1)']];
+  function spawnParticle(){
+    const el=document.createElement('div');el.className='particle '+types[Math.floor(Math.random()*types.length)];
+    const c=colors[Math.floor(Math.random()*colors.length)];
+    const s=2+Math.random()*5;
+    const spread=120+Math.random()*200;
+    el.style.cssText=`--s:${s}px;--c1:${c[0]};--c2:${c[1]};--mx:${-spread+Math.random()*spread*2}px;--my:${-spread+Math.random()*spread*2}px;--d:${1+Math.random()*2}s;--o:${.5+Math.random()*.5};left:${Math.random()*100}%;top:${Math.random()*100}%`;
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(),4500);
+  }
+  setInterval(spawnParticle,300);
+  for(let i=0;i<8;i++)setTimeout(spawnParticle,i*400);
 </script>
 </body>
 </html>
