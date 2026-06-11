@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -30,8 +30,11 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .asset-instance { background: #fff; border-radius: 16px; margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); overflow: hidden; }
 .ai-header { padding: 12px 14px; cursor: pointer; transition: background 0.12s; }
 .ai-header:active { background: #fafafa; }
-.ai-header-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ai-header-row1 { display: flex; align-items: center; margin-bottom: 6px; }
+.ai-thumb { width: 44px; height: 54px; border-radius: 8px; background-position: center; background-size: cover; flex-shrink: 0; background-color: #f5f5f7; margin-right: 10px; }
+.ai-header-left { display: flex; align-items: center; flex: 1; min-width: 0; }
 .ai-number { font-size: 15px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 4px; }
+.ai-spec-name { font-size: 12px; font-weight: 600; color: #666; }
 .ai-number svg { width: 16px; height: 16px; color: #D70C1F; flex-shrink: 0; }
 .ai-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .ai-sum-tag { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
@@ -69,7 +72,6 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .btn-primary:active { opacity: 0.9; }
 .btn-outline svg, .btn-primary svg { width: 16px; height: 16px; }
 
-/* ── 弹窗遮罩 ── */
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 999; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 .modal-mask.show { opacity: 1; pointer-events: auto; }
 .modal-card { width: 100%; max-width: 430px; max-height: 80vh; background: #fff; border-radius: 20px 20px 0 0; padding: 0 20px 24px; overflow-y: auto; transform: translateY(100%); transition: transform 0.35s cubic-bezier(.4,0,.2,1); }
@@ -78,7 +80,6 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .modal-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
 .modal-sub { font-size: 12px; color: #999; margin-bottom: 18px; }
 
-/* ── 快递表单 ── */
 .form-group { margin-bottom: 14px; }
 .form-label { font-size: 12px; color: #888; margin-bottom: 6px; display: block; font-weight: 500; }
 .form-input { width: 100%; height: 44px; border: 1px solid #e8e8ec; border-radius: 10px; padding: 0 14px; font-size: 14px; color: #333; outline: none; transition: border 0.2s; }
@@ -88,7 +89,6 @@ textarea.form-input { height: 80px; padding: 12px 14px; resize: none; }
 .form-submit:active { opacity: 0.9; }
 .form-submit.loading { opacity: 0.7; pointer-events: none; }
 
-/* ── 物流时间线 ── */
 .logistics { padding: 4px 0; }
 .logis-item { display: flex; gap: 12px; padding: 12px 0; position: relative; }
 .logis-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; }
@@ -102,13 +102,11 @@ textarea.form-input { height: 80px; padding: 12px 14px; resize: none; }
 .logis-line { position: absolute; left: 4px; top: 22px; width: 2px; height: calc(100% - 10px); background: #eee; z-index: 0; }
 .logis-item:last-child .logis-line { display: none; }
 
-/* ── 已核销信息区 ── */
 .shipping-info { background: #f8f9fb; border-radius: 12px; padding: 14px; margin-bottom: 16px; }
 .si-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; }
 .si-row .si-l { color: #999; }
 .si-row .si-r { color: #1a1a2e; font-weight: 500; }
 
-/* ── 提交成功 ── */
 .success-box { text-align: center; padding: 24px 0 8px; }
 .success-box .s-check { width: 56px; height: 56px; border-radius: 50%; background: #E6F9F0; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
 .success-box .s-check svg { width: 28px; height: 28px; color: #00b894; }
@@ -144,7 +142,6 @@ textarea.form-input { height: 80px; padding: 12px 14px; resize: none; }
 
 </div>
 
-<!-- ── 弹窗 ── -->
 <div class="modal-mask" id="modalMask" onclick="closeModal(event)">
   <div class="modal-card" id="modalCard" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
@@ -165,12 +162,11 @@ var SUM = { verified:{t:'已核销',c:'st-verified'}, partial:{t:'部分核销',
 var params = new URLSearchParams(window.location.search);
 var prod = params.get('product') || 'maotai1935';
 
-// ═══ 数据 ═══
 var DB = {
   maotai1935: {
     name:'茅台1935·时光窖藏', img:'茅台1935.png', n:'×3', url:'product_maotai1935.html',
     list:[
-      { id:'#54', t:'2025-06-15 14:32', h:'0x7a3e8f2b1c9d...1a2b',
+      { id:'#54', t:'2025-06-15 14:32', h:'0x7a3e8f2b1c9d...1a2b', spec:'凝时', img:'凝时.png',
         bf:[
           { n:'实物酒兑换', v:true, d:'2025-09-20', a:'贵阳市茅台大厦一楼体验店', cd:'HX202509200001',
             logistics:[
@@ -186,7 +182,7 @@ var DB = {
           { n:'超值优惠券', v:true, d:'2025-07-03', ch:'茅台云商App', cd:'YH202507030012' }
         ]
       },
-      { id:'#77', t:'2025-08-22 09:15', h:'0x9c2d1e8f5a3b...3e4f',
+      { id:'#77', t:'2025-08-22 09:15', h:'0x9c2d1e8f5a3b...3e4f', spec:'守岁', img:'守岁.png',
         bf:[
           { n:'实物酒兑换', v:true, d:'2025-10-18', a:'贵阳市茅台大厦一楼体验店', cd:'HX202510180003',
             logistics:[
@@ -202,7 +198,7 @@ var DB = {
           { n:'超值优惠券', v:true, d:'2025-12-15', ch:'茅台云商App', cd:'YH202512150020' }
         ]
       },
-      { id:'#102', t:'2026-03-10 11:20', h:'0xd5f8a3c2e7b1...9a6c',
+      { id:'#102', t:'2026-03-10 11:20', h:'0xd5f8a3c2e7b1...9a6c', spec:'溯年', img:'溯年.png',
         bf:[
           { n:'实物酒兑换', v:false, x:'未核销' },
           { n:'线下品鉴会资格', v:false, x:'共2次 未使用' },
@@ -214,7 +210,7 @@ var DB = {
   feitian: {
     name:'飞天茅台·元宇宙酒票', img:'飞天茅台·元宇宙酒票.png', n:'×1', url:'product_maotai1935.html',
     list:[
-      { id:'#28', t:'2025-08-22 09:15', h:'0x3b5c9d1e8f2a...7d8e',
+      { id:'#28', t:'2025-08-22 09:15', h:'0x3b5c9d1e8f2a...7d8e', spec:'典藏版', img:'飞天茅台·元宇宙酒票.png',
         bf:[
           { n:'实物酒兑换', v:true, d:'2025-10-12', a:'茅台国际大酒店', cd:'HX202510120001',
             logistics:[
@@ -228,12 +224,71 @@ var DB = {
         ]
       }
     ]
+  },
+  guojiu: {
+    name:'国酒·数字徽章', img:'国酒·数字徽章.png', n:'×1', url:'product_maotai1935.html',
+    list:[
+      { id:'#08', t:'2025-04-10 15:00', h:'0xae1c3f5b8d2e...9f0a', spec:'标准款', img:'国酒·数字徽章.png',
+        bf:[
+          { n:'超值优惠券', v:true, d:'2025-05-20', ch:'茅台云商App', cd:'YH202505200008' },
+          { n:'线下品鉴会资格', v:false, x:'共1次 未使用' }
+        ]
+      }
+    ]
+  },
+  banana: {
+    name:'巴拿马金奖·复刻', img:'巴拿马金奖·复刻.png', n:'×1', url:'product_maotai1935.html',
+    list:[
+      { id:'#03', t:'2025-03-05 10:00', h:'0x1f8c7d3a5b6e...2d4c', spec:'典藏款', img:'巴拿马金奖·复刻.png',
+        bf:[
+          { n:'实物酒兑换', v:true, d:'2025-06-15', a:'茅台国际大酒店', cd:'HX202506150005',
+            logistics:[
+              { s:'done', t:'2025-06-22 14:00', d:'包裹已签收', loc:'广州市' },
+              { s:'done', t:'2025-06-15 09:00', d:'核销成功，商家正在备货中', loc:'茅台酒厂' }
+            ],
+            shipping:{ name:'赵六', phone:'136****3456', addr:'广东省广州市天河区茅台体验中心', exp:'顺丰速运', expNo:'SF5678901234567' }
+          },
+          { n:'线下品鉴会资格', v:true, d:'2026-01-08', a:'广州茅台文化体验中心', x:'已核1/1次' }
+        ]
+      }
+    ]
+  },
+  shengxiao: {
+    name:'茅台生肖兔·典藏', img:'茅台生肖兔·典藏.png', n:'×1', url:'product_maotai1935.html',
+    list:[
+      { id:'#12', t:'2026-01-15 12:00', h:'0xb2e4d8c1a5f7...3e6d', spec:'兔年限定', img:'茅台生肖兔·典藏.png',
+        bf:[
+          { n:'实物酒兑换', v:false, x:'未核销' },
+          { n:'线下品鉴会资格', v:false, x:'共1次 未使用' },
+          { n:'超值优惠券', v:false, x:'未核销' }
+        ]
+      }
+    ]
+  },
+  guichuideng: {
+    name:'鬼吹灯·数字资产', img:'鬼吹灯.png', n:'×1', url:'product_maotai1935.html',
+    list:[
+      { id:'#36', t:'2026-05-10 10:00', h:'0x7c8d9e0f1a...2b3c', spec:'标准款', img:'鬼吹灯.png',
+        bf:[
+          { n:'超值优惠券', v:true, d:'2026-05-18', ch:'鬼吹灯商城', cd:'G001' }
+        ]
+      }
+    ]
+  },
+  santi: {
+    name:'三体·数字资产', img:'三体.png', n:'×1', url:'product_maotai1935.html',
+    list:[
+      { id:'#42', t:'2026-06-01 14:00', h:'0x8e0f1a2b3c...4d5', spec:'标准款', img:'三体.png',
+        bf:[
+          { n:'超值优惠券', v:false, x:'未核销' }
+        ]
+      }
+    ]
   }
 };
 
 var data = DB[prod] || DB.maotai1935;
 
-// ═══ 概览 ═══
 document.getElementById('overviewCard').innerHTML =
   '<div class="ov-img" style="background-image:url(\''+data.img+'\')"></div>'+
   '<div class="ov-info">'+
@@ -252,7 +307,6 @@ function calcSummary(bf){
   return 'partial';
 }
 
-// ═══ 渲染列表 ═══
 var listEl = document.getElementById('instanceList');
 data.list.forEach(function(inst, idx){
   var sum = calcSummary(inst.bf);
@@ -284,10 +338,14 @@ data.list.forEach(function(inst, idx){
   card.innerHTML =
     '<div class="ai-header" onclick="toggleCard(\''+cid+'\')">'+
       '<div class="ai-header-row1">'+
-        '<div class="ai-number">'+
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>'+
-          inst.id+
-        '</div>'+
+        (inst.img ? '<div class="ai-thumb" style="background-image:url(\''+inst.img+'\')"></div>' : '')+
+        '<div class="ai-header-left"><div style="display:flex;flex-direction:column">'+
+          '<div class="ai-number">'+
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>'+
+            inst.id+
+          '</div>'+
+          (inst.spec ? '<div class="ai-spec-name">'+inst.spec+'</div>' : '')+
+        '</div></div>'+
         '<div class="ai-header-right">'+
           '<span class="ai-sum-tag '+sm.c+'">'+sm.t+'</span>'+
           '<div class="ai-expand">'+
@@ -324,13 +382,11 @@ function copyIt(txt, lb){
   navigator.clipboard.writeText(txt).then(function(){ alert(lb+'已复制'); }).catch(function(){ alert('复制失败'); });
 }
 
-// ═══ 权益点击弹窗 ═══
 function onBenefit(idx, bi){
   var bf = data.list[idx].bf[bi];
   var modal = document.getElementById('modalMask');
   var content = document.getElementById('modalContent');
 
-  // ── 线下品鉴会资格弹窗 ──
   if(bf.n === '线下品鉴会资格'){
     content.innerHTML =
       '<div class="modal-title">权益核销工作由发行方平台承接</div>'+
@@ -340,7 +396,6 @@ function onBenefit(idx, bi){
     return;
   }
 
-  // ── 超值优惠券弹窗 ──
   if(bf.n === '超值优惠券'){
     content.innerHTML =
       '<div class="modal-title">权益核销工作由发行方平台承接</div>'+
@@ -350,11 +405,9 @@ function onBenefit(idx, bi){
     return;
   }
 
-  // ── 实物酒兑换弹窗 ──
   if(bf.n !== '实物酒兑换') return;
 
   if(bf.v){
-    // ── 已核销：展示物流信息 ──
     var ship = bf.shipping || {};
     var logisticsHTML = '';
     (bf.logistics || []).forEach(function(l, li){
@@ -384,7 +437,6 @@ function onBenefit(idx, bi){
       '<div class="sec-title"><span>物流轨迹</span></div>'+
       '<div class="logistics">'+logisticsHTML+'</div>';
   } else {
-    // ── 未核销：填写地址表单 ──
     content.innerHTML =
       '<div class="modal-title">填写收货地址</div>'+
       '<div class="modal-sub">核销该数字资产后，将安排实物茅台1935发货</div>'+
@@ -398,7 +450,6 @@ function onBenefit(idx, bi){
   document.body.style.overflow = 'hidden';
 }
 
-// ═══ 提交地址 ═══
 function submitAddress(idx, bi){
   var name = document.getElementById('fName').value.trim();
   var phone = document.getElementById('fPhone').value.trim();
@@ -411,9 +462,7 @@ function submitAddress(idx, bi){
   btn.textContent = '提交中...';
   btn.classList.add('loading');
 
-  // 模拟提交
   setTimeout(function(){
-    // 更新数据
     var bf = data.list[idx].bf[bi];
     bf.v = true;
     bf.d = '2026-06-10';
@@ -431,7 +480,6 @@ function submitAddress(idx, bi){
       { s:'active', t:'2026-06-10 '+new Date().toTimeString().substring(0,5), d:'核销成功，商家正在备货中', loc:'茅台酒厂' }
     ];
 
-    // 显示成功
     var content = document.getElementById('modalContent');
     content.innerHTML =
       '<div class="success-box">'+
@@ -443,7 +491,6 @@ function submitAddress(idx, bi){
   }, 1200);
 }
 
-// ═══ 弹窗控制 ═══
 function closeModal(e){
   if(e && e.target !== document.getElementById('modalMask')) return;
   document.getElementById('modalMask').classList.remove('show');

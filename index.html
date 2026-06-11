@@ -22,7 +22,8 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 .user-left{display:flex;align-items:center;gap:14px;flex:1;min-width:0}
 .avatar{width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,255,255,.25);object-fit:cover;display:block;flex-shrink:0}
 .user-left h2{font-size:17px;font-weight:700;margin:0 0 2px}
-.user-left p{font-size:11px;margin:0;opacity:.55}
+.user-left p{font-size:10px;margin:0;opacity:.55;display:flex;align-items:center;gap:3px;cursor:pointer}
+.user-left p svg{width:11px;height:11px;opacity:.7}
 .verify-btn{height:40px;padding:0 18px;border:none;border-radius:20px;background:rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;letter-spacing:.5px;transition:background .2s}
 .verify-btn:active{background:rgba(255,255,255,.35)}
 
@@ -167,7 +168,7 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
     <img class="logo" src="文交所LOGO.png" alt="文交所">
     <div class="header-icons">
       <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><line x1="15" y1="15" x2="21" y2="21"/></svg></span>
-      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      <span class="hi" onclick="window.location.href='messages.html'" style="position:relative"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span style="position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:#D70C1F;border:1.5px solid #fff"></span></span>
     </div>
   </header>
 
@@ -177,7 +178,7 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
       <img src="头像.jpg" class="avatar">
       <div>
         <h2>元宇宙探索者</h2>
-        <p>UID：888888</p>
+        <p onclick="copyWallet(event)">0x7a3e...b9c1d <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></p>
       </div>
     </div>
     <button class="verify-btn">白银用户</button>
@@ -461,6 +462,12 @@ function closeCalendar(e){
 }
 
 renderCalendarPreview();
+</script>
+
+<script>
+function copyWallet(e){e.stopPropagation();
+  navigator.clipboard.writeText('0x7a3e8f2b1c9d5e6a4f3d2c1b0a9e8f7d').then(function(){alert('钱包地址已复制')}).catch(function(){prompt('复制：','0x7a3e8f2b1c9d5e6a4f3d2c1b0a9e8f7d')});
+}
 </script>
 
 </body>

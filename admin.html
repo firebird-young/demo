@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>元宇宙商城 - 后台管理</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
+
+/* ── 顶部导航 ── */
+.header { background: linear-gradient(135deg, #D70C1F, #F12B3D); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+.header-title { font-size: 18px; font-weight: 600; }
+.header-user { font-size: 14px; }
+
+/* ── 主布局 ── */
+.main-container { display: flex; min-height: calc(100vh - 60px); }
+
+/* ── 左侧菜单 ── */
+.sidebar { width: 200px; background: #fff; border-right: 1px solid #e8e8e8; padding: 16px 0; }
+.sidebar-item { padding: 12px 24px; font-size: 14px; color: #666; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+.sidebar-item:hover { background: #f5f5f5; color: #D70C1F; }
+.sidebar-item.active { background: rgba(215, 12, 31, 0.1); color: #D70C1F; font-weight: 600; }
+.sidebar-item svg { width: 16px; height: 16px; }
+
+/* ── 右侧内容区 ── */
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+.content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.content-title { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+.btn { padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-primary { background: #D70C1F; color: #fff; }
+.btn-primary:hover { background: #c60a1b; }
+.btn-default { background: #fff; color: #666; border: 1px solid #ddd; }
+.btn-default:hover { background: #f5f5f5; }
+
+/* ── 卡片样式 ── */
+.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+
+/* ── 表单样式 ── */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
+.form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.form-input:focus { border-color: #D70C1F; }
+.form-select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+.form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
+
+/* ── 图片上传区域 ── */
+.upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.upload-area:hover { border-color: #D70C1F; background: rgba(215, 12, 31, 0.02); }
+.upload-area.dragover { border-color: #D70C1F; background: rgba(215, 12, 31, 0.05); }
+.upload-icon { width: 48px; height: 48px; margin: 0 auto 12px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.upload-icon svg { width: 24px; height: 24px; color: #999; }
+.upload-text { font-size: 14px; color: #666; }
+.upload-hint { font-size: 12px; color: #999; margin-top: 4px; }
+#uploadInput { display: none; }
+
+/* ── 场景列表 ── */
+.scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; }
+.scene-card:hover { transform: translateY(-4px); }
+.scene-card.selected { border: 2px solid #D70C1F; }
+.scene-cover { width: 100%; height: 120px; object-fit: cover; }
+.scene-info { padding: 12px; }
+.scene-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+.scene-hotspots { font-size: 12px; color: #999; }
+.scene-actions { display: flex; gap: 8px; margin-top: 10px; }
+.scene-btn { flex: 1; padding: 6px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; }
+.scene-btn.edit { background: #f5f5f5; color: #666; }
+.scene-btn.delete { background: #fff5f5; color: #D70C1F; }
+
+/* ── 热区编辑区域 ── */
+.hotspot-editor { position: relative; background: #f9f9f9; border-radius: 12px; overflow: hidden; }
+.editor-image { display: block; max-width: 100%; height: auto; }
+.hotspot-box { position: absolute; border: 2px dashed #D70C1F; background: rgba(215, 12, 31, 0.1); cursor: pointer; z-index: 10; }
+.hotspot-box:hover { border-style: solid; background: rgba(215, 12, 31, 0.15); }
+.hotspot-box.selected { border-style: solid; background: rgba(215, 12, 31, 0.2); box-shadow: 0 0 0 3px rgba(215, 12, 31, 0.3); }
+.hotspot-box.drawing { border-style: solid; border-color: #20C997; background: rgba(32, 201, 151, 0.2); }
+.hotspot-box-label { position: absolute; bottom: -20px; left: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── 热区列表 ── */
+.hotspot-list { margin-top: 8px; }
+.hotspot-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
+.hi-info { flex: 1; }
+.hi-name { font-size: 14px; font-weight: 600; color: #333; }
+.hi-merchant { font-size: 12px; color: #D70C1F; margin-top: 2px; }
+.hi-pos { font-size: 11px; color: #999; margin-top: 4px; }
+.hi-actions { display: flex; gap: 8px; }
+.hi-btn { padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; }
+.hi-btn.edit { background: #f5f5f5; color: #666; }
+.hi-btn.delete { background: #fff5f5; color: #D70C1F; }
+
+/* ── 箭头位置选择 ── */
+.arrow-position-group { margin-top: 8px; }
+.pos-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.pos-row:last-child { margin-bottom: 0; }
+.pos-label { font-size: 12px; color: #666; width: 60px; }
+.pos-buttons { display: flex; gap: 8px; }
+.pos-btn { padding: 6px 16px; font-size: 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; }
+.pos-btn:hover { background: #f5f5f5; }
+.pos-btn.active { background: #D70C1F; color: #fff; border-color: #D70C1F; }
+
+/* ── 箭头方向选择 ── */
+.arrow-direction-group { display: flex; gap: 8px; margin-top: 8px; }
+.dir-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
+.dir-btn:hover { background: #f5f5f5; }
+.dir-btn.active { background: #D70C1F; color: #fff; border-color: #D70C1F; }
+
+/* ── 热区属性面板 ── */
+.hotspot-panel { background: #fff; border-radius: 12px; padding: 16px; }
+.panel-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.hotspot-info { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+.hotspot-info-item { font-size: 12px; color: #666; margin-bottom: 4px; }
+.hotspot-info-item strong { color: #333; }
+
+/* ── 跳转路径设置 ── */
+.path-list { margin-top: 16px; }
+.path-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
+.path-from { flex: 1; font-size: 14px; color: #333; }
+.path-arrow { color: #999; }
+.path-to { flex: 1; font-size: 14px; color: #D70C1F; }
+.path-delete { width: 28px; height: 28px; border-radius: 50%; background: #fff; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.path-delete svg { width: 14px; height: 14px; color: #999; }
+
+/* ── 模态框 ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.modal-close svg { width: 14px; height: 14px; color: #666; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; }
+
+/* ── 商家选择列表 ── */
+.merchant-list { max-height: 200px; overflow-y: auto; margin-top: 8px; }
+.merchant-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+.merchant-item:hover { background: #f5f5f5; }
+.merchant-item.selected { background: rgba(215, 12, 31, 0.1); }
+.merchant-checkbox { width: 18px; height: 18px; border: 2px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.merchant-checkbox.selected { background: #D70C1F; border-color: #D70C1F; }
+.merchant-checkbox svg { width: 12px; height: 12px; color: #fff; display: none; }
+.merchant-checkbox.selected svg { display: block; }
+.merchant-name { font-size: 14px; color: #333; }
+
+/* ── 提示信息 ── */
+.toast { position: fixed; top: 80px; left: 240px; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: slideIn 0.3s ease; }
+.toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
+.toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
+@keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── 空状态 ── */
+.empty-state { padding: 60px 0; text-align: center; }
+.empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.empty-icon svg { width: 32px; height: 32px; color: #ccc; }
+.empty-text { font-size: 14px; color: #999; }
+</style>
+</head>
+<body>
+<!-- 顶部导航 -->
+<div class="header">
+  <div class="header-title">元宇宙商城 - 后台管理</div>
+  <div class="header-user">管理员</div>
+</div>
+
+<!-- 主布局 -->
+<div class="main-container">
+  <!-- 左侧菜单 -->
+  <div class="sidebar">
+    <div class="sidebar-item active" onclick="showSection('scenes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      场景管理
+    </div>
+    <div class="sidebar-item" onclick="showSection('hotspots')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+      热区标注
+    </div>
+    <div class="sidebar-item" onclick="showSection('paths')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>
+      跳转路径
+    </div>
+    <div class="sidebar-item" onclick="showSection('merchants')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      商家管理
+    </div>
+  </div>
+
+  <!-- 右侧内容区 -->
+  <div class="content">
+    <!-- 场景管理 -->
+    <div id="section-scenes">
+      <div class="content-header">
+        <div class="content-title">场景管理</div>
+        <button class="btn btn-primary" onclick="openUploadModal()">上传场景</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">场景列表</div>
+        <div class="scene-list" id="sceneList">
+          <!-- 场景卡片将通过JS渲染 -->
+        </div>
+        <div class="empty-state" id="emptyScenes" style="display: none;">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="empty-text">暂无场景，请上传场景图片</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 热区标注 -->
+    <div id="section-hotspots" style="display: none;">
+      <div class="content-header">
+        <div class="content-title">热区标注</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">选择场景</div>
+        <div class="scene-list" id="hotspotSceneList">
+          <!-- 场景卡片将通过JS渲染 -->
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">热区编辑</div>
+        <div class="hotspot-editor" id="hotspotEditor" style="display: none;">
+          <img class="editor-image" id="editorImage" src="" alt="场景图片">
+          <!-- 热区标记将通过JS渲染 -->
+        </div>
+        <div class="empty-state" id="emptyHotspot">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+          </div>
+          <div class="empty-text">请先选择一个场景进行热区编辑</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">热区列表</div>
+        <div class="hotspot-list" id="hotspotList">
+          <!-- 热区列表将通过JS渲染 -->
+        </div>
+        <div class="empty-state" id="emptyHotspotList" style="display: none;">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+          </div>
+          <div class="empty-text">暂无热区，请在图片上拖拽绘制热区</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 跳转路径 -->
+    <div id="section-paths" style="display: none;">
+      <div class="content-header">
+        <div class="content-title">跳转路径设置</div>
+        <button class="btn btn-primary" onclick="openPathModal()">添加路径</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">路径列表</div>
+        <div class="path-list" id="pathList">
+          <!-- 路径将通过JS渲染 -->
+        </div>
+        <div class="empty-state" id="emptyPaths" style="display: none;">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="empty-text">暂无跳转路径，请添加场景间的导航关系</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商家管理 -->
+    <div id="section-merchants" style="display: none;">
+      <div class="content-header">
+        <div class="content-title">商家管理</div>
+        <button class="btn btn-primary" onclick="openMerchantModal()">添加商家</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">商家列表</div>
+        <div class="scene-list" id="merchantList">
+          <!-- 商家卡片将通过JS渲染 -->
+        </div>
+        <div class="empty-state" id="emptyMerchants" style="display: none;">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="empty-text">暂无商家，请添加商家信息</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 上传场景弹窗 -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">上传场景图片</div>
+      <div class="modal-close" onclick="closeUploadModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">场景名称</label>
+        <input class="form-input" id="sceneNameInput" placeholder="输入场景名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">场景图片</label>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('uploadInput').click()">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-text">点击或拖拽上传图片</div>
+          <div class="upload-hint">支持 JPG、PNG 格式，建议尺寸：1920x1080</div>
+          <input type="file" id="uploadInput" accept="image/*" onchange="handleFileUpload()">
+        </div>
+        <img id="previewImage" src="" alt="预览" style="display: none; max-width: 100%; margin-top: 12px; border-radius: 8px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">场景描述</label>
+        <textarea class="form-textarea" id="sceneDescInput" placeholder="输入场景描述"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeUploadModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveScene()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑场景弹窗 -->
+<div class="modal-overlay" id="editSceneModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">编辑场景</div>
+      <div class="modal-close" onclick="closeEditSceneModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editSceneId">
+      <div class="form-group">
+        <label class="form-label">场景名称</label>
+        <input class="form-input" id="editSceneNameInput" placeholder="输入场景名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">场景图片（可选）</label>
+        <div class="upload-area" id="editUploadArea" onclick="document.getElementById('editUploadInput').click()">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-text">点击上传新图片（保持原图片请跳过）</div>
+          <div class="upload-hint">支持 JPG、PNG 格式，建议尺寸：1920x1080</div>
+          <input type="file" id="editUploadInput" accept="image/*" onchange="handleEditFileUpload()">
+        </div>
+        <img id="editPreviewImage" src="" alt="预览" style="display: none; max-width: 100%; margin-top: 12px; border-radius: 8px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">场景描述</label>
+        <textarea class="form-textarea" id="editSceneDescInput" placeholder="输入场景描述"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeEditSceneModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEditScene()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加路径弹窗 -->
+<div class="modal-overlay pathModal" id="pathModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">添加跳转路径</div>
+      <div class="modal-close" onclick="closePathModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">从场景</label>
+        <select class="form-select" id="pathFrom">
+          <option value="">请选择起始场景</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">跳转到场景</label>
+        <select class="form-select" id="pathTo">
+          <option value="">请选择目标场景</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">箭头区域</label>
+        <div class="arrow-position-group">
+          <div class="pos-row">
+            <label class="pos-label">垂直位置</label>
+            <div class="pos-buttons">
+              <button class="pos-btn" onclick="setPathArrowPosition('v', 'top')">上</button>
+              <button class="pos-btn" onclick="setPathArrowPosition('v', 'center')">中</button>
+              <button class="pos-btn" onclick="setPathArrowPosition('v', 'bottom')">下</button>
+            </div>
+          </div>
+          <div class="pos-row">
+            <label class="pos-label">水平位置</label>
+            <div class="pos-buttons">
+              <button class="pos-btn" onclick="setPathArrowPosition('h', 'left')">左</button>
+              <button class="pos-btn" onclick="setPathArrowPosition('h', 'center')">中</button>
+              <button class="pos-btn" onclick="setPathArrowPosition('h', 'right')">右</button>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="pathArrowV">
+        <input type="hidden" id="pathArrowH">
+      </div>
+      <div class="form-group">
+        <label class="form-label">箭头倾斜角度（默认朝上为0°）</label>
+        <input class="form-input" id="pathArrowAngle" type="number" placeholder="输入角度，如：0（上）、90（右）、180（下）、270（左）" value="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closePathModal()">取消</button>
+      <button class="btn btn-primary" onclick="savePath()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 添加商家弹窗 -->
+<div class="modal-overlay" id="merchantModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">添加商家</div>
+      <div class="modal-close" onclick="closeMerchantModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">商家名称</label>
+        <input class="form-input" id="merchantNameInput" placeholder="输入商家名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">商家标识</label>
+        <input class="form-input" id="merchantCodeInput" placeholder="输入商家唯一标识（如：moutai）">
+      </div>
+      <div class="form-group">
+        <label class="form-label">商家描述</label>
+        <textarea class="form-textarea" id="merchantDescInput" placeholder="输入商家描述"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeMerchantModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveMerchant()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑商家弹窗 -->
+<div class="modal-overlay" id="merchantEditModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">编辑商家</div>
+      <div class="modal-close" onclick="closeMerchantEditModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="merchantEditId">
+      <div class="form-group">
+        <label class="form-label">商家名称</label>
+        <input class="form-input" id="merchantEditNameInput" placeholder="输入商家名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">商家标识</label>
+        <input class="form-input" id="merchantEditCodeInput" placeholder="输入商家唯一标识（如：moutai）">
+      </div>
+      <div class="form-group">
+        <label class="form-label">商家描述</label>
+        <textarea class="form-textarea" id="merchantEditDescInput" placeholder="输入商家描述"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeMerchantEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEditMerchant()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- 热区编辑弹窗 -->
+<div class="modal-overlay" id="hotspotEditModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="hotspotModalTitle">编辑热区</div>
+      <div class="modal-close" onclick="closeHotspotModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="hotspotEditId">
+      <div class="form-group">
+        <label class="form-label">关联目标</label>
+        <select class="form-select" id="hotspotEditMerchant" onchange="onMerchantSelectChange()">
+          <option value="">不关联</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">热区名称</label>
+        <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="deleteHotspotFromModal()" style="background:#fff5f5;color:#D70C1F;border-color:#ffcccc">删除热区</button>
+      <button class="btn btn-default" id="redrawHotspotBtn" onclick="redrawHotspot()">重绘</button>
+      <button class="btn btn-primary" onclick="saveHotspot()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 数据（页面初始为空）
+let scenes = [
+  {
+    id: 'scene1',
+    name: '食品区',
+    desc: '食品区场景',
+    image: 'scene1.png',
+    hotspots: []
+  },
+  {
+    id: 'scene2',
+    name: '文旅区',
+    desc: '文旅区场景',
+    image: 'scene2.png',
+    hotspots: []
+  }
+];
+let merchants = [
+  { id: 'm1', name: '贵州茅台', type: 'food', tag: '数字酒庄 · 品牌馆', desc: '茅台酒起源于秦汉，成熟于明清，1915年巴拿马万国博览会金奖' },
+  { id: 'm2', name: '王者荣耀', type: 'ent', tag: '游戏资产 · 数字皮肤', desc: '全球领先的MOBA手游，拥有海量英雄与皮肤数字资产' },
+  { id: 'm3', name: '五粮液', type: 'food', tag: '品牌馆 · 数字珍藏', desc: '中国浓香型白酒的典型代表，以五粮酿造工艺闻名' },
+  { id: 'm4', name: '妙可蓝多', type: 'food', tag: '新零售 · 品牌馆', desc: '中国领先的奶酪品牌，布局数字化新零售' },
+  { id: 'm5', name: '杜甫草堂', type: 'tour', tag: '文旅 · 数字藏品', desc: '中国唐代大诗人杜甫流寓成都时的故居' },
+  { id: 'm6', name: '海底捞', type: 'food', tag: '餐饮 · 会员数字卡', desc: '中国领先的餐饮服务品牌，以极致服务体验著称' },
+  { id: 'm7', name: '鬼吹灯', type: 'film', tag: '影视 · 数字资产', desc: '经典盗墓题材IP，推出摸金校尉系列数字藏品' },
+  { id: 'm8', name: '三体', type: 'film', tag: '影视 · 数字资产', desc: '刘慈欣科幻巨著IP，推出三体文明系列数字资产' }
+];
+let paths = [];
+
+let currentSection = 'scenes';
+let selectedScene = null;
+let selectedHotspot = null;
+let isDrawing = false;
+let drawStartX = 0;
+let drawStartY = 0;
+let drawingBox = null;
+
+// 显示指定区域
+function showSection(section) {
+  currentSection = section;
+  
+  // 更新菜单状态
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.classList.toggle('active', item.textContent.trim() === getSectionTitle(section));
+  });
+  
+  // 隐藏所有区域
+  document.querySelectorAll('[id^="section-"]').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  // 显示当前区域
+  document.getElementById('section-' + section).style.display = 'block';
+  
+  // 刷新数据
+  if (section === 'scenes') renderSceneList();
+  else if (section === 'hotspots') renderHotspotSceneList();
+  else if (section === 'paths') renderPathList();
+  else if (section === 'merchants') renderMerchantList();
+}
+
+function getSectionTitle(section) {
+  const titles = { scenes: '场景管理', hotspots: '热区标注', paths: '跳转路径', merchants: '商家管理' };
+  return titles[section] || '';
+}
+
+// 渲染场景列表
+function renderSceneList() {
+  const container = document.getElementById('sceneList');
+  const emptyState = document.getElementById('emptyScenes');
+  
+  if (scenes.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  container.innerHTML = scenes.map(scene => `
+    <div class="scene-card" onclick="selectSceneForHotspot('${scene.id}')">
+      <img class="scene-cover" src="${scene.image}" alt="${scene.name}">
+      <div class="scene-info">
+        <div class="scene-name">${scene.name}</div>
+        <div class="scene-hotspots">${scene.hotspots.length} 个热区</div>
+        <div class="scene-actions">
+          <button class="scene-btn edit" onclick="event.stopPropagation(); editScene('${scene.id}')">编辑</button>
+          <button class="scene-btn delete" onclick="event.stopPropagation(); deleteScene('${scene.id}')">删除</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 渲染热区场景列表
+function renderHotspotSceneList() {
+  const container = document.getElementById('hotspotSceneList');
+  
+  container.innerHTML = scenes.map(scene => `
+    <div class="scene-card ${selectedScene?.id === scene.id ? 'selected' : ''}" onclick="selectSceneForHotspot('${scene.id}')">
+      <img class="scene-cover" src="${scene.image}" alt="${scene.name}">
+      <div class="scene-info">
+        <div class="scene-name">${scene.name}</div>
+        <div class="scene-hotspots">${scene.hotspots.length} 个热区</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 渲染路径列表
+function renderPathList() {
+  const container = document.getElementById('pathList');
+  const emptyState = document.getElementById('emptyPaths');
+  
+  if (paths.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  container.innerHTML = paths.map(path => {
+    const fromScene = scenes.find(s => s.id === path.from);
+    const toScene = scenes.find(s => s.id === path.to);
+    const arrowV = path.arrowV ? getPositionLabel(path.arrowV) : '-';
+    const arrowH = path.arrowH ? getPositionLabel(path.arrowH) : '-';
+    const angle = path.arrowAngle !== undefined ? path.arrowAngle + '°' : '0°';
+    return `
+      <div class="path-item">
+        <div class="path-from">${fromScene?.name || path.from}</div>
+        <div class="path-arrow">→</div>
+        <div class="path-to">${toScene?.name || path.to}</div>
+        <div class="path-info">(${path.name}) · ${arrowV}${arrowH} · ${angle}</div>
+        <div class="path-delete" onclick="deletePath('${path.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 渲染商家列表
+function renderMerchantList() {
+  const container = document.getElementById('merchantList');
+  const emptyState = document.getElementById('emptyMerchants');
+  
+  if (merchants.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  container.innerHTML = merchants.map(merchant => `
+    <div class="scene-card">
+      <div class="scene-cover" style="background: linear-gradient(135deg, #D70C1F, #F12B3D); display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="scene-info">
+        <div class="scene-name">${merchant.name}</div>
+        <div class="scene-hotspots">${merchant.code}</div>
+        <div class="scene-actions">
+          <button class="scene-btn edit" onclick="editMerchant('${merchant.id}')">编辑</button>
+          <button class="scene-btn delete" onclick="deleteMerchant('${merchant.id}')">删除</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 选择场景进行热区编辑
+function selectSceneForHotspot(sceneId) {
+  selectedScene = scenes.find(s => s.id === sceneId);
+  
+  if (currentSection === 'hotspots') {
+    renderHotspotSceneList();
+    renderHotspotEditor();
+    renderHotspotList();
+    updateHotspotEditMerchantSelect();
+  }
+}
+
+// 渲染热区编辑器
+function renderHotspotEditor() {
+  if (!selectedScene) return;
+  
+  const editor = document.getElementById('hotspotEditor');
+  const emptyState = document.getElementById('emptyHotspot');
+  
+  editor.style.display = 'block';
+  emptyState.style.display = 'none';
+  selectedHotspot = null;
+  
+  document.getElementById('editorImage').src = selectedScene.image;
+  
+  // 清空现有热区
+  const existingBoxes = editor.querySelectorAll('.hotspot-box');
+  existingBoxes.forEach(b => b.remove());
+  
+  // 添加热区框
+  selectedScene.hotspots.forEach(hotspot => {
+    const box = document.createElement('div');
+    box.className = 'hotspot-box';
+    box.style.left = hotspot.x + '%';
+    box.style.top = hotspot.y + '%';
+    box.style.width = (hotspot.width || 80) + 'px';
+    box.style.height = (hotspot.height || 60) + 'px';
+    box.dataset.hotspotId = hotspot.id;
+    box.innerHTML = `<div class="hotspot-box-label">${hotspot.name || '热区'}</div>`;
+    editor.appendChild(box);
+  });
+  
+  // 设置编辑器事件
+  editor.onmousedown = startDrawing;
+  editor.onmousemove = drawHotspot;
+  editor.onmouseup = finishDrawing;
+  editor.onmouseleave = cancelDrawing;
+  editor.ontouchstart = handleTouchStart;
+  editor.ontouchmove = handleTouchMove;
+  editor.ontouchend = finishDrawing;
+}
+
+// 开始绘制热区
+function startDrawing(e) {
+  if (!selectedScene) return;
+  
+  const target = e.target || e.touches?.[0]?.target;
+  if (target.classList.contains('hotspot-box') || target.classList.contains('hotspot-box-label')) {
+    return;
+  }
+  
+  // 如果已有绘制中的框，先移除
+  if (drawingBox) {
+    drawingBox.remove();
+    drawingBox = null;
+  }
+  
+  isDrawing = true;
+  const editor = document.getElementById('hotspotEditor');
+  const rect = editor.getBoundingClientRect();
+  
+  const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
+  const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
+  
+  drawStartX = ((clientX - rect.left) / rect.width) * 100;
+  drawStartY = ((clientY - rect.top) / rect.height) * 100;
+  
+  // 创建绘制中的热区框
+  drawingBox = document.createElement('div');
+  drawingBox.className = 'hotspot-box drawing';
+  drawingBox.style.left = drawStartX + '%';
+  drawingBox.style.top = drawStartY + '%';
+  drawingBox.style.width = '0px';
+  drawingBox.style.height = '0px';
+  editor.appendChild(drawingBox);
+}
+
+// 绘制热区
+function drawHotspot(e) {
+  if (!isDrawing || !drawingBox || !selectedScene) return;
+  
+  const editor = document.getElementById('hotspotEditor');
+  const rect = editor.getBoundingClientRect();
+  
+  const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
+  const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
+  
+  const currentX = ((clientX - rect.left) / rect.width) * 100;
+  const currentY = ((clientY - rect.top) / rect.height) * 100;
+  
+  // 计算热区位置和大小，确保不超出图片边界
+  const x = Math.min(Math.max(0, Math.min(drawStartX, currentX)), 95);
+  const y = Math.min(Math.max(0, Math.min(drawStartY, currentY)), 90);
+  const width = Math.abs(currentX - drawStartX) * (rect.width / 100);
+  const height = Math.abs(currentY - drawStartY) * (rect.height / 100);
+  
+  drawingBox.style.left = x + '%';
+  drawingBox.style.top = y + '%';
+  drawingBox.style.width = Math.max(20, width) + 'px';
+  drawingBox.style.height = Math.max(20, height) + 'px';
+}
+
+// 完成绘制热区
+function finishDrawing() {
+  if (!isDrawing || !drawingBox) return;
+  
+  isDrawing = false;
+  
+  const width = parseFloat(drawingBox.style.width);
+  const height = parseFloat(drawingBox.style.height);
+  
+  // 如果热区太小则取消
+  if (width < 20 || height < 20) {
+    cancelDrawing();
+    return;
+  }
+  
+  // 保存临时热区数据到弹窗
+  document.getElementById('hotspotEditId').value = '';
+  document.getElementById('hotspotEditMerchant').value = '';
+  document.getElementById('hotspotEditName').value = '';
+  document.getElementById('hotspotModalTitle').textContent = '创建热区';
+  
+  // 隐藏删除按钮，显示重绘按钮
+  document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = 'none';
+  document.getElementById('redrawHotspotBtn').style.display = '';
+  
+  // 保存临时数据到弹窗元素
+  const modal = document.getElementById('hotspotEditModal');
+  modal.dataset.tempX = drawingBox.style.left;
+  modal.dataset.tempY = drawingBox.style.top;
+  modal.dataset.tempWidth = drawingBox.style.width;
+  modal.dataset.tempHeight = drawingBox.style.height;
+  
+  // 显示弹窗
+  modal.classList.add('show');
+}
+
+// 取消绘制
+function cancelDrawing() {
+  isDrawing = false;
+  
+  if (drawingBox) {
+    drawingBox.remove();
+    drawingBox = null;
+  }
+}
+
+// 处理触摸开始
+function handleTouchStart(e) {
+  e.preventDefault();
+  startDrawing(e);
+}
+
+// 处理触摸移动
+function handleTouchMove(e) {
+  e.preventDefault();
+  drawHotspot(e);
+}
+
+// 关联目标选择变化时自动填充名称
+function onMerchantSelectChange() {
+  const merchantId = document.getElementById('hotspotEditMerchant').value;
+  
+  if (merchantId === 'start_position') {
+    // 如果选择的是人物起始位置
+    const nameInput = document.getElementById('hotspotEditName');
+    if (!nameInput.value) {
+      nameInput.value = '人物起始位置';
+    }
+  } else {
+    const merchant = merchants.find(m => m.id === merchantId);
+    if (merchant) {
+      const nameInput = document.getElementById('hotspotEditName');
+      // 如果名称为空，自动填入商家名称
+      if (!nameInput.value) {
+        nameInput.value = merchant.name;
+      }
+    }
+  }
+}
+
+// 保存热区
+function saveHotspot() {
+  const modal = document.getElementById('hotspotEditModal');
+  const editId = document.getElementById('hotspotEditId').value;
+  const merchantId = document.getElementById('hotspotEditMerchant').value;
+  const name = document.getElementById('hotspotEditName').value.trim();
+  
+  if (!name) {
+    showToast('请输入热区名称', 'error');
+    return;
+  }
+  
+  if (editId) {
+    // 编辑现有热区
+    const hotspot = selectedScene.hotspots.find(h => h.id === editId);
+    if (hotspot) {
+      hotspot.merchantId = merchantId;
+      hotspot.name = name;
+    }
+    showToast('热区已更新', 'success');
+  } else {
+    // 创建新热区
+    const x = parseFloat(modal.dataset.tempX);
+    const y = parseFloat(modal.dataset.tempY);
+    const width = parseFloat(modal.dataset.tempWidth);
+    const height = parseFloat(modal.dataset.tempHeight);
+    
+    const hotspot = {
+      id: 'h' + Date.now(),
+      x: Math.round(x * 10) / 10,
+      y: Math.round(y * 10) / 10,
+      width: Math.round(width),
+      height: Math.round(height),
+      merchantId: merchantId,
+      name: name
+    };
+    
+    selectedScene.hotspots.push(hotspot);
+    showToast('热区已添加', 'success');
+  }
+  
+  closeHotspotModal();
+}
+
+// 从弹窗中删除热区
+function deleteHotspotFromModal() {
+  const editId = document.getElementById('hotspotEditId').value;
+  if (!editId) return;
+  if (confirm('确定要删除这个热区吗？')) {
+    selectedScene.hotspots = selectedScene.hotspots.filter(h => h.id !== editId);
+    closeHotspotModal();
+    showToast('热区已删除', 'success');
+  }
+}
+
+// 重绘热区
+function redrawHotspot() {
+  closeHotspotModal();
+  cancelDrawing();
+}
+
+// 关闭热区弹窗
+function closeHotspotModal() {
+  const modal = document.getElementById('hotspotEditModal');
+  modal.classList.remove('show');
+  cancelDrawing();
+  renderHotspotEditor();
+  renderHotspotList();
+}
+
+// 渲染热区列表
+function renderHotspotList() {
+  if (!selectedScene) return;
+  
+  const container = document.getElementById('hotspotList');
+  const emptyState = document.getElementById('emptyHotspotList');
+  
+  if (selectedScene.hotspots.length === 0) {
+    container.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  container.innerHTML = selectedScene.hotspots.map(hotspot => {
+    const isStartPosition = hotspot.merchantId === 'start_position';
+    const merchant = !isStartPosition ? merchants.find(m => m.id === hotspot.merchantId) : null;
+    const merchantName = isStartPosition ? '人物起始位置' : (merchant?.name || '未关联');
+    return `
+      <div class="hotspot-item">
+        <div class="hi-info">
+          <div class="hi-name">${hotspot.name || '未命名热区'}</div>
+          <div class="hi-merchant">${merchantName}</div>
+          <div class="hi-pos">位置: ${Math.round(hotspot.x)}%, ${Math.round(hotspot.y)}% · 大小: ${hotspot.width || 80}×${hotspot.height || 60}</div>
+        </div>
+        <div class="hi-actions">
+          <button class="hi-btn edit" onclick="editHotspot('${hotspot.id}')">编辑</button>
+          <button class="hi-btn delete" onclick="deleteHotspotItem('${hotspot.id}')">删除</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 编辑热区
+function editHotspot(hotspotId) {
+  const hotspot = selectedScene.hotspots.find(h => h.id === hotspotId);
+  if (!hotspot) return;
+  
+  document.getElementById('hotspotEditId').value = hotspot.id;
+  document.getElementById('hotspotEditMerchant').value = hotspot.merchantId || '';
+  document.getElementById('hotspotEditName').value = hotspot.name || '';
+  document.getElementById('hotspotModalTitle').textContent = '编辑热区';
+  
+  // 显示删除按钮，隐藏重绘按钮
+  document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = '';
+  document.getElementById('redrawHotspotBtn').style.display = 'none';
+  
+  // 清空临时数据（编辑时不需要）
+  const modal = document.getElementById('hotspotEditModal');
+  modal.dataset.tempX = '';
+  modal.dataset.tempY = '';
+  modal.dataset.tempWidth = '';
+  modal.dataset.tempHeight = '';
+  
+  document.getElementById('hotspotEditModal').classList.add('show');
+}
+
+// 删除热区
+function deleteHotspotItem(hotspotId) {
+  if (confirm('确定要删除这个热区吗？')) {
+    selectedScene.hotspots = selectedScene.hotspots.filter(h => h.id !== hotspotId);
+    renderHotspotEditor();
+    renderHotspotList();
+    showToast('热区已删除', 'success');
+  }
+}
+
+// 更新热区编辑弹窗的关联目标选择
+function updateHotspotEditMerchantSelect() {
+  const select = document.getElementById('hotspotEditMerchant');
+  select.innerHTML = '<option value="">不关联</option>' + 
+    merchants.map(m => `<option value="${m.id}">${m.name}</option>`).join('') +
+    '<option value="start_position">人物起始位置</option>';
+}
+// 上传场景相关
+function openUploadModal() {
+  document.getElementById('uploadModal').classList.add('show');
+  document.getElementById('sceneNameInput').value = '';
+  document.getElementById('sceneDescInput').value = '';
+  document.getElementById('previewImage').style.display = 'none';
+  document.getElementById('uploadInput').value = '';
+}
+
+function closeUploadModal() {
+  document.getElementById('uploadModal').classList.remove('show');
+}
+
+function closeEditSceneModal() {
+  document.getElementById('editSceneModal').classList.remove('show');
+  document.getElementById('editUploadInput').value = '';
+}
+
+function handleFileUpload() {
+  const file = document.getElementById('uploadInput').files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('previewImage').src = e.target.result;
+      document.getElementById('previewImage').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function handleEditFileUpload() {
+  const file = document.getElementById('editUploadInput').files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('editPreviewImage').src = e.target.result;
+      document.getElementById('editPreviewImage').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function saveScene() {
+  const name = document.getElementById('sceneNameInput').value.trim();
+  const desc = document.getElementById('sceneDescInput').value.trim();
+  const file = document.getElementById('uploadInput').files[0];
+  
+  if (!name) {
+    showToast('请输入场景名称', 'error');
+    return;
+  }
+  
+  if (!file) {
+    showToast('请上传场景图片', 'error');
+    return;
+  }
+  
+  // 模拟上传
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    scenes.push({
+      id: 's' + Date.now(),
+      name,
+      image: e.target.result,
+      desc,
+      hotspots: []
+    });
+    
+    closeUploadModal();
+    renderSceneList();
+    showToast('场景上传成功', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveEditScene() {
+  const sceneId = document.getElementById('editSceneId').value;
+  const name = document.getElementById('editSceneNameInput').value.trim();
+  const desc = document.getElementById('editSceneDescInput').value.trim();
+  const file = document.getElementById('editUploadInput').files[0];
+  
+  if (!name) {
+    showToast('请输入场景名称', 'error');
+    return;
+  }
+  
+  const scene = scenes.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  scene.name = name;
+  scene.desc = desc;
+  
+  // 如果有新图片则更新
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      scene.image = e.target.result;
+      closeEditSceneModal();
+      renderSceneList();
+      showToast('场景修改成功', 'success');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    closeEditSceneModal();
+    renderSceneList();
+    showToast('场景修改成功', 'success');
+  }
+}
+
+// 删除场景
+function deleteScene(sceneId) {
+  if (confirm('确定要删除这个场景吗？所有相关的热区和路径也会被删除。')) {
+    // 删除场景
+    scenes = scenes.filter(s => s.id !== sceneId);
+    
+    // 删除相关路径
+    paths = paths.filter(p => p.from !== sceneId && p.to !== sceneId);
+    
+    renderSceneList();
+    showToast('场景已删除', 'success');
+  }
+}
+
+// 路径相关
+function openPathModal() {
+  document.getElementById('pathModal').classList.add('show');
+  document.getElementById('pathArrowV').value = '';
+  document.getElementById('pathArrowH').value = '';
+  document.getElementById('pathArrowAngle').value = '0';
+  
+  // 重置箭头按钮状态
+  document.querySelectorAll('.pathModal .pos-btn').forEach(btn => btn.classList.remove('active'));
+  
+  // 填充场景选项
+  const fromSelect = document.getElementById('pathFrom');
+  const toSelect = document.getElementById('pathTo');
+  const options = scenes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  fromSelect.innerHTML = `<option value="">请选择起始场景</option>${options}`;
+  toSelect.innerHTML = `<option value="">请选择目标场景</option>${options}`;
+}
+
+function closePathModal() {
+  document.getElementById('pathModal').classList.remove('show');
+}
+
+function getPositionLabel(position) {
+  const labels = { top: '上', center: '中', bottom: '下', left: '左', right: '右' };
+  return labels[position] || position;
+}
+
+function setPathArrowPosition(axis, position) {
+  if (axis === 'v') {
+    document.getElementById('pathArrowV').value = position;
+    document.querySelectorAll('.pathModal .pos-row:first-child .pos-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent === getPositionLabel(position));
+    });
+  } else {
+    document.getElementById('pathArrowH').value = position;
+    document.querySelectorAll('.pathModal .pos-row:last-child .pos-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent === getPositionLabel(position));
+    });
+  }
+}
+
+function savePath() {
+  const from = document.getElementById('pathFrom').value;
+  const to = document.getElementById('pathTo').value;
+  const arrowV = document.getElementById('pathArrowV').value;
+  const arrowH = document.getElementById('pathArrowH').value;
+  const arrowAngle = parseInt(document.getElementById('pathArrowAngle').value) || 0;
+  
+  if (!from || !to) {
+    showToast('请选择起始和目标场景', 'error');
+    return;
+  }
+  
+  if (from === to) {
+    showToast('起始场景和目标场景不能相同', 'error');
+    return;
+  }
+  
+  if (!arrowV || !arrowH) {
+    showToast('请选择箭头区域位置', 'error');
+    return;
+  }
+  
+  paths.push({
+    id: 'p' + Date.now(),
+    from,
+    to,
+    name: '路径',
+    arrowV,
+    arrowH,
+    arrowAngle
+  });
+  
+  closePathModal();
+  renderPathList();
+  showToast('路径添加成功', 'success');
+}
+
+function deletePath(pathId) {
+  if (confirm('确定要删除这条路径吗？')) {
+    paths = paths.filter(p => p.id !== pathId);
+    renderPathList();
+    showToast('路径已删除', 'success');
+  }
+}
+
+// 商家相关
+function openMerchantModal() {
+  document.getElementById('merchantModal').classList.add('show');
+  document.getElementById('merchantNameInput').value = '';
+  document.getElementById('merchantCodeInput').value = '';
+  document.getElementById('merchantDescInput').value = '';
+}
+
+function closeMerchantModal() {
+  document.getElementById('merchantModal').classList.remove('show');
+}
+
+function saveMerchant() {
+  const name = document.getElementById('merchantNameInput').value.trim();
+  const code = document.getElementById('merchantCodeInput').value.trim();
+  
+  if (!name) {
+    showToast('请输入商家名称', 'error');
+    return;
+  }
+  
+  if (!code) {
+    showToast('请输入商家标识', 'error');
+    return;
+  }
+  
+  // 检查标识是否已存在
+  if (merchants.some(m => m.code === code)) {
+    showToast('商家标识已存在', 'error');
+    return;
+  }
+  
+  merchants.push({
+    id: 'm' + Date.now(),
+    name,
+    code,
+    desc: document.getElementById('merchantDescInput').value.trim()
+  });
+  
+  closeMerchantModal();
+  renderMerchantList();
+  
+  // 如果在热区编辑页面，更新商家选择
+  if (currentSection === 'hotspots') {
+    updateHotspotEditMerchantSelect();
+  }
+  
+  showToast('商家添加成功', 'success');
+}
+
+function deleteMerchant(merchantId) {
+  if (confirm('确定要删除这个商家吗？所有相关的热区关联也会被清除。')) {
+    // 删除商家
+    merchants = merchants.filter(m => m.id !== merchantId);
+    
+    // 清除热区关联
+    scenes.forEach(scene => {
+      scene.hotspots.forEach(hotspot => {
+        if (hotspot.merchantId === merchantId) {
+          hotspot.merchantId = '';
+        }
+      });
+    });
+    
+    renderMerchantList();
+    showToast('商家已删除', 'success');
+  }
+}
+
+// 编辑场景（占位）
+function editScene(sceneId) {
+  const scene = scenes.find(s => s.id === sceneId);
+  if (!scene) return;
+  
+  // 填充表单
+  document.getElementById('editSceneId').value = scene.id;
+  document.getElementById('editSceneNameInput').value = scene.name;
+  document.getElementById('editSceneDescInput').value = scene.desc;
+  document.getElementById('editPreviewImage').src = scene.image;
+  document.getElementById('editPreviewImage').style.display = 'block';
+  
+  document.getElementById('editSceneModal').classList.add('show');
+}
+
+// 编辑商家
+function editMerchant(merchantId) {
+  const merchant = merchants.find(m => m.id === merchantId);
+  if (!merchant) return;
+  document.getElementById('merchantEditId').value = merchant.id;
+  document.getElementById('merchantEditNameInput').value = merchant.name;
+  document.getElementById('merchantEditCodeInput').value = merchant.code;
+  document.getElementById('merchantEditDescInput').value = merchant.desc || '';
+  document.getElementById('merchantEditModal').classList.add('show');
+}
+
+function closeMerchantEditModal() {
+  document.getElementById('merchantEditModal').classList.remove('show');
+}
+
+function saveEditMerchant() {
+  const id = document.getElementById('merchantEditId').value;
+  const name = document.getElementById('merchantEditNameInput').value.trim();
+  const code = document.getElementById('merchantEditCodeInput').value.trim();
+  const desc = document.getElementById('merchantEditDescInput').value.trim();
+  
+  if (!name) { showToast('请输入商家名称', 'error'); return; }
+  if (!code) { showToast('请输入商家标识', 'error'); return; }
+  
+  const merchant = merchants.find(m => m.id === id);
+  if (!merchant) return;
+  
+  // 检查标识是否与其他商家冲突
+  if (merchants.some(m => m.id !== id && m.code === code)) {
+    showToast('商家标识已被其他商家使用', 'error');
+    return;
+  }
+  
+  merchant.name = name;
+  merchant.code = code;
+  merchant.desc = desc;
+  
+  closeMerchantEditModal();
+  renderMerchantList();
+  if (currentSection === 'hotspots') updateHotspotEditMerchantSelect();
+  showToast('商家已更新', 'success');
+}
+
+// 提示消息
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.remove();
+  }, 2500);
+}
+
+// 初始化
+showSection('scenes');
+</script>
+</body>
+</html>

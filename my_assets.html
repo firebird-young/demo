@@ -29,7 +29,7 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .ac-img { width: 56px; height: 56px; border-radius: 10px; background-position: center; background-size: cover; flex-shrink: 0; }
 .ac-info { flex: 1; min-width: 0; }
 .ac-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
-.ac-tag { font-size: 10px; color: #D70C1F; background: #FFF2F3; padding: 1px 8px; border-radius: 4px; display: inline-block; }
+.ac-tag { font-size: 10px; color: #999; background: #f5f5f7; padding: 2px 8px; border-radius: 4px; display: inline-block; }
 .ac-right { text-align: right; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .ac-hold { font-size: 16px; font-weight: 700; color: #D70C1F; }
 .ac-hold-label { font-size: 10px; color: #999; }
@@ -55,13 +55,16 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
   </div>
   <div class="nav-title">我的资产</div>
-  <div class="nav-placeholder"></div>
+  <a href="transfer.html" style="border:none;background:none;color:#D70C1F;cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;text-decoration:none;padding:4px 8px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    赠与管理
+  </a>
 </div>
 
 <!-- 总览 -->
 <div class="overview">
   <div class="ov-item">
-    <div class="ov-num" id="totalCount">6</div>
+    <div class="ov-num" id="totalCount">8</div>
     <div class="ov-label">持有资产</div>
   </div>
 </div>
@@ -72,7 +75,7 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     <div class="ac-img" style="background-image:url('茅台1935.png')"></div>
     <div class="ac-info">
       <div class="ac-name">茅台1935·时光窖藏</div>
-      <span class="ac-tag">酒水食品</span>
+      <span class=\"ac-tag\">发行方：贵州茅台</span>
     </div>
     <div class="ac-right">
       <div class="ac-hold">×3</div>
@@ -84,7 +87,7 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     <div class="ac-img" style="background-image:url('飞天茅台·元宇宙酒票.png')"></div>
     <div class="ac-info">
       <div class="ac-name">飞天茅台·元宇宙酒票</div>
-      <span class="ac-tag">酒水食品</span>
+      <span class=\"ac-tag\">发行方：贵州茅台</span>
     </div>
     <div class="ac-right">
       <div class="ac-hold">×1</div>
@@ -92,11 +95,11 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     </div>
   </div>
 
-  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=maotai1935'">
+  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=guojiu'">
     <div class="ac-img" style="background-image:url('国酒·数字徽章.png')"></div>
     <div class="ac-info">
       <div class="ac-name">国酒·数字徽章</div>
-      <span class="ac-tag">酒水食品</span>
+      <span class=\"ac-tag\">发行方：贵州茅台</span>
     </div>
     <div class="ac-right">
       <div class="ac-hold">×1</div>
@@ -104,11 +107,11 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     </div>
   </div>
 
-  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=maotai1935'">
+  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=banana'">
     <div class="ac-img" style="background-image:url('巴拿马金奖·复刻.png')"></div>
     <div class="ac-info">
       <div class="ac-name">巴拿马金奖·复刻</div>
-      <span class="ac-tag">酒水食品</span>
+      <span class=\"ac-tag\">发行方：贵州茅台</span>
     </div>
     <div class="ac-right">
       <div class="ac-hold">×1</div>
@@ -116,11 +119,35 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
     </div>
   </div>
 
-  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=maotai1935'">
+  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=shengxiao'">
     <div class="ac-img" style="background-image:url('茅台生肖兔·典藏.png')"></div>
     <div class="ac-info">
       <div class="ac-name">茅台生肖兔·典藏</div>
-      <span class="ac-tag">酒水食品</span>
+      <span class=\"ac-tag\">发行方：贵州茅台</span>
+    </div>
+    <div class="ac-right">
+      <div class="ac-hold">×1</div>
+      <div class="ac-hold-label">持有</div>
+    </div>
+  </div>
+
+  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=guichuideng'">
+    <div class="ac-img" style="background-image:url('鬼吹灯.png')"></div>
+    <div class="ac-info">
+      <div class="ac-name">鬼吹灯·数字资产</div>
+      <span class="ac-tag">发行方：鬼吹灯</span>
+    </div>
+    <div class="ac-right">
+      <div class="ac-hold">×1</div>
+      <div class="ac-hold-label">持有</div>
+    </div>
+  </div>
+
+  <div class="asset-card" onclick="window.location.href='asset_detail.html?product=santi'">
+    <div class="ac-img" style="background-image:url('三体.png')"></div>
+    <div class="ac-info">
+      <div class="ac-name">三体·数字资产</div>
+      <span class="ac-tag">发行方：三体</span>
     </div>
     <div class="ac-right">
       <div class="ac-hold">×1</div>

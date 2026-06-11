@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,12 +6,12 @@
 <title>1935 时光窖藏 · 数字资产</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; }
-.page { max-width: 430px; min-height: 100vh; background: #f6f7fb; padding-bottom: 100px; position: relative; }
+body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; overflow-x: hidden; }
+.page { max-width: 430px; width: 100%; min-height: 100vh; background: #f6f7fb; padding-bottom: 100px; position: relative; box-sizing: border-box; }
 @media(max-width:430px) { .page { max-width: 100%; } }
 
 /* ── 顶部导航 ── */
-.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; }
+.nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; background: #fff; }
 .nav-back { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .nav-back svg { width: 20px; height: 20px; color: #333; display: block; }
 .nav-title { flex: 1; text-align: center; font-size: 16px; font-weight: 600; color: #1a1a2e; }
@@ -53,27 +53,15 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .info-item-left span { font-size: 13px; color: #666; }
 .info-item-right { font-size: 13px; color: #1a1a2e; font-weight: 500; }
 
-/* ── 权益列表 ── */
-.benefit-list { margin: 0 16px; background: #fff; border-radius: 16px; padding: 8px 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); }
-.benefit-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f5f5f7; cursor: pointer; }
-.benefit-item:last-child { border-bottom: none; }
-.benefit-item:active { background: #fafafa; }
-.benefit-left { display: flex; align-items: center; gap: 12px; }
-.benefit-icon { width: 36px; height: 36px; border-radius: 10px; background: #FFF2F3; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.benefit-text { display: flex; flex-direction: column; gap: 2px; }
-.benefit-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
-.benefit-desc { font-size: 11px; color: #999; }
-.benefit-arrow svg { width: 16px; height: 16px; color: #ccc; }
-
 /* ── 图片详情 ── */
 .detail-img { margin: 12px 16px; border-radius: 16px; overflow: hidden; }
 .detail-img img { width: 100%; display: block; }
 
 /* ── 底部购买栏 ── */
-.buy-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; display: flex; gap: 12px; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 4px)); background: #fff; border-top: 1px solid rgba(0,0,0,0.05); z-index: 100; }
+.buy-bar { position: fixed; bottom: 0; left: 0; right: 0; margin: 0 auto; max-width: 430px; display: flex; gap: 12px; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 4px)); background: #fff; border-top: 1px solid rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box; }
 .btn-collect { flex-shrink: 0; width: 80px; height: 48px; border: 1px solid #e8e8ec; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 13px; color: #666; }
 .btn-collect:active { background: #f5f5f7; }
-.btn-collect svg { width: 18px; height: 18px; }
+.btn-collect.active{color:#f0ad4e;border-color:#f0ad4e;background:#FFF8EC}.btn-collect svg { width: 18px; height: 18px; }
 .btn-buy { flex: 1; height: 48px; border: none; border-radius: 12px; background: #D70C1F; color: #fff; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
 .btn-buy:active { opacity: 0.9; }
 .btn-buy svg { width: 18px; height: 18px; }
@@ -216,52 +204,8 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
   </div>
 </div>
 
-<!-- 持有权益 -->
-<div class="sec-title"><span>持有权益</span></div>
-<div class="benefit-list">
-  <div class="benefit-item">
-    <div class="benefit-left">
-      <div class="benefit-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#D70C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M17 2H7l1 7c.5 3.5 2 6 4 6s3.5-2.5 4-6l1-7z"/><line x1="12" y1="15" x2="12" y2="22"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
-      </div>
-      <div class="benefit-text">
-        <div class="benefit-name">实物酒兑换</div>
-        <div class="benefit-desc">凭数字资产可兑换实体茅台1935一瓶</div>
-      </div>
-    </div>
-    <div class="benefit-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  </div>
-  <div class="benefit-item">
-    <div class="benefit-left">
-      <div class="benefit-icon" style="background:#E8F4FD">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#2980b9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="7" y1="10" x2="17" y2="10"/><line x1="7" y1="14" x2="13" y2="14"/></svg>
-      </div>
-      <div class="benefit-text">
-        <div class="benefit-name">超值优惠券</div>
-        <div class="benefit-desc">茅台商城满¥299减¥50专属优惠券</div>
-      </div>
-    </div>
-    <div class="benefit-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  </div>
-  <div class="benefit-item">
-    <div class="benefit-left">
-      <div class="benefit-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#D70C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 8l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="benefit-text">
-        <div class="benefit-name">线下品鉴会资格</div>
-        <div class="benefit-desc">年度私享品鉴会优先预约权</div>
-      </div>
-    </div>
-    <div class="benefit-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
-  </div>
-</div>
+
+
 
 <!-- 数字资产详情 -->
 <div class="sec-title"><span>数字资产详情</span></div>
@@ -272,13 +216,10 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 
 <div style="height:20px"></div>
 
-</div>
-
-<!-- 底部购买栏 -->
-<div class="buy-bar">
-  <button class="btn-collect">
+<!-- 底部购买栏 --><div class="buy-bar">
+  <button class="btn-collect" id="btnCollect" onclick="toggleCollect()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    收藏
+    <span id="collectText">收藏</span>
   </button>
   <button class="btn-buy" onclick="window.location.href='order_maotai1935.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2L6 22H18L15 2H9Z"/><line x1="7" y1="6" x2="17" y2="6"/></svg>
@@ -286,17 +227,43 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
   </button>
 </div>
 
+</div><!-- /page -->
+
 <!-- 3D浮层 -->
-<div class="d3-mask" id="d3Mask" onclick="hide3D(event)">
+<div class="d3-mask" id="d3Mask" onclick="hide3D()">
   <div class="d3-box"><div class="d3-model"></div></div>
   <div class="d3-hint">360° 旋转查看</div>
   <button class="d3-close" onclick="hide3D()">关闭</button>
 </div>
 
 <script>
-function show3D() { document.getElementById('d3Mask').classList.add('show'); }
-function hide3D(e) { if (!e || e.target === document.getElementById('d3Mask')) document.getElementById('d3Mask').classList.remove('show'); }
-</script>
-
-</body>
+var PID="maotai1935";
+function toggleCollect(){
+  var list = JSON.parse(localStorage.getItem("favorites") || "[]");
+  var i = list.indexOf(PID);
+  var btn = document.getElementById("btnCollect");
+  var txt = document.getElementById("collectText");
+  if (i >= 0) {
+    list.splice(i, 1);
+    btn.classList.remove("active");
+    if (txt) txt.textContent = "收藏";
+  } else {
+    list.push(PID);
+    btn.classList.add("active");
+    if (txt) txt.textContent = "已收藏";
+  }
+  localStorage.setItem("favorites", JSON.stringify(list));
+}
+function show3D(){ document.getElementById('d3Mask').classList.add('show'); }
+function hide3D(e){ if(e&&e.target!==document.getElementById('d3Mask'))return;document.getElementById('d3Mask').classList.remove('show'); }
+// init
+(function(){
+  var list = JSON.parse(localStorage.getItem("favorites") || "[]");
+  if (list.indexOf(PID) >= 0) {
+    document.getElementById("btnCollect").classList.add("active");
+    var t = document.getElementById("collectText");
+    if (t) t.textContent = "已收藏";
+  }
+})();
+</script></body>
 </html>
