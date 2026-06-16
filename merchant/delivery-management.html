@@ -643,6 +643,28 @@
     .multi-select-panel label input[type="checkbox"] {
       flex-shrink: 0;
       accent-color: #667eea;
+      display: none;
+    }
+    .multi-select-panel label .status-indicator {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ddd;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .multi-select-panel label input[type="checkbox"]:checked + .status-indicator {
+      background: #667eea;
+      border-color: #667eea;
+    }
+    .multi-select-panel label input[type="checkbox"]:checked + .status-indicator::after {
+      content: '✓';
+      color: #fff;
+      font-size: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -747,9 +769,9 @@
               <span class="arrow">▼</span>
             </div>
             <div class="multi-select-panel" id="statusPanel">
-              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="pending" checked onchange="onStatusChange()">待发货</label>
-              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="shipped" checked onchange="onStatusChange()">已发货</label>
-              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="delivered" checked onchange="onStatusChange()">已签收</label>
+              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="pending" checked onchange="onStatusChange()"><span class="status-indicator"></span>待发货</label>
+              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="shipped" checked onchange="onStatusChange()"><span class="status-indicator"></span>已发货</label>
+              <label onclick="event.stopPropagation()"><input type="checkbox" class="status-cb" value="delivered" checked onchange="onStatusChange()"><span class="status-indicator"></span>已签收</label>
             </div>
           </div>
         </div>
