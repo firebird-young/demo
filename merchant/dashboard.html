@@ -75,10 +75,6 @@
     .welcome-icon{font-size:48px;margin-bottom:12px}
     .welcome-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
     .welcome-desc{font-size:13px;color:#999;line-height:1.8;margin-bottom:24px}
-    .welcome-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:480px;margin:0 auto}
-    .wg-item{background:#f5f7fa;border-radius:12px;padding:20px;text-align:center}
-    .wg-num{font-size:28px;font-weight:800;color:#667eea}
-    .wg-label{font-size:11px;color:#999;margin-top:4px}
 
     /* 弹窗 */
     .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
@@ -362,11 +358,7 @@ function renderVerified() {
   h += '<div class="welcome-icon">🏆</div>';
   h += '<div class="welcome-title">欢迎您，<span style="color:#667eea;cursor:pointer;text-decoration:underline" onclick="openInfoModal()">' + merchant.name + '</span></div>';
   h += '<div class="welcome-desc">您的商家已通过认证，可以开始管理数字资产并处理订单。</div>';
-  h += '<div class="welcome-grid">';
-  h += '<div class="wg-item"><div class="wg-num">0</div><div class="wg-label">数字资产</div></div>';
-  h += '<div class="wg-item"><div class="wg-num">0</div><div class="wg-label">空间热区</div></div>';
-  h += '<div class="wg-item"><div class="wg-num">0</div><div class="wg-label">交易订单</div></div>';
-  h += '</div></div></div>';
+  h += '</div></div>';
   document.getElementById('contentArea').innerHTML = h;
 }
 
