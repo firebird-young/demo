@@ -279,7 +279,7 @@
       transition: background 0.2s;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
     }
     
     .order-item:last-child {
@@ -370,8 +370,10 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
+      justify-content: center;
       gap: 8px;
-      min-width: 120px;
+      min-width: 130px;
+      min-height: 80px;
     }
     
     .order-price {
@@ -765,7 +767,7 @@
   <div class="sidebar">
     <div class="sidebar-menu">
       <div class="menu-item has-children">
-        <div class="menu-title" onclick="toggleSubmenu('asset',this)">
+        <div class="menu-title" onclick="toggleSubmenu('asset')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
@@ -782,7 +784,7 @@
       </div>
       
       <div class="menu-item has-children">
-        <div class="menu-title expanded" onclick="toggleSubmenu('order',this)">
+        <div class="menu-title expanded" onclick="toggleSubmenu('order')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
@@ -1138,17 +1140,12 @@
   </div>
   
   <script>
-    // 切换子菜单
-    function toggleSubmenu(id, el) {
-      var submenu = document.getElementById(id + 'Submenu');
-      if (!submenu) return;
-      var isOpen = submenu.classList.contains('show');
-      document.querySelectorAll('.submenu.show').forEach(function(s){s.classList.remove('show');});
-      document.querySelectorAll('.menu-title.expanded').forEach(function(m){m.classList.remove('expanded');});
-      if (!isOpen) {
-        submenu.classList.add('show');
-        (el || submenu.previousElementSibling).classList.add('expanded');
-      }
+    // 侧边栏菜单切换
+    function toggleSubmenu(id) {
+      const title = document.querySelector(`.menu-title[onclick*="${id}"]`);
+      const submenu = document.getElementById(`${id}Submenu`);
+      title.classList.toggle('expanded');
+      submenu.classList.toggle('show');
     }
     
     // 搜索订单
@@ -1177,7 +1174,7 @@
         if (startDate && orderDate < startDate) match = false;
         if (endDate && orderDate > endDate) match = false;
         
-        order.style.display = match ? 'block' : 'none';
+        order.style.display = match ? '' : 'none';
       });
     }
     
@@ -1205,17 +1202,74 @@
       
       orders.forEach(order => {
         if (status === 'all') {
-          order.style.display = 'block';
+          order.style.display = '';
         } else if (order.getAttribute('data-status') === status) {
-          order.style.display = 'block';
+          order.style.display = '';
         } else {
           order.style.display = 'none';
-        ]
-      }
-          </div>
-        `;
+        }
       });
+    }
+    
+    // 查看订单详情
+    var orderDataMap = {
+      'O202401150001': { id:'O202401150001', orderTime:'2024-01-15 14:30:25', payTime:'-', status:'pending', benefitStatus:'-',
+        buyerNick:'茅台收藏家', buyerAccount:'138****8888', buyerId:'U20240001', payMethod:'支付宝',
+        productIcon:'🍷', productName:'飞天茅台数字藏品', productSpec:'款式：经典款 | 数量：1', price:'¥1,299.00',
+        benefits:[{name:'线下品鉴会入场资格', status:'unused'},{name:'专属客服服务', status:'unused'}] },
+      'O202401150002': { id:'O202401150002', orderTime:'2024-01-15 15:45:10', payTime:'-', status:'pending', benefitStatus:'-',
+        buyerNick:'酒中仙', buyerAccount:'139****6666', buyerId:'U20240002', payMethod:'微信支付',
+        productIcon:'🏺', productName:'茅台年份酒数字凭证', productSpec:'款式：1983年份 | 数量：2', price:'¥5,998.00',
+        benefits:[{name:'年份酒专属权益', status:'unused'}] },
+      'O202401140001': { id:'O202401140001', orderTime:'2024-01-14 09:20:33', payTime:'2024-01-14 09:22:18', status:'completed', benefitStatus:'部分核销',
+        buyerNick:'茅台收藏家', buyerAccount:'137****5555', buyerId:'U20240003', payMethod:'汇付',
+        productIcon:'🎨', productName:'艺术大师·臻品系列', productSpec:'款式：山水意境 | 数量：1', price:'¥2,599.00',
+        benefits:[{name:'线下品鉴会入场资格', status:'unused'},{name:'专属客服服务', status:'unused'},{name:'优先购买权', status:'used'}] },
+      'O202401130001': { id:'O202401130001', orderTime:'2024-01-13 11:35:47', payTime:'2024-01-13 11:36:20', status:'completed', benefitStatus:'部分核销',
+        buyerNick:'老酒客', buyerAccount:'136****4444', buyerId:'U20240004', payMethod:'支付宝',
+        productIcon:'⛓️', productName:'1935·时光窖藏', productSpec:'款式：珍藏版 | 数量：1', price:'¥3,999.00',
+        benefits:[{name:'限量编号证书', status:'unused'},{name:'VIP专属通道', status:'used'}] },
+      'O202401120001': { id:'O202401120001', orderTime:'2024-01-12 16:10:22', payTime:'2024-01-12 16:11:05', status:'completed', benefitStatus:'全部未核销',
+        buyerNick:'酱香爱好者', buyerAccount:'135****3333', buyerId:'U20240005', payMethod:'微信支付',
+        productIcon:'💎', productName:'茅台会员积分', productSpec:'款式：积分包 | 数量：1', price:'¥99.00',
+        benefits:[{name:'积分兑换权益', status:'unused'}] },
+      'O202401110001': { id:'O202401110001', orderTime:'2024-01-11 10:05:15', payTime:'2024-01-11 10:06:30', status:'completed', benefitStatus:'全部已核销',
+        buyerNick:'酒文化达人', buyerAccount:'134****2222', buyerId:'U20240006', payMethod:'汇付',
+        productIcon:'🏅', productName:'国酒·数字徽章', productSpec:'款式：典藏版 | 数量：1', price:'¥1,888.00',
+        benefits:[{name:'数字徽章展示权', status:'used'},{name:'会员专属折扣', status:'used'}] }
+    };
+    
+    function viewOrder(orderId) {
+      var data = orderDataMap[orderId];
+      if (!data) return;
+      var st = data.status === 'pending' ? '待付款' : '已完成';
+      var stCls = data.status === 'pending' ? 'status-pending' : 'status-completed';
+      var bCls = data.benefitStatus === '全部已核销' ? 'benefit-all' : data.benefitStatus === '全部未核销' ? 'benefit-all' : 'benefit-partial';
       
+      var h = '';
+      h += '<div class="detail-title">订单信息</div>';
+      h += '<div class="detail-row"><span class="detail-label">订单编号</span><span class="detail-value">'+data.id+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">下单时间</span><span class="detail-value">'+data.orderTime+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">支付时间</span><span class="detail-value">'+data.payTime+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status '+stCls+'">'+st+'</span></span></div>';
+      h += '<div class="detail-row"><span class="detail-label">权益状态</span><span class="detail-value"><span class="benefit-status '+bCls+'">'+data.benefitStatus+'</span></span></div>';
+      h += '<div class="detail-title">买家信息</div>';
+      h += '<div class="detail-row"><span class="detail-label">买家昵称</span><span class="detail-value">'+data.buyerNick+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">买家账号</span><span class="detail-value">'+data.buyerAccount+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">买家ID</span><span class="detail-value">'+data.buyerId+'</span></div>';
+      h += '<div class="detail-row"><span class="detail-label">支付方式</span><span class="detail-value">'+data.payMethod+'</span></div>';
+      h += '<div class="detail-section"><div class="detail-row" style="align-items:flex-start"><div class="detail-product-image">'+data.productIcon+'</div>';
+      h += '<div class="detail-product-info"><div class="detail-product-name">'+data.productName+'</div>';
+      h += '<div class="detail-product-spec">'+data.productSpec+'</div>';
+      h += '<div style="margin-top:8px;font-size:16px;font-weight:600;color:#ff4d4f">'+data.price+'</div></div></div></div>';
+      h += '<div class="detail-section"><div class="detail-title">权益详情</div><div class="benefits-detail"><div class="benefits-detail-title">包含权益</div>';
+      data.benefits.forEach(function(b) {
+        h += '<div class="benefit-detail-item"><span class="benefit-detail-name">'+b.name+'</span><span class="benefit-detail-status '+(b.status==='used'?'benefit-used':'benefit-unused')+'">'+(b.status==='used'?'已核销':'未核销')+'</span></div>';
+      });
+      h += '</div></div>';
+      h += '<div class="btn-group"><button class="btn-cancel" onclick="closeModal()">关闭</button></div>';
+      
+      document.querySelector('#orderModal .modal-body').innerHTML = h;
       document.getElementById('orderModal').classList.add('show');
     }
     

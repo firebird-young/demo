@@ -1174,7 +1174,7 @@
     /* 统计概览样式 */
     .stats-overview {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -1183,18 +1183,20 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 12px;
       padding: 20px;
-      color: white;
+      color: #fff;
     }
     
-    .stat-label {
-      font-size: 16px;
-      opacity: 0.8;
-      margin-bottom: 8px;
+    .stat-card .stat-label {
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 6px;
     }
     
-    .stat-value {
-      font-size: 32px;
-      font-weight: 600;
+    .stat-card .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
     
     /* 图表样式 */
@@ -1508,6 +1510,7 @@
         </div>
         <ul class="submenu" id="orderSubmenu">
           <li><a href="order-management.html" class="submenu-item">订单管理</a></li>
+          <li><a href="delivery-management.html" class="submenu-item">发货管理</a></li>
         </ul>
       </div>
     </div>
@@ -2294,6 +2297,7 @@
         status: 'published',
         currentPhase: '优先购',
         totalSales: 856,
+        totalRevenue: 512400,
         buyerCount: 428,
         phases: [
           {
@@ -2364,6 +2368,7 @@
         }, 0);
         document.getElementById('totalPublish').textContent = totalPublish.toLocaleString();
         document.getElementById('totalSales').textContent = savedData.totalSales.toLocaleString();
+        document.getElementById('totalRevenue').textContent = '¥' + (savedData.totalRevenue || 0).toLocaleString();
         document.getElementById('buyerCount').textContent = savedData.buyerCount.toLocaleString();
       } else {
         // 草稿状态，显示编辑模式
@@ -3114,6 +3119,7 @@
         }, 0);
         document.getElementById('totalPublish').textContent = totalPublish.toLocaleString();
         document.getElementById('totalSales').textContent = savedData.totalSales.toLocaleString();
+        document.getElementById('totalRevenue').textContent = '¥' + (savedData.totalRevenue || 0).toLocaleString();
         document.getElementById('buyerCount').textContent = savedData.buyerCount.toLocaleString();
       } else {
         // 草稿状态，显示编辑模式
@@ -3290,6 +3296,10 @@
           <div class="stat-card">
             <div class="stat-label">销售总量</div>
             <div class="stat-value" id="totalSales">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">销售总额</div>
+            <div class="stat-value" id="totalRevenue" style="color:#FFD700">¥0</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">购买人数</div>

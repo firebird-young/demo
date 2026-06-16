@@ -99,6 +99,10 @@
     .info-section-title{font-size:14px;font-weight:600;color:#1a1a2e;margin:20px 0 10px;padding-bottom:8px;border-bottom:1px solid #e0e0e0}
     .cert-img-placeholder{width:100%;height:120px;background:#f5f7fa;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-top:8px;overflow:hidden}
     .cert-img-placeholder img{width:100%;height:100%;object-fit:contain}
+    
+    .tag-item{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f0f0ff;color:#4a4ae0;border-radius:4px;font-size:12px}
+    .tag-item .tag-remove{cursor:pointer;font-size:14px;color:#999}
+    .tag-item .tag-remove:hover{color:#D70C1F}
 
     .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;font-size:14px;padding:14px 28px;border-radius:8px;z-index:2000;pointer-events:none;opacity:0;transition:opacity .3s}
     .toast.show{opacity:1}
@@ -172,8 +176,8 @@
         <label class="form-label">Logo</label>
         <div class="upload-id">
           <div class="upload-box-small" id="editLogoBox" onclick="document.getElementById('editLogoUpload').click()" style="background-image:url('')"></div>
-          <input type="file" id="editLogoUpload" accept="image/*" onchange="handleEditLogo(this)">
-          <span class="upload-tip">点击更换Logo</span>
+          <input type="file" id="editLogoUpload" accept="image/*" onchange="handleEditLogo(this)" style="display:none">
+          <span class="upload-tip" style="color:#999">点击图片可以更换</span>
         </div>
       </div>
       <div class="form-group">
@@ -182,7 +186,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">标签</label>
-        <input class="form-input" id="editTag" placeholder="如：数字酒庄 · 品牌馆">
+        <div id="editTagDisplay" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="editTagInput" placeholder="输入标签，按回车添加" style="flex:1" onkeypress="if(event.key==='Enter'){event.preventDefault();addEditTag()}">
+          <button class="submit-btn" style="width:auto;padding:0 16px;font-size:13px" onclick="addEditTag()">添加</button>
+        </div>
       </div>
 
       <!-- 不可编辑部分 -->
@@ -202,8 +210,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-logout" onclick="closeInfoModal()">取消</button>
-      <button class="submit-btn" style="width:auto;padding:0 24px" onclick="saveEditInfo()">保存修改</button>
+      <button onclick="closeInfoModal()" style="padding:8px 20px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:13px;color:#666">取消</button>
+      <button onclick="saveEditInfo()" style="padding:8px 24px;background:#667eea;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">保存修改</button>
     </div>
   </div>
 </div>
@@ -211,22 +219,22 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// 模拟已登录商家
+// 模拟已登录商家（贵州茅台集团）
 var merchant = {
   name: '贵州茅台集团',
   account: 'moutai_admin',
   certStatus: 'verified',
-  logo: '',
-  tag: '数字酒庄 · 品牌馆',
+  logo: '../贵州茅台.jpg',
+  tag: ['白酒', '中华老字号', '酱香型', '品牌馆'],
   certData: {
-    logo: '',
+    logo: '../贵州茅台.jpg',
     company: '贵州茅台酒股份有限公司',
     industry: 'food',
-    legalName: '张三',
-    legalPhone: '13800138001',
-    contact: '李四',
-    contactPhone: '13900139001',
-    creditCode: '915200007143058018',
+    legalName: '丁雄军',
+    legalPhone: '138****2000',
+    contact: '张三',
+    contactPhone: '139****1000',
+    creditCode: '9152000021441686XK',
     certImg: ''
   }
 };
@@ -236,9 +244,9 @@ if (stored) {
   merchant.name = stored.name || merchant.name;
   merchant.account = stored.account || merchant.account;
   merchant.certStatus = stored.certStatus || merchant.certStatus;
-  merchant.logo = stored.logo || '';
+  merchant.logo = stored.logo || merchant.logo;
   merchant.tag = stored.tag || merchant.tag;
-  merchant.certData = stored.certData || null;
+  merchant.certData = stored.certData || merchant.certData;
 } else {
   localStorage.setItem('merchantLogin', JSON.stringify(merchant));
 }
@@ -289,16 +297,16 @@ function toast(msg) { var t = document.getElementById('toast'); t.textContent = 
 function renderUnauth() {
   var h = '<div class="card"><div class="cert-form">';
   h += '<h3 style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:20px">商家认证</h3>';
-  h += '<div class="form-row"><div class="form-group"><label class="form-label">企业Logo</label><div class="upload-id"><div class="upload-box-small" id="certLogoBox" onclick="document.getElementById(\'logoUpload\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><input type="file" id="logoUpload" accept="image/*" onchange="handleUpload(this,\'certLogoBox\')"><span class="upload-tip">上传Logo</span></div></div>';
-  h += '<div class="form-group"><label class="form-label">企业简称</label><input class="form-input" id="certShortName" placeholder="请输入企业简称"></div></div>';
-  h += '<div class="form-row"><div class="form-group"><label class="form-label">企业名称</label><input class="form-input" id="certCompany" placeholder="请输入企业全称"></div>';
-  h += '<div class="form-group"><label class="form-label">所属行业</label><select class="form-select" id="certIndustry"><option value="">请选择所属行业</option><option value="food">食品饮料</option><option value="ent">游戏娱乐</option><option value="film">影视传媒</option><option value="tour">文旅景区</option><option value="retail">零售百货</option><option value="tech">科技互联网</option><option value="edu">教育培训</option><option value="other">其他行业</option></select></div></div>';
-  h += '<div class="form-row"><div class="form-group"><label class="form-label">法人姓名</label><input class="form-input" id="certLegalName" placeholder="请输入法人姓名"></div>';
-  h += '<div class="form-group"><label class="form-label">法人手机号</label><input class="form-input" id="certLegalPhone" placeholder="请输入法人手机号" type="tel"></div></div>';
-  h += '<div class="form-row"><div class="form-group"><label class="form-label">其他联系人姓名</label><input class="form-input" id="certContact" placeholder="请输入联系人姓名"></div>';
-  h += '<div class="form-group"><label class="form-label">联系人手机号</label><input class="form-input" id="certContactPhone" placeholder="请输入联系人手机号" type="tel"></div></div>';
-  h += '<div class="form-row"><div class="form-group"><label class="form-label">企业统一社会信用代码</label><input class="form-input" id="certCreditCode" placeholder="请输入18位统一社会信用代码"></div>';
-  h += '<div class="form-group"><label class="form-label">企业证件照</label><div class="upload-id"><div class="upload-box" id="certImgBox" onclick="document.getElementById(\'certUpload\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><input type="file" id="certUpload" accept="image/*" onchange="handleUpload(this,\'certImgBox\')"><div class="upload-tip">请上传营业执照或相关证件照<br>支持 JPG、PNG 格式</div></div></div></div>';
+  h += '<div class="form-group"><label class="form-label">企业名称</label><input class="form-input" id="certCompany" placeholder="请输入企业全称"></div>';
+  h += '<div class="form-group"><label class="form-label">企业简称</label><input class="form-input" id="certShortName" placeholder="请输入企业简称"></div>';
+  h += '<div class="form-group"><label class="form-label">企业Logo</label><div class="upload-id"><div class="upload-box-small" id="certLogoBox" onclick="document.getElementById(\'logoUpload\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><input type="file" id="logoUpload" accept="image/*" onchange="handleUpload(this,\'certLogoBox\')"><span class="upload-tip">上传Logo</span></div></div>';
+  h += '<div class="form-group"><label class="form-label">商家分类</label><select class="form-select" id="certIndustry"><option value="">请选择商家分类</option><option value="food">食品</option><option value="tour">文旅</option><option value="film">影视</option><option value="ent">娱乐</option></select></div>';
+  h += '<div class="form-group"><label class="form-label">法人姓名</label><input class="form-input" id="certLegalName" placeholder="请输入法人姓名"></div>';
+  h += '<div class="form-group"><label class="form-label">法人手机号</label><input class="form-input" id="certLegalPhone" placeholder="请输入法人手机号" type="tel"></div>';
+  h += '<div class="form-group"><label class="form-label">联系人姓名</label><input class="form-input" id="certContact" placeholder="请输入联系人姓名"></div>';
+  h += '<div class="form-group"><label class="form-label">联系人手机号</label><input class="form-input" id="certContactPhone" placeholder="请输入联系人手机号" type="tel"></div>';
+  h += '<div class="form-group"><label class="form-label">统一社会信用代码</label><input class="form-input" id="certCreditCode" placeholder="请输入18位统一社会信用代码"></div>';
+  h += '<div class="form-group"><label class="form-label">企业证件照</label><div class="upload-id"><div class="upload-box" id="certImgBox" onclick="document.getElementById(\'certUpload\').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><input type="file" id="certUpload" accept="image/*" onchange="handleUpload(this,\'certImgBox\')"><div class="upload-tip">请上传营业执照或相关证件照<br>支持 JPG、PNG 格式</div></div></div>';
   h += '<button class="submit-btn" onclick="submitCert()">提交认证</button>';
   h += '</div></div>';
   document.getElementById('contentArea').innerHTML = h;
@@ -372,15 +380,39 @@ function renderVerified() {
 }
 
 // ============ 商家信息弹窗 ============
+var editTags = [];
+
+function addEditTag() {
+  var input = document.getElementById('editTagInput');
+  var tag = input.value.trim();
+  if (!tag) return;
+  if (editTags.includes(tag)) { toast('标签已存在'); return; }
+  editTags.push(tag);
+  input.value = '';
+  renderEditTags();
+}
+
+function removeEditTag(tag) {
+  editTags = editTags.filter(t => t !== tag);
+  renderEditTags();
+}
+
+function renderEditTags() {
+  var container = document.getElementById('editTagDisplay');
+  container.innerHTML = editTags.map(tag => '<span class="tag-item">' + tag + '<span class="tag-remove" onclick="removeEditTag(\'' + tag + '\')">×</span></span>').join('');
+}
+
 function openInfoModal() {
-  if (merchant.certStatus !== 'verified') { toast('认证通过后可查看商家信息'); return; }
   var cd = merchant.certData || {};
   document.getElementById('editLogoBox').style.backgroundImage = merchant.logo ? 'url(' + merchant.logo + ')' : '';
   if (merchant.logo) document.getElementById('editLogoBox').innerHTML = '';
   document.getElementById('editName').value = merchant.name;
-  document.getElementById('editTag').value = merchant.tag || '';
+  
+  editTags = Array.isArray(merchant.tag) ? merchant.tag : (merchant.tag ? merchant.tag.split('·').map(t => t.trim()).filter(t => t) : []);
+  renderEditTags();
+  document.getElementById('editTagInput').value = '';
 
-  var industryMap = { food: '食品饮料', ent: '游戏娱乐', film: '影视传媒', tour: '文旅景区', retail: '零售百货', tech: '科技互联网', edu: '教育培训', other: '其他行业' };
+  var industryMap = { food: '食品', ent: '娱乐', film: '影视', tour: '文旅', retail: '零售', tech: '科技', edu: '教育', other: '其他' };
   document.getElementById('infoCompany').textContent = cd.company || '-';
   document.getElementById('infoIndustry').textContent = industryMap[cd.industry] || cd.industry || '-';
   document.getElementById('infoLegalName').textContent = cd.legalName || '-';
@@ -414,11 +446,10 @@ function handleEditLogo(input) {
 function saveEditInfo() {
   var logo = document.getElementById('editLogoBox').dataset.img || merchant.logo;
   var name = document.getElementById('editName').value.trim();
-  var tag = document.getElementById('editTag').value.trim();
   if (!name) { toast('请输入商家简称'); return; }
   merchant.logo = logo;
   merchant.name = name;
-  merchant.tag = tag;
+  merchant.tag = editTags;
   document.getElementById('merchantName').textContent = name;
   localStorage.setItem('merchantLogin', JSON.stringify(merchant));
   closeInfoModal();

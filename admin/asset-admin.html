@@ -68,6 +68,7 @@
     .status-casting { background: #e6f7ff; color: #1890ff; }
     .status-publish-pending { background: #f9f0ff; color: #722ed1; }
     .status-published { background: #f6ffed; color: #52c41a; }
+    .status-ended { background: #f5f5f5; color: #999; }
     .asset-merchant { font-size: 12px; color: #999; margin-bottom: 8px; }
     .asset-meta { display: flex; gap: 12px; font-size: 12px; color: #666; margin-bottom: 12px; }
     .asset-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
@@ -181,6 +182,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><polyline points="21 15 16 10 5 21"/></svg>
         数字资产管理
       </div>
+      <div class="sidebar-item sidebar-child" onclick="goTo('order-admin.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        订单管理
+      </div>
     </div>
     
     <!-- 商家管理 -->
@@ -207,8 +212,8 @@
       <svg class="submenu-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="sidebar-submenu" id="submenu-audit">
-      <div class="sidebar-item sidebar-child" onclick="goTo('audit-admin.html')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <div class="sidebar-item sidebar-child" onclick="goTo('cert-review.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         商家审核管理
       </div>
     </div>
@@ -229,13 +234,14 @@
       <button class="status-tab" onclick="filterByStatus('casting', this)">铸造中</button>
       <button class="status-tab" onclick="filterByStatus('publish-pending', this)">待上线</button>
       <button class="status-tab" onclick="filterByStatus('published', this)">已上线</button>
+      <button class="status-tab" onclick="filterByStatus('ended', this)">已结束</button>
     </div>
 
     <!-- 资产列表 -->
     <div class="asset-list" id="assetList">
       <!-- 待审核状态 -->
       <div class="asset-card" data-status="pending" onclick="viewAssetDetail('1')">
-        <div class="asset-cover" style="background-image: url('茅台1935.png'); background-size: cover; background-position: center;">1935</div>
+        <div class="asset-cover" style="background-image: url('../茅台1935.png'); background-size: cover; background-position: center;"></div>
         <div class="asset-info">
           <div class="asset-header">
             <div class="asset-name">1935·时光窖藏</div>
@@ -346,13 +352,13 @@
         </div>
       </div>
 
-      <!-- 已上线状态 -->
-      <div class="asset-card" data-status="published">
+      <!-- 已结束状态 -->
+      <div class="asset-card" data-status="ended">
         <div class="asset-cover">🎯</div>
         <div class="asset-info">
           <div class="asset-header">
             <div class="asset-name">茅台会员积分</div>
-            <span class="status-tag status-published">已上线</span>
+            <span class="status-tag status-ended">已结束</span>
           </div>
           <div class="asset-merchant">商家：贵州茅台集团</div>
           <div class="asset-meta">
@@ -364,31 +370,7 @@
             <span class="asset-tag">会员</span>
           </div>
           <div class="asset-actions">
-            <button class="btn btn-info" onclick="viewData('6')">查看数据</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 待审核状态 - 王者荣耀 -->
-      <div class="asset-card" data-status="pending">
-        <div class="asset-cover">🎮</div>
-        <div class="asset-info">
-          <div class="asset-header">
-            <div class="asset-name">王者荣耀·传说皮肤</div>
-            <span class="status-tag status-pending">待审核</span>
-          </div>
-          <div class="asset-merchant">商家：腾讯游戏</div>
-          <div class="asset-meta">
-            <span>发行：5000</span>
-            <span>5款</span>
-          </div>
-          <div class="asset-tags">
-            <span class="asset-tag">游戏</span>
-            <span class="asset-tag">皮肤</span>
-            <span class="asset-tag">限定</span>
-          </div>
-          <div class="asset-actions">
-            <button class="btn btn-primary" onclick="openAuditModal('7')">审核</button>
+            <button class="btn btn-info" onclick="event.stopPropagation(); viewData('6')">查看数据</button>
           </div>
         </div>
       </div>
@@ -412,7 +394,7 @@
             <span class="asset-tag">权益</span>
           </div>
           <div class="asset-actions">
-            <button class="btn btn-info" onclick="viewData('8')">查看数据</button>
+            <button class="btn btn-info" onclick="event.stopPropagation(); viewData('8')">查看数据</button>
           </div>
         </div>
       </div>
@@ -519,6 +501,22 @@
   </div>
 </div>
 
+<!-- 查看数据弹窗 -->
+<div class="modal-overlay" id="dataModal">
+  <div class="modal-box" style="max-width: 700px;">
+    <div class="modal-header">
+      <div class="modal-title">查看数据</div>
+      <div class="modal-close" onclick="closeDataModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body" id="dataContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeDataModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // 模拟数据
 const assets = {
@@ -603,7 +601,7 @@ const assets = {
     report: 'moutai_points_report.pdf',
     modelFile: 'moutai_points_3d.glb',
     images: ['https://neeko-copilot.bytedance.net/api/text_to_image?prompt=loyalty%20points%20gold%20coins%20digital&image_size=landscape_4_3'],
-    status: 'published',
+    status: 'ended',
     styles: [{ name: '积分资产', quantity: 10000, image: 'https://neeko-copilot.bytedance.net/api/text_to_image?prompt=digital%20coins%20gold%20shiny&image_size=square', benefits: [{ name: '积分兑换', method: '商家平台核销' }] }]
   },
   '7': {
@@ -928,10 +926,85 @@ function startCasting(id) {
   showToast('开始铸造', 'success');
 }
 
-// 查看数据
+// 查看数据弹窗（数据对齐 merchant/asset-management.html）
 function viewData(id) {
-  alert(`查看数据: ID ${id}\n\n资产统计数据展示页面`);
+  var mockData = {
+    currentPhase: '优先购',
+    totalSales: 856,
+    totalRevenue: 512400,
+    buyerCount: 428,
+    phases: [
+      { id:1, mode:'priority', modeLabel:'优先购', modeIcon:'🎯', startTime:'2026-06-15T10:00', endTime:'2026-06-16T18:00', totalAmount:500, issuedAmount:423, issuedCount:385, whitelistCount:500, boughtAmount:398, boughtCount:367 },
+      { id:2, mode:'lottery', modeLabel:'抽签购', modeIcon:'🎲', startTime:'2026-06-17T10:00', endTime:'2026-06-18T18:00', totalAmount:800, issuedAmount:312, issuedCount:298, whitelistCount:800, boughtAmount:286, boughtCount:275 },
+      { id:3, mode:'public', modeLabel:'全民购', modeIcon:'👥', startTime:'2026-06-19T10:00', boughtAmount:172, boughtCount:168 }
+    ]
+  };
+  if (id === '8') {
+    mockData.currentPhase = '全民购';
+    mockData.totalSales = 12578;
+    mockData.totalRevenue = 7534200;
+    mockData.buyerCount = 8920;
+    mockData.phases = [
+      { id:1, mode:'priority', modeLabel:'优先购', modeIcon:'🎯', startTime:'2026-04-01T10:00', endTime:'2026-04-03T18:00', totalAmount:5000, issuedAmount:4823, issuedCount:4456, whitelistCount:5000, boughtAmount:4756, boughtCount:4389 },
+      { id:2, mode:'lottery', modeLabel:'抽签购', modeIcon:'🎲', startTime:'2026-04-05T10:00', endTime:'2026-04-07T18:00', totalAmount:8000, issuedAmount:7623, issuedCount:7120, whitelistCount:8000, boughtAmount:5289, boughtCount:4876 },
+      { id:3, mode:'public', modeLabel:'全民购', modeIcon:'👥', startTime:'2026-04-10T10:00', boughtAmount:2533, boughtCount:2156 }
+    ];
+  }
+
+  var totalPublish = mockData.phases.reduce(function(sum, p){ return sum + (p.totalAmount || 0); }, 0);
+
+  var h = '';
+  h += '<div class="stats-overview" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">';
+  h += '<div class="stat-card" style="background:#f8fafc;border-radius:10px;padding:16px"><div class="stat-label" style="font-size:12px;color:#999">当前阶段</div><div class="stat-value" style="font-size:20px;font-weight:700;color:#333;margin-top:4px">'+mockData.currentPhase+'</div></div>';
+  h += '<div class="stat-card" style="background:#f8fafc;border-radius:10px;padding:16px"><div class="stat-label" style="font-size:12px;color:#999">发行总量</div><div class="stat-value" style="font-size:20px;font-weight:700;color:#667eea;margin-top:4px">'+totalPublish.toLocaleString()+'</div></div>';
+  h += '<div class="stat-card" style="background:#f8fafc;border-radius:10px;padding:16px"><div class="stat-label" style="font-size:12px;color:#999">销售总量</div><div class="stat-value" style="font-size:20px;font-weight:700;color:#52c41a;margin-top:4px">'+mockData.totalSales.toLocaleString()+'</div></div>';
+  h += '<div class="stat-card" style="background:#f8fafc;border-radius:10px;padding:16px"><div class="stat-label" style="font-size:12px;color:#999">销售总金额</div><div class="stat-value" style="font-size:20px;font-weight:700;color:#D70C1F;margin-top:4px">¥'+mockData.totalRevenue.toLocaleString()+'</div></div>';
+  h += '<div class="stat-card" style="background:#f8fafc;border-radius:10px;padding:16px"><div class="stat-label" style="font-size:12px;color:#999">购买人数</div><div class="stat-value" style="font-size:20px;font-weight:700;color:#fa8c16;margin-top:4px">'+mockData.buyerCount.toLocaleString()+'</div></div>';
+  h += '</div>';
+
+  // 销售趋势图表
+  h += '<div class="chart-section" style="margin-bottom:20px"><div class="chart-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="chart-title" style="font-size:14px;font-weight:600;color:#333">销售趋势</span><select style="padding:4px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option>近7天</option><option>近30天</option></select></div>';
+  h += '<div style="background:#f8fafc;border-radius:10px;padding:16px">';
+  h += '<div style="display:flex;align-items:flex-end;gap:12px;height:120px;padding:0 8px">';
+  var days = [120,200,160,280,140,240,320];
+  var maxVal = Math.max.apply(null, days);
+  days.forEach(function(v) {
+    var pct = Math.round(v / maxVal * 100);
+    h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="font-size:10px;color:#999">'+v+'</div><div style="width:100%;height:'+pct+'%;background:linear-gradient(180deg,#667eea,#a78bfa);border-radius:4px 4px 0 0;min-height:8px"></div></div>';
+  });
+  h += '</div><div style="display:flex;gap:12px;margin-top:8px;padding:0 8px">';
+  ['周一','周二','周三','周四','周五','周六','周日'].forEach(function(d){ h += '<div style="flex:1;font-size:10px;color:#999;text-align:center">'+d+'</div>'; });
+  h += '</div></div></div>';
+
+  // 发行阶段列表
+  h += '<div style="font-size:14px;font-weight:600;color:#333;margin-bottom:10px">发行阶段</div>';
+  mockData.phases.forEach(function(phase, i) {
+    h += '<div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:8px">';
+    h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:20px">'+phase.modeIcon+'</span><span class="phase-badge" style="padding:3px 10px;border-radius:4px;font-size:11px;font-weight:600;background:#e6f7ff;color:#1890ff">'+phase.modeLabel+'</span><span style="font-size:12px;color:#999">第'+(i+1)+'阶段</span></div>';
+    if (phase.mode === 'public') {
+      h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+      h += '<div><div style="font-size:10px;color:#999">已购买数量</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.boughtAmount||0).toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">已购买人数</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.boughtCount||0).toLocaleString()+'</div></div>';
+      h += '</div>';
+    } else {
+      h += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">';
+      h += '<div><div style="font-size:10px;color:#999">实际领取数量</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.issuedAmount||0).toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">实际领取人数</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.issuedCount||0).toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">白名单数量</div><div style="font-size:14px;font-weight:600;color:#333">'+phase.totalAmount.toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">白名单人数</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.whitelistCount||0).toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">已购买数量</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.boughtAmount||0).toLocaleString()+'</div></div>';
+      h += '<div><div style="font-size:10px;color:#999">已购买人数</div><div style="font-size:14px;font-weight:600;color:#333">'+(phase.boughtCount||0).toLocaleString()+'</div></div>';
+      h += '</div>';
+    }
+    var fmt = function(s){ return s ? s.substring(0,10)+' '+s.substring(11,16) : ''; };
+    h += '<div style="font-size:11px;color:#999;margin-top:8px">'+fmt(phase.startTime)+' '+(phase.endTime?'～ '+fmt(phase.endTime):'起')+'</div>';
+    h += '</div>';
+  });
+
+  document.getElementById('dataContent').innerHTML = h;
+  document.getElementById('dataModal').classList.add('show');
 }
+function closeDataModal() { document.getElementById('dataModal').classList.remove('show'); }
 
 // Toast 提示
 function showToast(message, type = 'success') {
