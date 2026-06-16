@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -64,7 +64,7 @@ function render(){
   var list = JSON.parse(localStorage.getItem('favorites')||'[]');
   if(!list.length){
     document.getElementById('favList').innerHTML =
-      '<div class="empty"><div class="empty-icon">♡</div><div class="empty-text">还没有收藏任何资产</div><a class="empty-link" href="index.html">去逛逛</a></div>';
+      '<div class="empty"><div class="empty-icon">♡</div><div class="empty-text">还没有收藏任何资产</div><a class="empty-link" href="user-index.html">去逛逛</a></div>';
     return;
   }
   var h = '';

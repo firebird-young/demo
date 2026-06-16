@@ -197,9 +197,9 @@
   <script>
     // 场景数据
     let scenes = [
-      { id: 'scene1', name: '食品区', desc: '食品区场景', image: 'scene1.png', hotspots: [] },
-      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: 'scene2.png', hotspots: [] },
-      { id: 'scene3', name: '影视区', desc: '影视区场景', image: 'scene3.png', hotspots: [] }
+      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [] },
+      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [] },
+      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [] }
     ];
 
     // 路径数据
@@ -250,7 +250,6 @@
 
     // 打开路径弹窗
     function openPathModal() {
-      // 清空并填充场景选择
       const fromSelect = document.getElementById('pathFrom');
       const toSelect = document.getElementById('pathTo');
       
@@ -260,12 +259,10 @@
       toSelect.innerHTML = '<option value="">请选择目标场景</option>' + 
         scenes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       
-      // 重置位置和角度
       document.getElementById('pathArrowV').value = '';
       document.getElementById('pathArrowH').value = '';
       document.getElementById('pathArrowAngle').value = '0';
       
-      // 重置按钮状态
       document.querySelectorAll('.pos-btn').forEach(btn => btn.classList.remove('active'));
       
       document.getElementById('pathModal').classList.add('show');
@@ -284,7 +281,6 @@
         document.getElementById('pathArrowH').value = position;
       }
       
-      // 更新按钮状态
       const buttons = document.querySelectorAll(`.pos-buttons:nth-of-type(${axis === 'v' ? 1 : 2}) .pos-btn`);
       buttons.forEach(btn => btn.classList.toggle('active', btn.textContent === getPositionLabel(position)));
     }
@@ -307,7 +303,6 @@
         return;
       }
 
-      // 检查是否已存在相同路径
       const exists = paths.some(p => p.from === from && p.to === to);
       if (exists) {
         showToast('该路径已存在', 'error');
@@ -349,7 +344,6 @@
       }, 2000);
     }
 
-    // 页面加载完成后渲染路径列表
     document.addEventListener('DOMContentLoaded', renderPathList);
   </script>
 </body>

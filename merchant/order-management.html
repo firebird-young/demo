@@ -765,7 +765,7 @@
   <div class="sidebar">
     <div class="sidebar-menu">
       <div class="menu-item has-children">
-        <div class="menu-title" onclick="toggleSubmenu('asset')">
+        <div class="menu-title" onclick="toggleSubmenu('asset',this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
             <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
@@ -782,7 +782,7 @@
       </div>
       
       <div class="menu-item has-children">
-        <div class="menu-title expanded" onclick="toggleSubmenu('order')">
+        <div class="menu-title expanded" onclick="toggleSubmenu('order',this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
             <line x1="3" y1="6" x2="21" y2="6"/>
@@ -795,6 +795,7 @@
         </div>
         <ul class="submenu show" id="orderSubmenu">
           <li><a href="order-management.html" class="submenu-item active">订单管理</a></li>
+          <li><a href="delivery-management.html" class="submenu-item">发货管理</a></li>
         </ul>
       </div>
     </div>
@@ -1138,14 +1139,15 @@
   
   <script>
     // 切换子菜单
-    function toggleSubmenu(id) {
-      const submenu = document.getElementById(id + 'Submenu');
-      const menuTitle = document.querySelector(`[onclick="toggleSubmenu('${id}')"]`);
-      if (submenu) {
-        submenu.classList.toggle('show');
-        if (menuTitle) {
-          menuTitle.classList.toggle('expanded');
-        }
+    function toggleSubmenu(id, el) {
+      var submenu = document.getElementById(id + 'Submenu');
+      if (!submenu) return;
+      var isOpen = submenu.classList.contains('show');
+      document.querySelectorAll('.submenu.show').forEach(function(s){s.classList.remove('show');});
+      document.querySelectorAll('.menu-title.expanded').forEach(function(m){m.classList.remove('expanded');});
+      if (!isOpen) {
+        submenu.classList.add('show');
+        (el || submenu.previousElementSibling).classList.add('expanded');
       }
     }
     

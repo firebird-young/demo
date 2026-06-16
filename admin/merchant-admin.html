@@ -47,18 +47,40 @@
     .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
 
     /* ── 商家列表 ── */
-    .merchant-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .merchant-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
     .merchant-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; }
     .merchant-card:hover { transform: translateY(-4px); }
-    .merchant-cover { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #D70C1F, #F12B3D); }
+    .merchant-cover { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #D70C1F, #F12B3D); }
     .merchant-cover svg { width: 32px; height: 32px; color: #fff; }
     .merchant-info { padding: 12px; }
-    .merchant-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+    .merchant-fullname { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .merchant-shortname { font-size: 11px; color: #999; margin-bottom: 4px; }
     .merchant-tag { font-size: 12px; color: #999; }
-    .merchant-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .merchant-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
     .merchant-btn { flex: 1; padding: 6px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; }
     .merchant-btn.edit { background: #f5f5f5; color: #666; }
     .merchant-btn.delete { background: #fff5f5; color: #D70C1F; }
+    .merchant-btn.space { background: #f0f0ff; color: #4a4ae0; }
+
+    /* ── 开关 ── */
+    .toggle-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; cursor: pointer; }
+    .toggle-switch input { display: none; }
+    .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 22px; transition: background .3s; }
+    .toggle-slider::before { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .3s; }
+    .toggle-switch input:checked ~ .toggle-slider { background: #20C997; }
+    .toggle-switch input:checked ~ .toggle-slider::before { transform: translateX(18px); }
+
+    /* ── 空间项目列表 ── */
+    .space-item-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .space-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #f9f9f9; border-radius: 8px; }
+    .space-item-img { width: 44px; height: 44px; border-radius: 6px; background: #e0e0e0 center/cover no-repeat; flex-shrink: 0; }
+    .space-item-info { flex: 1; min-width: 0; }
+    .space-item-name { font-size: 13px; font-weight: 600; color: #333; }
+    .space-item-meta { font-size: 11px; color: #999; margin-top: 2px; }
+    .space-item-del { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #ddd; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+    .space-item-del svg { width: 12px; height: 12px; color: #999; }
+    .space-item-del:hover { background: #fff5f5; border-color: #D70C1F; }
+    .space-item-del:hover svg { color: #D70C1F; }
 
     /* ── 模态框 ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
@@ -82,6 +104,11 @@
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
     @keyframes slideIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    /* ── 标签样式 ── */
+    .tag-item { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #f0f0ff; color: #4a4ae0; border-radius: 4px; font-size: 12px; }
+    .tag-item .tag-remove { cursor: pointer; font-size: 14px; color: #999; }
+    .tag-item .tag-remove:hover { color: #D70C1F; }
   </style>
 </head>
 <body>
@@ -99,6 +126,23 @@
       <div class="sidebar-item active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         商家管理
+      </div>
+      <div class="sidebar-group-title">元宇宙管理</div>
+      <div class="sidebar-item" onclick="navigateTo('scene-admin.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        场景管理
+      </div>
+      <div class="sidebar-item" onclick="navigateTo('hotspot-admin.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+        热区标注
+      </div>
+      <div class="sidebar-item" onclick="navigateTo('path-admin.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>
+        跳转路径
+      </div>
+      <div class="sidebar-item" onclick="navigateTo('space-admin.html')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        商家空间管理
       </div>
     </div>
 
@@ -126,7 +170,7 @@
 
   <!-- 添加商家弹窗 -->
   <div class="modal-overlay" id="addMerchantModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width: 600px;">
       <div class="modal-header">
         <div class="modal-title" id="merchantModalTitle">添加商家</div>
         <div class="modal-close" onclick="closeAddMerchantModal()">
@@ -135,9 +179,22 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="merchantEditId">
+        <input type="hidden" id="merchantCoverImg">
         <div class="form-group">
-          <label class="form-label">商家名称</label>
-          <input class="form-input" id="merchantNameInput" placeholder="输入商家名称">
+          <label class="form-label">商家图片</label>
+          <div id="merchantImgDisplay" style="width:120px;height:120px;border-radius:8px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;border:2px dashed #ddd" onclick="document.getElementById('merchantImgInput').click()">
+            <div style="font-size:32px;color:#999">📷</div>
+          </div>
+          <img id="merchantImgPreview" src="" alt="预览" style="display:none;width:120px;height:120px;border-radius:8px;object-fit:cover;cursor:pointer;margin-top:8px" onclick="document.getElementById('merchantImgInput').click()">
+          <input type="file" id="merchantImgInput" accept="image/*" style="display:none" onchange="handleMerchantImgUpload()">
+        </div>
+        <div class="form-group" id="fullNameGroup" style="display:none">
+          <label class="form-label">商家全称</label>
+          <div id="merchantFullNameDisplay" style="font-size:14px;color:#333;padding:8px 12px;background:#f9f9f9;border-radius:6px"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">商家简称</label>
+          <input class="form-input" id="merchantShortNameInput" placeholder="输入商家简称">
         </div>
         <div class="form-group">
           <label class="form-label">商家分类</label>
@@ -150,7 +207,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">商家标签</label>
-          <input class="form-input" id="merchantTagInput" placeholder="输入商家标签，如：品牌馆 · 数字珍藏">
+          <div id="merchantTagDisplay" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px">
+            <input class="form-input" id="merchantTagInput" placeholder="输入标签，按回车添加" style="flex:1" onkeypress="if(event.key==='Enter'){event.preventDefault();addMerchantTag()}">
+            <button class="btn btn-primary" onclick="addMerchantTag()">添加</button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">商家描述</label>
@@ -164,17 +225,86 @@
     </div>
   </div>
 
+  <!-- 空间设置弹窗 -->
+  <div class="modal-overlay" id="spaceModal">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">空间设置 - <span id="spaceMerchantName"></span></div>
+        <div class="modal-close" onclick="closeSpaceModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <span style="font-size:14px;font-weight:600;color:#1a1a2e">空间项目 (点位)</span>
+          <button class="btn btn-primary" onclick="openAddSpaceItem()" style="font-size:12px;padding:5px 14px">+ 添加项目</button>
+        </div>
+        <div class="space-item-list" id="spaceItemList">
+          <!-- 动态渲染 -->
+        </div>
+        <div class="empty-state" id="emptySpaceItems" style="display:none">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+          </div>
+          <div class="empty-text">暂无项目，请添加</div>
+        </div>
+
+        <!-- 添加/编辑项目表单 -->
+        <div id="spaceItemForm" style="display:none;margin-top:16px;padding:16px;background:#f9f9f9;border-radius:10px">
+          <input type="hidden" id="spaceItemEditId">
+          <div class="form-group">
+            <label class="form-label">项目图片</label>
+            <div class="upload-area" style="border:2px dashed #ddd;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fff" onclick="document.getElementById('spaceItemImgInput').click()">
+              <div style="font-size:24px;margin-bottom:8px">📷</div>
+              <div style="font-size:13px;color:#666">点击上传图片</div>
+              <div style="font-size:11px;color:#999;margin-top:4px">支持 JPG、PNG 格式</div>
+              <input type="file" id="spaceItemImgInput" accept="image/*" style="display:none" onchange="handleSpaceItemImgUpload()">
+            </div>
+            <img id="spaceItemImgPreview" src="" alt="预览" style="display:none;max-width:100%;margin-top:12px;border-radius:8px;max-height:150px">
+            <input type="hidden" id="spaceItemImg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">项目名称</label>
+            <input class="form-input" id="spaceItemName" placeholder="如：VR云参观、数字资产商城">
+          </div>
+          <div class="form-group">
+            <label class="form-label">跳转类型</label>
+            <select class="form-select" id="spaceItemType" onchange="onSpaceTypeChange()">
+              <option value="miniprogram">小程序</option>
+              <option value="market">数字资产商城</option>
+              <option value="external">外部链接</option>
+              <option value="digital_human">数字人</option>
+            </select>
+          </div>
+          <div class="form-group" id="spaceItemLinkGroup">
+            <label class="form-label" id="spaceItemLinkLabel">目标链接</label>
+            <input class="form-input" id="spaceItemLink" placeholder="输入目标链接">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button class="btn btn-default" onclick="cancelSpaceItemForm()">取消</button>
+            <button class="btn btn-primary" onclick="saveSpaceItem()">保存项目</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // 商家数据
     let merchants = [
-      { id: 'm1', name: '贵州茅台', type: 'food', tag: '数字酒庄 · 品牌馆', desc: '茅台酒起源于秦汉，成熟于明清，1915年巴拿马万国博览会金奖' },
-      { id: 'm2', name: '王者荣耀', type: 'ent', tag: '游戏资产 · 数字皮肤', desc: '全球领先的MOBA手游，拥有海量英雄与皮肤数字资产' },
-      { id: 'm3', name: '五粮液', type: 'food', tag: '品牌馆 · 数字珍藏', desc: '中国浓香型白酒的典型代表，以五粮酿造工艺闻名' },
-      { id: 'm4', name: '妙可蓝多', type: 'food', tag: '新零售 · 品牌馆', desc: '中国领先的奶酪品牌，布局数字化新零售' },
-      { id: 'm5', name: '杜甫草堂', type: 'tour', tag: '文旅 · 数字藏品', desc: '中国唐代大诗人杜甫流寓成都时的故居' },
-      { id: 'm6', name: '海底捞', type: 'food', tag: '餐饮 · 会员数字卡', desc: '中国领先的餐饮服务品牌，以极致服务体验著称' },
-      { id: 'm7', name: '鬼吹灯', type: 'film', tag: '影视 · 数字资产', desc: '经典盗墓题材IP，推出摸金校尉系列数字藏品' },
-      { id: 'm8', name: '三体', type: 'film', tag: '影视 · 数字资产', desc: '刘慈欣科幻巨著IP，推出三体文明系列数字资产' }
+      { id: 'm1', fullName: '贵州茅台酒股份有限公司', shortName: '贵州茅台', type: 'food', tag: '数字酒庄 · 品牌馆', desc: '茅台酒起源于秦汉，成熟于明清，1915年巴拿马万国博览会金奖', active: true, coverImg: '../贵州茅台.jpg', spaceItems: [
+        { id: 'si1', name: 'VR云参观', img: '../vr云参观.png', type: 'external', link: 'vr_maotai.html' },
+        { id: 'si2', name: '数字资产商城', img: '../数字资产商城.png', type: 'market', link: '' },
+        { id: 'si3', name: '酿酒工艺演示', img: '../酿酒工艺.png', type: 'external', link: 'brew_maotai.html' },
+        { id: 'si4', name: '茅小美·数字人', img: '../茅小美静态.png', type: 'digital_human', link: '' }
+      ]},
+      { id: 'm2', fullName: '腾讯科技（深圳）有限公司', shortName: '王者荣耀', type: 'ent', tag: '游戏资产 · 数字皮肤', desc: '全球领先的MOBA手游，拥有海量英雄与皮肤数字资产', active: true, coverImg: '../王者荣耀.jpeg', spaceItems: [] },
+      { id: 'm3', fullName: '四川省宜宾五粮液集团有限公司', shortName: '五粮液', type: 'food', tag: '品牌馆 · 数字珍藏', desc: '中国浓香型白酒的典型代表，以五粮酿造工艺闻名', active: true, coverImg: '../五粮液·数字珍藏.png', spaceItems: [] },
+      { id: 'm4', fullName: '妙可蓝多（天津）食品科技有限公司', shortName: '妙可蓝多', type: 'food', tag: '新零售 · 品牌馆', desc: '中国领先的奶酪品牌，布局数字化新零售', active: true, coverImg: '../妙可蓝多.jpeg', spaceItems: [] },
+      { id: 'm5', fullName: '成都杜甫草堂博物馆', shortName: '杜甫草堂', type: 'tour', tag: '文旅 · 数字藏品', desc: '中国唐代大诗人杜甫流寓成都时的故居', active: true, coverImg: '../杜甫草堂·文旅数字藏品.png', spaceItems: [] },
+      { id: 'm6', fullName: '四川海底捞餐饮股份有限公司', shortName: '海底捞', type: 'food', tag: '餐饮 · 会员数字卡', desc: '中国领先的餐饮服务品牌，以极致服务体验著称', active: true, coverImg: '../海底捞·黑海会员数字卡.png', spaceItems: [] },
+      { id: 'm7', fullName: '上海腾讯影业文化传播有限公司', shortName: '鬼吹灯', type: 'film', tag: '影视 · 数字资产', desc: '经典盗墓题材IP，推出摸金校尉系列数字藏品', active: true, coverImg: '../鬼吹灯.png', spaceItems: [] },
+      { id: 'm8', fullName: '三体宇宙（上海）文化发展有限公司', shortName: '三体', type: 'film', tag: '影视 · 数字资产', desc: '刘慈欣科幻巨著IP，推出三体文明系列数字资产', active: true, coverImg: '../三体.png', spaceItems: [] }
     ];
 
     // 导航
@@ -194,20 +324,59 @@
       }
       
       emptyState.style.display = 'none';
-      container.innerHTML = merchants.map(merchant => `
+      container.innerHTML = merchants.map(merchant => {
+        const tags = merchant.tag ? merchant.tag.split('·').map(t => t.trim()).filter(t => t) : [];
+        return `
         <div class="merchant-card">
-          <div class="merchant-cover">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div class="merchant-cover" style="background-image:url('${merchant.coverImg || ''}');background-size:cover;background-position:center">
+            ${!merchant.coverImg ? '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' : ''}
           </div>
           <div class="merchant-info">
-            <div class="merchant-name">${merchant.name}</div>
-            <div class="merchant-tag">${merchant.tag}</div>
+            <div class="merchant-fullname">${merchant.fullName || merchant.name}</div>
+            <div class="merchant-shortname">${merchant.shortName || '无简称'}</div>
+            <div class="merchant-tag">${tags.map(t => `<span class="tag-item">${t}</span>`).join('')}</div>
             <div class="merchant-actions">
               <button class="merchant-btn edit" onclick="editMerchant('${merchant.id}')">编辑</button>
-              <button class="merchant-btn delete" onclick="deleteMerchant('${merchant.id}')">删除</button>
+              <button class="merchant-btn space" onclick="openSpaceModal('${merchant.id}')">空间设置</button>
+              <label class="toggle-switch" onclick="event.stopPropagation()" title="${merchant.active !== false ? '已启用' : '已禁用'}">
+                <input type="checkbox" ${merchant.active !== false ? 'checked' : ''} onchange="toggleMerchant('${merchant.id}', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
             </div>
           </div>
         </div>
+        `;
+      }).join('');
+    }
+
+    // 标签管理
+    let merchantTags = [];
+
+    function addMerchantTag() {
+      const input = document.getElementById('merchantTagInput');
+      const tag = input.value.trim();
+      if (!tag) return;
+      if (merchantTags.includes(tag)) {
+        showToast('标签已存在', 'error');
+        return;
+      }
+      merchantTags.push(tag);
+      input.value = '';
+      renderMerchantTags();
+    }
+
+    function removeMerchantTag(tag) {
+      merchantTags = merchantTags.filter(t => t !== tag);
+      renderMerchantTags();
+    }
+
+    function renderMerchantTags() {
+      const container = document.getElementById('merchantTagDisplay');
+      container.innerHTML = merchantTags.map(tag => `
+        <span class="tag-item">
+          ${tag}
+          <span class="tag-remove" onclick="removeMerchantTag('${tag}')">×</span>
+        </span>
       `).join('');
     }
 
@@ -215,10 +384,18 @@
     function openAddMerchantModal() {
       document.getElementById('merchantModalTitle').textContent = '添加商家';
       document.getElementById('merchantEditId').value = '';
-      document.getElementById('merchantNameInput').value = '';
+      document.getElementById('merchantCoverImg').value = '';
+      document.getElementById('merchantImgPreview').src = '';
+      document.getElementById('merchantImgPreview').style.display = 'none';
+      document.getElementById('merchantImgDisplay').style.display = 'flex';
+      document.getElementById('merchantImgInput').value = '';
+      document.getElementById('fullNameGroup').style.display = 'none';
+      document.getElementById('merchantShortNameInput').value = '';
       document.getElementById('merchantTypeInput').value = 'food';
       document.getElementById('merchantTagInput').value = '';
       document.getElementById('merchantDescInput').value = '';
+      merchantTags = [];
+      renderMerchantTags();
       document.getElementById('addMerchantModal').classList.add('show');
     }
 
@@ -227,16 +404,58 @@
       document.getElementById('addMerchantModal').classList.remove('show');
     }
 
+    // 商家图片上传
+    function handleMerchantImgUpload() {
+      const fileInput = document.getElementById('merchantImgInput');
+      const preview = document.getElementById('merchantImgPreview');
+      const display = document.getElementById('merchantImgDisplay');
+      const hiddenInput = document.getElementById('merchantCoverImg');
+      
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          display.style.display = 'none';
+          hiddenInput.value = e.target.result;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    }
+
     // 编辑商家
     function editMerchant(id) {
       const merchant = merchants.find(m => m.id === id);
       if (merchant) {
         document.getElementById('merchantModalTitle').textContent = '编辑商家';
         document.getElementById('merchantEditId').value = id;
-        document.getElementById('merchantNameInput').value = merchant.name;
+        document.getElementById('merchantCoverImg').value = merchant.coverImg || '';
+        const preview = document.getElementById('merchantImgPreview');
+        const display = document.getElementById('merchantImgDisplay');
+        if (merchant.coverImg) {
+          preview.src = merchant.coverImg;
+          preview.style.display = 'block';
+          display.style.display = 'none';
+        } else {
+          preview.src = '';
+          preview.style.display = 'none';
+          display.style.display = 'flex';
+        }
+        document.getElementById('merchantImgInput').value = '';
+        
+        // 显示全称
+        document.getElementById('fullNameGroup').style.display = 'block';
+        document.getElementById('merchantFullNameDisplay').textContent = merchant.fullName || '暂无全称';
+        
+        document.getElementById('merchantShortNameInput').value = merchant.shortName || '';
         document.getElementById('merchantTypeInput').value = merchant.type;
-        document.getElementById('merchantTagInput').value = merchant.tag;
         document.getElementById('merchantDescInput').value = merchant.desc;
+        
+        // 处理标签
+        merchantTags = merchant.tag ? merchant.tag.split('·').map(t => t.trim()).filter(t => t) : [];
+        renderMerchantTags();
+        document.getElementById('merchantTagInput').value = '';
+        
         document.getElementById('addMerchantModal').classList.add('show');
       }
     }
@@ -244,13 +463,14 @@
     // 保存商家
     function saveMerchant() {
       const id = document.getElementById('merchantEditId').value;
-      const name = document.getElementById('merchantNameInput').value.trim();
+      const coverImg = document.getElementById('merchantCoverImg').value.trim();
+      const shortName = document.getElementById('merchantShortNameInput').value.trim();
       const type = document.getElementById('merchantTypeInput').value;
-      const tag = document.getElementById('merchantTagInput').value.trim();
       const desc = document.getElementById('merchantDescInput').value.trim();
+      const tag = merchantTags.join(' · ');
 
-      if (!name) {
-        showToast('请输入商家名称', 'error');
+      if (!shortName) {
+        showToast('请输入商家简称', 'error');
         return;
       }
 
@@ -258,7 +478,8 @@
         // 编辑
         const merchant = merchants.find(m => m.id === id);
         if (merchant) {
-          merchant.name = name;
+          merchant.coverImg = coverImg;
+          merchant.shortName = shortName;
           merchant.type = type;
           merchant.tag = tag;
           merchant.desc = desc;
@@ -268,10 +489,14 @@
         // 新增
         merchants.push({
           id: 'm' + Date.now(),
-          name,
+          fullName: shortName,
+          shortName,
           type,
           tag: tag || '未分类',
-          desc: desc || '暂无描述'
+          desc: desc || '暂无描述',
+          active: true,
+          coverImg,
+          spaceItems: []
         });
         showToast('商家添加成功', 'success');
       }
@@ -280,13 +505,12 @@
       renderMerchantList();
     }
 
-    // 删除商家
-    function deleteMerchant(id) {
-      if (confirm('确定要删除这个商家吗？')) {
-        merchants = merchants.filter(m => m.id !== id);
-        showToast('商家删除成功', 'success');
-        renderMerchantList();
-      }
+    // 开关切换商家启用/禁用
+    function toggleMerchant(id, checked) {
+      const m = merchants.find(m => m.id === id);
+      if (!m) return;
+      m.active = checked;
+      showToast(checked ? '商家已启用' : '商家已禁用', 'success');
     }
 
     // 显示提示
@@ -299,6 +523,170 @@
       setTimeout(() => {
         toast.remove();
       }, 2000);
+    }
+
+    // ── 空间设置 ──
+    let currentSpaceMerchantId = null;
+
+    function openSpaceModal(merchantId) {
+      const m = merchants.find(m => m.id === merchantId);
+      if (!m) return;
+      if (!m.spaceItems) m.spaceItems = [];
+      currentSpaceMerchantId = merchantId;
+      document.getElementById('spaceMerchantName').textContent = m.shortName || m.fullName || m.name;
+      document.getElementById('spaceModal').classList.add('show');
+      document.getElementById('spaceItemForm').style.display = 'none';
+      renderSpaceItemList();
+    }
+
+    function closeSpaceModal() {
+      document.getElementById('spaceModal').classList.remove('show');
+      currentSpaceMerchantId = null;
+    }
+
+    function renderSpaceItemList() {
+      const m = merchants.find(m => m.id === currentSpaceMerchantId);
+      if (!m) return;
+      const list = document.getElementById('spaceItemList');
+      const empty = document.getElementById('emptySpaceItems');
+      
+      if (!m.spaceItems || m.spaceItems.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      const typeLabels = { miniprogram: '📱 小程序', market: '🛒 数字资产商城', external: '🔗 外部链接', digital_human: '🤖 数字人' };
+      list.innerHTML = m.spaceItems.map(item => `
+        <div class="space-item">
+          <div class="space-item-img" style="background-image:url('${item.img || ''}')"></div>
+          <div class="space-item-info">
+            <div class="space-item-name">${item.name || '未命名'}</div>
+            <div class="space-item-meta">${typeLabels[item.type] || item.type} ${item.link ? '· ' + item.link : ''}</div>
+          </div>
+          <button class="merchant-btn edit" onclick="editSpaceItem('${item.id}')" style="width:auto;flex:0 0 auto;font-size:11px">编辑</button>
+          <div class="space-item-del" onclick="deleteSpaceItem('${item.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleSpaceItemImgUpload() {
+      const fileInput = document.getElementById('spaceItemImgInput');
+      const preview = document.getElementById('spaceItemImgPreview');
+      const hiddenInput = document.getElementById('spaceItemImg');
+      
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          hiddenInput.value = e.target.result;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      }
+    }
+
+    function openAddSpaceItem() {
+      document.getElementById('spaceItemEditId').value = '';
+      document.getElementById('spaceItemImg').value = '';
+      document.getElementById('spaceItemImgPreview').src = '';
+      document.getElementById('spaceItemImgPreview').style.display = 'none';
+      document.getElementById('spaceItemImgInput').value = '';
+      document.getElementById('spaceItemName').value = '';
+      document.getElementById('spaceItemType').value = 'miniprogram';
+      document.getElementById('spaceItemLink').value = '';
+      onSpaceTypeChange();
+      document.getElementById('spaceItemForm').style.display = 'block';
+    }
+
+    function editSpaceItem(itemId) {
+      const m = merchants.find(m => m.id === currentSpaceMerchantId);
+      if (!m) return;
+      const item = m.spaceItems.find(s => s.id === itemId);
+      if (!item) return;
+      document.getElementById('spaceItemEditId').value = item.id;
+      document.getElementById('spaceItemImg').value = item.img || '';
+      const preview = document.getElementById('spaceItemImgPreview');
+      if (item.img) {
+        preview.src = item.img;
+        preview.style.display = 'block';
+      } else {
+        preview.src = '';
+        preview.style.display = 'none';
+      }
+      document.getElementById('spaceItemImgInput').value = '';
+      document.getElementById('spaceItemName').value = item.name || '';
+      document.getElementById('spaceItemType').value = item.type || 'miniprogram';
+      document.getElementById('spaceItemLink').value = item.link || '';
+      onSpaceTypeChange();
+      document.getElementById('spaceItemForm').style.display = 'block';
+    }
+
+    function saveSpaceItem() {
+      const m = merchants.find(m => m.id === currentSpaceMerchantId);
+      if (!m) return;
+      const id = document.getElementById('spaceItemEditId').value;
+      const img = document.getElementById('spaceItemImg').value.trim();
+      const name = document.getElementById('spaceItemName').value.trim();
+      const type = document.getElementById('spaceItemType').value;
+      const link = document.getElementById('spaceItemLink').value.trim();
+      
+      if (!name) { showToast('请输入项目名称', 'error'); return; }
+      
+      const itemData = { img, name, type, link };
+      
+      if (id) {
+        const idx = m.spaceItems.findIndex(s => s.id === id);
+        if (idx >= 0) { m.spaceItems[idx] = { ...m.spaceItems[idx], ...itemData }; }
+        showToast('项目已更新', 'success');
+      } else {
+        m.spaceItems.push({ id: 'si' + Date.now(), ...itemData });
+        showToast('项目已添加', 'success');
+      }
+      
+      document.getElementById('spaceItemForm').style.display = 'none';
+      renderSpaceItemList();
+    }
+
+    function deleteSpaceItem(itemId) {
+      const m = merchants.find(m => m.id === currentSpaceMerchantId);
+      if (!m) return;
+      if (confirm('确定要删除这个项目吗？')) {
+        m.spaceItems = m.spaceItems.filter(s => s.id !== itemId);
+        document.getElementById('spaceItemForm').style.display = 'none';
+        renderSpaceItemList();
+        showToast('项目已删除', 'success');
+      }
+    }
+
+    function cancelSpaceItemForm() {
+      document.getElementById('spaceItemForm').style.display = 'none';
+    }
+
+    function onSpaceTypeChange() {
+      const type = document.getElementById('spaceItemType').value;
+      const linkGroup = document.getElementById('spaceItemLinkGroup');
+      const inp = document.getElementById('spaceItemLink');
+      const lbl = document.getElementById('spaceItemLinkLabel');
+      
+      if (type === 'market' || type === 'digital_human') {
+        linkGroup.style.display = 'none';
+        inp.value = '';
+      } else {
+        linkGroup.style.display = 'block';
+        if (type === 'external') {
+          lbl.textContent = '外部链接地址';
+          inp.placeholder = 'https://...';
+        } else if (type === 'miniprogram') {
+          lbl.textContent = '小程序appid+路径';
+          inp.placeholder = 'wx1c34cb...?path=pages/index';
+        } else {
+          lbl.textContent = '目标链接';
+          inp.placeholder = '输入目标链接';
+        }
+      }
     }
 
     // 页面加载完成后渲染商家列表

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>商家空间管理 - 元宇宙商城后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
+
+    .header { background: linear-gradient(135deg, #D70C1F, #F12B3D); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .header-title { font-size: 18px; font-weight: 600; }
+    .header-user { font-size: 14px; }
+    .main-container { display: flex; min-height: calc(100vh - 60px); }
+    .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8e8e8; padding: 16px 0; }
+    .sidebar-group-title { padding: 8px 24px; font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+    .sidebar-item { padding: 10px 24px 10px 48px; font-size: 14px; color: #666; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .sidebar-item:hover { background: #f5f5f5; color: #D70C1F; }
+    .sidebar-item.active { background: rgba(215, 12, 31, 0.1); color: #D70C1F; font-weight: 600; }
+    .sidebar-item svg { width: 14px; height: 14px; }
+    .content { flex: 1; padding: 24px; overflow-y: auto; }
+    .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .content-title { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+    .btn { padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: #D70C1F; color: #fff; }
+    .btn-primary:hover { background: #c60a1b; }
+    .btn-default { background: #fff; color: #666; border: 1px solid #ddd; }
+    .btn-default:hover { background: #f5f5f5; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
+    .form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #D70C1F; }
+    .form-select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+
+    /* 商家表格 */
+    .merchant-table { width: 100%; border-collapse: collapse; }
+    .merchant-table th { text-align: left; padding: 12px 16px; font-size: 13px; color: #999; border-bottom: 2px solid #f0f0f0; font-weight: 600; }
+    .merchant-table td { padding: 14px 16px; border-bottom: 1px solid #f5f5f5; font-size: 14px; vertical-align: middle; }
+    .merchant-table tr:hover td { background: #fafafa; }
+    .ms-name { font-weight: 600; color: #1a1a2e; }
+    .ms-tag { font-size: 11px; color: #999; margin-left: 6px; }
+    .ms-status { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+    .ms-status .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .ms-status .dot.done { background: #20C997; }
+    .ms-status .dot.undone { background: #ccc; }
+    .ms-status.done { color: #20C997; }
+    .ms-status.undone { color: #999; }
+    .ms-btn { padding: 5px 16px; border-radius: 4px; font-size: 12px; border: none; cursor: pointer; }
+    .ms-btn.decorate { background: #D70C1F; color: #fff; }
+
+    /* 步骤指示器 */
+    .step-bar { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; gap: 0; }
+    .step-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #ddd; color: #999; background: #fff; transition: all 0.3s; }
+    .step-dot.active { border-color: #D70C1F; background: #D70C1F; color: #fff; }
+    .step-dot.done { border-color: #20C997; background: #20C997; color: #fff; }
+    .step-line { height: 2px; width: 60px; background: #ddd; transition: background 0.3s; }
+    .step-line.done { background: #20C997; }
+    .step-text { text-align: center; font-size: 11px; color: #999; margin-top: 4px; }
+
+    /* 热区编辑 */
+    .hotspot-editor { position: relative; background: #f9f9f9; border-radius: 12px; overflow: hidden; user-select: none; }
+    .editor-image { display: block; max-width: 100%; height: auto; }
+    .hotspot-box { position: absolute; border: 2px dashed #D70C1F; background: rgba(215, 12, 31, 0.1); cursor: pointer; z-index: 10; }
+    .hotspot-box:hover { border-style: solid; background: rgba(215, 12, 31, 0.15); }
+    .hotspot-box.drawing { border-style: solid; border-color: #20C997; background: rgba(32, 201, 151, 0.2); }
+    .hotspot-box-label { position: absolute; bottom: -20px; left: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+    .hotspot-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 6px; }
+    .hi-info { flex: 1; }
+    .hi-name { font-size: 13px; font-weight: 600; color: #333; }
+    .hi-target { font-size: 11px; color: #D70C1F; margin-top: 2px; }
+    .hi-pos { font-size: 10px; color: #999; margin-top: 2px; }
+    .hi-actions { display: flex; gap: 6px; }
+    .hi-btn { padding: 4px 10px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
+    .hi-btn.edit { background: #f5f5f5; color: #666; }
+    .hi-btn.delete { background: #fff5f5; color: #D70C1F; }
+
+    /* 模态框 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 700px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .modal-close svg { width: 14px; height: 14px; color: #666; }
+    .modal-body { padding: 20px; }
+    .modal-footer { padding: 16px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    /* 图片上传 */
+    .upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .upload-area:hover { border-color: #D70C1F; background: rgba(215, 12, 31, 0.02); }
+    .upload-icon { width: 48px; height: 48px; margin: 0 auto 12px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .upload-icon svg { width: 24px; height: 24px; color: #999; }
+    .upload-text { font-size: 14px; color: #666; }
+    .upload-hint { font-size: 12px; color: #999; margin-top: 4px; }
+    #uploadInput { display: none; }
+    .preview-img { display: none; max-width: 100%; margin-top: 12px; border-radius: 8px; }
+
+    .empty-state { padding: 60px 0; text-align: center; }
+    .empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .empty-icon svg { width: 32px; height: 32px; color: #ccc; }
+    .empty-text { font-size: 14px; color: #999; }
+
+    .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: slideIn 0.3s ease; }
+    .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
+    .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
+    @keyframes slideIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header-title">元宇宙商城 - 后台管理</div>
+  <div class="header-user">管理员</div>
+</div>
+
+<div class="main-container">
+  <div class="sidebar">
+    <div class="sidebar-group-title">元宇宙管理</div>
+    <div class="sidebar-item" onclick="navigateTo('scene-admin.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      场景管理
+    </div>
+    <div class="sidebar-item" onclick="navigateTo('hotspot-admin.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+      热区标注
+    </div>
+    <div class="sidebar-item" onclick="navigateTo('path-admin.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>
+      跳转路径
+    </div>
+    <div class="sidebar-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      商家空间管理
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="content-header"><div class="content-title">商家空间管理</div></div>
+    <div class="card">
+      <div class="card-title">商家列表</div>
+      <table class="merchant-table">
+        <thead><tr><th>商家名称</th><th>标签</th><th width="120">空间状态</th><th width="100">操作</th></tr></thead>
+        <tbody id="merchantTbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyMerchants" style="display:none">
+        <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div class="empty-text">暂无商家数据</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 装修弹窗（两步） -->
+<div class="modal-overlay" id="decorateModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">装修空间 - <span id="decorateMerchantName"></span></div>
+      <div class="modal-close" onclick="closeDecorateModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body" id="decorateModalBody">
+      <!-- 步骤指示器 -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:24px">
+        <div style="text-align:center">
+          <div class="step-dot active" id="stepDot1">1</div>
+          <div class="step-text">上传图片</div>
+        </div>
+        <div class="step-line" id="stepLine" style="width:60px;height:2px;background:#ddd;margin:0 8px;margin-bottom:16px"></div>
+        <div style="text-align:center">
+          <div class="step-dot" id="stepDot2">2</div>
+          <div class="step-text">编辑热区</div>
+        </div>
+      </div>
+
+      <!-- 步骤1：上传图片 -->
+      <div id="step1Content">
+        <div class="form-group">
+          <label class="form-label">空间背景图</label>
+          <div class="upload-area" id="uploadArea" onclick="document.getElementById('uploadInput').click()">
+            <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="upload-text">点击上传空间背景图</div>
+            <div class="upload-hint">支持 JPG、PNG，建议 1920×1080</div>
+            <input type="file" id="uploadInput" accept="image/*" onchange="handleFileUpload()">
+          </div>
+          <img id="previewImage" class="preview-img" src="" alt="预览">
+        </div>
+        <div class="form-group" id="currentImageGroup" style="display:none">
+          <label class="form-label">当前背景图</label>
+          <img id="currentImage" style="max-width:100%;border-radius:8px" src="" alt="当前图片">
+        </div>
+      </div>
+
+      <!-- 步骤2：编辑热区 -->
+      <div id="step2Content" style="display:none">
+        <div class="hotspot-editor" id="hotspotEditor" style="margin-bottom:16px">
+          <img class="editor-image" id="editorImage" src="" alt="空间图片">
+        </div>
+        <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:8px">热区列表</div>
+        <div id="hotspotList" style="margin-bottom:8px"></div>
+        <div class="empty-state" id="emptyHotspotList" style="display:none;padding:30px 0">
+          <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></div>
+          <div class="empty-text">暂无热区，请在图片上拖拽框选绘制</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeDecorateModal()">取消</button>
+      <div>
+        <button class="btn btn-default" id="btnPrevStep" onclick="prevStep()" style="display:none;margin-right:8px">← 上一步</button>
+        <button class="btn btn-primary" id="btnNextStep" onclick="nextStep()">下一步 →</button>
+        <button class="btn btn-primary" id="btnSaveAll" onclick="saveAllDecorate()" style="display:none">保存并完成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 热区编辑弹窗 -->
+<div class="modal-overlay" id="hotspotEditModal">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="hotspotModalTitle">创建热区</div>
+      <div class="modal-close" onclick="closeHotspotModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="hotspotEditId">
+      <div class="form-group">
+        <label class="form-label">关联目标</label>
+        <select class="form-select" id="hotspotEditTarget" onchange="onTargetSelectChange()">
+          <option value="">不关联</option>
+          <option value="start_position">人物起始位置</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">热区名称</label>
+        <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="deleteHotspotFromModal()" style="background:#fff5f5;color:#D70C1F;border-color:#ffcccc">删除热区</button>
+      <button class="btn btn-default" id="redrawHotspotBtn" onclick="redrawHotspot()">重绘</button>
+      <button class="btn btn-primary" onclick="saveHotspot()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let merchants = [
+  { id: 'm1', name: '贵州茅台', type: 'food', tag: '数字酒庄 · 品牌馆', desc: '茅台酒起源于秦汉', active: true, spaceItems: [
+    { id: 'si1', name: 'VR云参观', img: '', type: 'vr', link: 'vr_maotai.html' },
+    { id: 'si2', name: '数字资产商城', img: '', type: 'page', link: 'assets_maotai.html' },
+    { id: 'si3', name: '酿酒工艺演示', img: '', type: 'page', link: 'brew_maotai.html' },
+    { id: 'si4', name: '茅小美·数字人', img: '', type: 'page', link: 'chat_maotai.html' }
+  ], spaceImage: '', spaceHotspots: [] },
+  { id: 'm2', name: '王者荣耀', type: 'ent', tag: '游戏资产 · 数字皮肤', desc: '全球领先的MOBA手游', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm3', name: '五粮液', type: 'food', tag: '品牌馆 · 数字珍藏', desc: '中国浓香型白酒代表', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm4', name: '妙可蓝多', type: 'food', tag: '新零售 · 品牌馆', desc: '中国领先奶酪品牌', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm5', name: '杜甫草堂', type: 'tour', tag: '文旅 · 数字藏品', desc: '唐代大诗人杜甫故居', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm6', name: '海底捞', type: 'food', tag: '餐饮 · 会员数字卡', desc: '中国领先餐饮品牌', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm7', name: '鬼吹灯', type: 'film', tag: '影视 · 数字资产', desc: '经典盗墓题材IP', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] },
+  { id: 'm8', name: '三体', type: 'film', tag: '影视 · 数字资产', desc: '刘慈欣科幻巨著IP', active: true, spaceItems: [], spaceImage: '', spaceHotspots: [] }
+];
+
+let curStep = 1;
+let curMerchantId = null;
+let tempImage = null; // 弹窗内暂存的图片 dataUrl
+let isDrawing = false, drawStartX = 0, drawStartY = 0, drawingBox = null;
+
+function navigateTo(url) { window.location.href = url; }
+function cm() { return merchants.find(m => m.id === curMerchantId); }
+
+// ── 商家列表 ──
+function renderMerchantList() {
+  const tbody = document.getElementById('merchantTbody');
+  const empty = document.getElementById('emptyMerchants');
+  if (merchants.length === 0) {
+    document.querySelector('.merchant-table').style.display = 'none'; empty.style.display = 'block'; return;
+  }
+  document.querySelector('.merchant-table').style.display = ''; empty.style.display = 'none';
+  tbody.innerHTML = merchants.map(m => {
+    const decorated = !!(m.spaceImage);
+    return `<tr>
+      <td><span class="ms-name">${m.name}</span><span class="ms-tag">${m.tag}</span></td>
+      <td style="font-size:12px;color:#999">${m.tag}</td>
+      <td><span class="ms-status ${decorated?'done':'undone'}"><span class="dot ${decorated?'done':'undone'}"></span>${decorated?'已装修':'未装修'}</span></td>
+      <td><button class="ms-btn decorate" onclick="openDecorateModal('${m.id}')">装修</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 装修弹窗 ──
+function openDecorateModal(merchantId) {
+  const m = merchants.find(m => m.id === merchantId);
+  if (!m) return;
+  if (!m.spaceHotspots) m.spaceHotspots = [];
+  if (!m.spaceItems) m.spaceItems = [];
+  curMerchantId = merchantId;
+  curStep = 1;
+  document.getElementById('decorateMerchantName').textContent = m.name;
+  document.getElementById('decorateModal').dataset.merchantId = merchantId;
+  document.getElementById('uploadInput').value = '';
+  document.getElementById('previewImage').style.display = 'none';
+  tempImage = null;
+
+  if (m.spaceImage) {
+    document.getElementById('currentImageGroup').style.display = 'block';
+    document.getElementById('currentImage').src = m.spaceImage;
+  } else {
+    document.getElementById('currentImageGroup').style.display = 'none';
+  }
+  renderStep();
+  document.getElementById('decorateModal').classList.add('show');
+}
+
+function closeDecorateModal() {
+  document.getElementById('decorateModal').classList.remove('show');
+  curMerchantId = null; tempImage = null; curStep = 1;
+}
+
+function handleFileUpload() {
+  const file = document.getElementById('uploadInput').files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      tempImage = e.target.result;
+      document.getElementById('previewImage').src = tempImage;
+      document.getElementById('previewImage').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderStep() {
+  document.getElementById('step1Content').style.display = curStep === 1 ? 'block' : 'none';
+  document.getElementById('step2Content').style.display = curStep === 2 ? 'block' : 'none';
+  document.getElementById('btnPrevStep').style.display = curStep === 2 ? 'inline-block' : 'none';
+  document.getElementById('btnNextStep').style.display = curStep === 1 ? 'inline-block' : 'none';
+  document.getElementById('btnSaveAll').style.display = curStep === 2 ? 'inline-block' : 'none';
+
+  const dot1 = document.getElementById('stepDot1');
+  const dot2 = document.getElementById('stepDot2');
+  const line = document.getElementById('stepLine');
+  dot1.className = 'step-dot' + (curStep === 1 ? ' active' : ' done');
+  dot2.className = 'step-dot' + (curStep === 2 ? ' active' : '');
+  line.style.background = curStep >= 2 ? '#20C997' : '#ddd';
+
+  if (curStep === 2) renderStep2Editor();
+}
+
+function nextStep() {
+  const m = cm();
+  if (!m) return;
+  // 确定使用的图片：优先用新上传的，其次已有图
+  const img = tempImage || m.spaceImage;
+  if (!img) { showToast('请先上传空间背景图', 'error'); return; }
+  // 暂存图片到内存
+  if (tempImage) m._tmpImage = tempImage;
+  curStep = 2;
+  renderStep();
+}
+
+function prevStep() {
+  curStep = 1;
+  renderStep();
+}
+
+// ── 步骤2：热区编辑器 ──
+function renderStep2Editor() {
+  const m = cm();
+  if (!m) return;
+  const img = m._tmpImage || m.spaceImage;
+  document.getElementById('editorImage').src = img;
+
+  const editor = document.getElementById('hotspotEditor');
+  editor.querySelectorAll('.hotspot-box').forEach(b => b.remove());
+
+  m.spaceHotspots.forEach(h => {
+    const box = document.createElement('div');
+    box.className = 'hotspot-box';
+    box.style.left = h.x + '%'; box.style.top = h.y + '%';
+    box.style.width = (h.width || 80) + 'px'; box.style.height = (h.height || 60) + 'px';
+    box.dataset.hotspotId = h.id;
+    box.innerHTML = '<div class="hotspot-box-label">' + (h.name || '热区') + '</div>';
+    box.onclick = function(ev) { ev.stopPropagation(); editHotspot(h.id); };
+    editor.appendChild(box);
+  });
+
+  editor.onmousedown = startDrawing;
+  editor.onmousemove = drawHotspot;
+  editor.onmouseup = finishDrawing;
+  editor.onmouseleave = cancelDrawing;
+  editor.ontouchstart = handleTouchStart;
+  editor.ontouchmove = handleTouchMove;
+  editor.ontouchend = finishDrawing;
+
+  renderHotspotList();
+}
+
+// ── 拖拽绘制 ──
+function startDrawing(e) {
+  if (!cm()) return;
+  const t = e.target || e.touches?.[0]?.target;
+  if (t.classList.contains('hotspot-box') || t.classList.contains('hotspot-box-label')) return;
+  if (drawingBox) { drawingBox.remove(); drawingBox = null; }
+  isDrawing = true;
+  const editor = document.getElementById('hotspotEditor');
+  const rect = editor.getBoundingClientRect();
+  const cx = e.clientX || e.touches?.[0]?.clientX || 0;
+  const cy = e.clientY || e.touches?.[0]?.clientY || 0;
+  drawStartX = ((cx - rect.left) / rect.width) * 100;
+  drawStartY = ((cy - rect.top) / rect.height) * 100;
+  drawingBox = document.createElement('div');
+  drawingBox.className = 'hotspot-box drawing';
+  drawingBox.style.left = drawStartX + '%'; drawingBox.style.top = drawStartY + '%';
+  drawingBox.style.width = '0px'; drawingBox.style.height = '0px';
+  editor.appendChild(drawingBox);
+}
+function drawHotspot(e) {
+  if (!isDrawing || !drawingBox) return;
+  const editor = document.getElementById('hotspotEditor');
+  const rect = editor.getBoundingClientRect();
+  const cx = e.clientX || e.touches?.[0]?.clientX || 0;
+  const cy = e.clientY || e.touches?.[0]?.clientY || 0;
+  const curX = ((cx - rect.left) / rect.width) * 100;
+  const curY = ((cy - rect.top) / rect.height) * 100;
+  const x = Math.min(Math.max(0, Math.min(drawStartX, curX)), 95);
+  const y = Math.min(Math.max(0, Math.min(drawStartY, curY)), 90);
+  const w = Math.abs(curX - drawStartX) * (rect.width / 100);
+  const h = Math.abs(curY - drawStartY) * (rect.height / 100);
+  drawingBox.style.left = x + '%'; drawingBox.style.top = y + '%';
+  drawingBox.style.width = Math.max(20, w) + 'px'; drawingBox.style.height = Math.max(20, h) + 'px';
+}
+function finishDrawing() {
+  if (!isDrawing || !drawingBox) return;
+  isDrawing = false;
+  const w = parseFloat(drawingBox.style.width), h = parseFloat(drawingBox.style.height);
+  if (w < 20 || h < 20) { cancelDrawing(); return; }
+  document.getElementById('hotspotEditId').value = '';
+  document.getElementById('hotspotEditTarget').value = '';
+  document.getElementById('hotspotEditName').value = '';
+  document.getElementById('hotspotModalTitle').textContent = '创建热区';
+  document.querySelector('#hotspotEditModal [onclick="deleteHotspotFromModal()"]').style.display = 'none';
+  document.getElementById('redrawHotspotBtn').style.display = '';
+  updateTargetSelect();
+  const modal = document.getElementById('hotspotEditModal');
+  modal.dataset.tempX = drawingBox.style.left; modal.dataset.tempY = drawingBox.style.top;
+  modal.dataset.tempWidth = drawingBox.style.width; modal.dataset.tempHeight = drawingBox.style.height;
+  modal.classList.add('show');
+}
+function cancelDrawing() { isDrawing = false; if (drawingBox) { drawingBox.remove(); drawingBox = null; } }
+function handleTouchStart(e) { e.preventDefault(); startDrawing(e); }
+function handleTouchMove(e) { e.preventDefault(); drawHotspot(e); }
+
+// ── 目标下拉 ──
+function updateTargetSelect() {
+  const m = cm(); if (!m) return;
+  const s = document.getElementById('hotspotEditTarget');
+  s.innerHTML = '<option value="">不关联</option><option value="start_position">人物起始位置</option>';
+  (m.spaceItems || []).forEach(si => { s.innerHTML += '<option value="' + si.id + '">' + si.name + '</option>'; });
+}
+function onTargetSelectChange() {
+  const val = document.getElementById('hotspotEditTarget').value;
+  const ni = document.getElementById('hotspotEditName');
+  if (val === 'start_position' && !ni.value) ni.value = '人物起始位置';
+  else if (val && !ni.value) { const m = cm(); if (m) { const si = (m.spaceItems || []).find(s => s.id === val); if (si) ni.value = si.name; } }
+}
+
+// ── 热区编辑 ──
+function editHotspot(hotspotId) {
+  const m = cm(); if (!m) return;
+  const h = m.spaceHotspots.find(h => h.id === hotspotId); if (!h) return;
+  document.getElementById('hotspotEditId').value = h.id;
+  document.getElementById('hotspotEditTarget').value = h.targetId || '';
+  document.getElementById('hotspotEditName').value = h.name || '';
+  document.getElementById('hotspotModalTitle').textContent = '编辑热区';
+  document.querySelector('#hotspotEditModal [onclick="deleteHotspotFromModal()"]').style.display = '';
+  document.getElementById('redrawHotspotBtn').style.display = 'none';
+  updateTargetSelect();
+  document.getElementById('hotspotEditTarget').value = h.targetId || '';
+  document.getElementById('hotspotEditModal').classList.add('show');
+}
+function saveHotspot() {
+  const m = cm(); if (!m) return;
+  const modal = document.getElementById('hotspotEditModal');
+  const editId = document.getElementById('hotspotEditId').value;
+  const targetId = document.getElementById('hotspotEditTarget').value;
+  const name = document.getElementById('hotspotEditName').value.trim();
+  if (!name) { showToast('请输入热区名称', 'error'); return; }
+  if (editId) {
+    const h = m.spaceHotspots.find(h => h.id === editId);
+    if (h) { h.targetId = targetId; h.name = name; }
+    showToast('热区已更新', 'success');
+  } else {
+    m.spaceHotspots.push({
+      id: 'h' + Date.now(),
+      x: Math.round(parseFloat(modal.dataset.tempX) * 10) / 10,
+      y: Math.round(parseFloat(modal.dataset.tempY) * 10) / 10,
+      width: Math.round(parseFloat(modal.dataset.tempWidth)),
+      height: Math.round(parseFloat(modal.dataset.tempHeight)),
+      targetId, name
+    });
+    showToast('热区已添加', 'success');
+  }
+  closeHotspotModal();
+}
+function closeHotspotModal() { document.getElementById('hotspotEditModal').classList.remove('show'); cancelDrawing(); renderStep2Editor(); }
+function redrawHotspot() { closeHotspotModal(); }
+function deleteHotspotFromModal() {
+  const m = cm(); const editId = document.getElementById('hotspotEditId').value;
+  if (!m || !editId) return;
+  if (confirm('确定要删除这个热区吗？')) { m.spaceHotspots = m.spaceHotspots.filter(h => h.id !== editId); closeHotspotModal(); showToast('热区已删除', 'success'); }
+}
+function deleteHotspotItem(hotspotId) {
+  const m = cm(); if (!m || !confirm('确定要删除这个热区吗？')) return;
+  m.spaceHotspots = m.spaceHotspots.filter(h => h.id !== hotspotId);
+  renderStep2Editor(); showToast('热区已删除', 'success');
+}
+
+function renderHotspotList() {
+  const m = cm(); const c = document.getElementById('hotspotList'); const e = document.getElementById('emptyHotspotList');
+  if (!m || !m.spaceHotspots || m.spaceHotspots.length === 0) { c.innerHTML = ''; e.style.display = 'block'; return; }
+  e.style.display = 'none';
+  c.innerHTML = m.spaceHotspots.map(h => {
+    let tn = '未关联';
+    if (h.targetId === 'start_position') tn = '人物起始位置';
+    else { const si = (m.spaceItems || []).find(s => s.id === h.targetId); if (si) tn = si.name; }
+    return `<div class="hotspot-item">
+      <div class="hi-info"><div class="hi-name">${h.name||'未命名'}</div><div class="hi-target">${tn}</div><div class="hi-pos">${Math.round(h.x)}%,${Math.round(h.y)}% · ${h.width||80}×${h.height||60}</div></div>
+      <div class="hi-actions"><button class="hi-btn edit" onclick="editHotspot('${h.id}')">编辑</button><button class="hi-btn delete" onclick="deleteHotspotItem('${h.id}')">删除</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ── 保存所有 ──
+function saveAllDecorate() {
+  const m = cm(); if (!m) return;
+  if (m._tmpImage) { m.spaceImage = m._tmpImage; delete m._tmpImage; }
+  closeDecorateModal();
+  renderMerchantList();
+  showToast('空间装修已保存', 'success');
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', renderMerchantList);
+</script>
+</body>
+</html>
