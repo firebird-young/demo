@@ -505,43 +505,109 @@
     
     /* 导入区域 */
     .import-area {
-      border: 2px dashed #ddd;
-      border-radius: 12px;
-      padding: 40px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed #d9d9d9;
+      border-radius: 8px;
+      padding: 36px 20px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: border-color 0.2s, background 0.2s;
+      background: #fafafa;
     }
     
     .import-area:hover {
       border-color: #667eea;
-      background: #fafafa;
+      background: #f0f2ff;
     }
     
-    .import-area svg {
-      width: 48px;
-      height: 48px;
-      color: #999;
-      margin-bottom: 16px;
+    .import-area .import-icon {
+      width: 44px;
+      height: 44px;
+      color: #bfbfbf;
+      margin-bottom: 14px;
     }
     
-    .import-area:hover svg {
+    .import-area:hover .import-icon {
       color: #667eea;
     }
     
     .import-text {
       font-size: 14px;
-      color: #666;
+      color: #333;
+      margin-bottom: 6px;
     }
     
     .import-hint {
       font-size: 12px;
       color: #999;
-      margin-top: 8px;
+    }
+    
+    .template-link {
+      text-align: right;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    
+    .template-link a {
+      color: #667eea;
+      text-decoration: none;
+    }
+    
+    .template-link a:hover {
+      text-decoration: underline;
     }
     
     #importFile {
       display: none;
+    }
+    
+    /* 导入结果 */
+    .import-result {
+      display: none;
+    }
+    
+    .result-summary {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .result-card {
+      flex: 1;
+      text-align: center;
+      padding: 20px 16px;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    
+    .result-card .result-num {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    
+    .result-card .result-label {
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .result-card.total .result-num { color: #333; }
+    .result-card.success .result-num { color: #52c41a; }
+    .result-card.fail .result-num { color: #ff4d4f; }
+    
+    .result-link {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #667eea;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    
+    .result-link:hover {
+      text-decoration: underline;
     }
     
     /* 标签式下拉多选框 */
@@ -878,23 +944,57 @@
 
   <!-- 批量发货弹窗 -->
   <div class="modal-overlay" id="batchModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:560px">
       <div class="modal-header">
         <div class="modal-title">批量发货</div>
         <div class="modal-close" onclick="closeBatchModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </div>
       </div>
-      <div class="modal-body">
-        <label for="importFile" class="import-area">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="import-text">点击或拖拽上传发货单文件</div>
-          <div class="import-hint">支持 .xlsx, .csv 格式文件</div>
-        </label>
-        <input type="file" id="importFile" accept=".xlsx,.csv">
-        <div class="btn-group">
-          <button class="btn-cancel" onclick="closeBatchModal()">取消</button>
-          <button class="btn btn-primary" onclick="confirmBatchDelivery()">确认导入</button>
+      <div class="modal-body" id="batchModalBody">
+        <!-- 步骤1: 上传文件 -->
+        <div id="uploadStep">
+          <div class="template-link">
+            <a href="#" onclick="downloadTemplate(event)">下载导入模板</a>
+          </div>
+          <label for="importFile" class="import-area">
+            <svg class="import-icon" viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <div class="import-text">点击上传发货单文件</div>
+            <div class="import-hint">支持 .xlsx, .csv 格式</div>
+          </label>
+          <input type="file" id="importFile" accept=".xlsx,.csv" onchange="onFileSelected()">
+          <div id="selectedFileName" style="text-align:center;margin-top:8px;font-size:13px;color:#666;display:none"></div>
+          <div class="btn-group">
+            <button class="btn-cancel" onclick="closeBatchModal()">取消</button>
+            <button class="btn btn-primary" onclick="confirmBatchDelivery()">确认导入</button>
+          </div>
+        </div>
+        <!-- 步骤2: 导入结果 -->
+        <div class="import-result" id="resultStep">
+          <div class="result-summary">
+            <div class="result-card total">
+              <div class="result-num" id="resultTotal">0</div>
+              <div class="result-label">总数量</div>
+            </div>
+            <div class="result-card success">
+              <div class="result-num" id="resultSuccess">0</div>
+              <div class="result-label">成功数量</div>
+              <a class="result-link" href="#" onclick="downloadSuccessDetail(event)">下载详情</a>
+            </div>
+            <div class="result-card fail">
+              <div class="result-num" id="resultFail">0</div>
+              <div class="result-label">失败数量</div>
+              <a class="result-link" href="#" onclick="downloadFailDetail(event)">下载详情</a>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="resetBatchModal()">继续导入</button>
+            <button class="btn-cancel" onclick="closeBatchModal()">关闭</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1232,8 +1332,42 @@
       document.getElementById('logisticsModal').classList.remove('show');
     }
 
+    // 模拟导入结果数据
+    let batchResultData = null;
+
+    // 模板下载
+    function downloadTemplate(e) {
+      e.preventDefault();
+      // 生成CSV模板并下载
+      var csv = '发货单号,订单号,物流公司,物流单号\nDH20240115001,DD202401150001,顺丰速运,SF1234567890\n';
+      var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = '批量发货模板.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 文件选择后显示文件名
+    function onFileSelected() {
+      var file = document.getElementById('importFile').files[0];
+      var el = document.getElementById('selectedFileName');
+      if (file) {
+        el.textContent = '已选择：' + file.name;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
     // 显示批量发货弹窗
     function showBatchModal() {
+      document.getElementById('uploadStep').style.display = 'block';
+      document.getElementById('resultStep').style.display = 'none';
+      document.getElementById('importFile').value = '';
+      document.getElementById('selectedFileName').style.display = 'none';
+      batchResultData = null;
       document.getElementById('batchModal').classList.add('show');
     }
 
@@ -1241,17 +1375,69 @@
     function closeBatchModal() {
       document.getElementById('batchModal').classList.remove('show');
       document.getElementById('importFile').value = '';
+      document.getElementById('selectedFileName').style.display = 'none';
+      batchResultData = null;
     }
 
-    // 确认批量发货
+    // 确认批量发货 - 模拟导入
     function confirmBatchDelivery() {
-      const file = document.getElementById('importFile').files[0];
+      var file = document.getElementById('importFile').files[0];
       if (!file) {
-        alert('请先选择要导入的文件');
+        alert('请先选择文件');
         return;
       }
-      alert(`批量发货成功！\n已导入文件：${file.name}`);
-      closeBatchModal();
+      // 模拟导入结果
+      var total = Math.floor(Math.random() * 20) + 5;
+      var fail = Math.floor(Math.random() * 4);
+      var success = total - fail;
+      batchResultData = { total: total, success: success, fail: fail, fileName: file.name };
+      document.getElementById('resultTotal').textContent = total;
+      document.getElementById('resultSuccess').textContent = success;
+      document.getElementById('resultFail').textContent = fail;
+      document.getElementById('uploadStep').style.display = 'none';
+      document.getElementById('resultStep').style.display = 'block';
+    }
+
+    // 重置弹窗回到上传步骤
+    function resetBatchModal() {
+      document.getElementById('uploadStep').style.display = 'block';
+      document.getElementById('resultStep').style.display = 'none';
+      document.getElementById('importFile').value = '';
+      document.getElementById('selectedFileName').style.display = 'none';
+    }
+
+    // 下载成功详情
+    function downloadSuccessDetail(e) {
+      e.preventDefault();
+      if (!batchResultData) return;
+      var csv = '发货单号,订单号,商品名称,物流公司,物流单号,状态\n';
+      for (var i = 1; i <= batchResultData.success; i++) {
+        csv += 'DH' + Date.now() + i + ',DD' + Date.now() + i + ',飞天茅台 53度 500ml,顺丰速运,SF' + Math.floor(Math.random()*9999999999) + ',成功\n';
+      }
+      downloadCSV(csv, '导入成功详情.csv');
+    }
+
+    // 下载失败详情
+    function downloadFailDetail(e) {
+      e.preventDefault();
+      if (!batchResultData) return;
+      var csv = '发货单号,订单号,商品名称,失败原因\n';
+      var reasons = ['订单不存在', '已发货无法重复发货', '物流单号格式不正确'];
+      for (var i = 1; i <= batchResultData.fail; i++) {
+        csv += 'DH' + Date.now() + i + ',DD' + Date.now() + i + ',飞天茅台 53度 500ml,' + reasons[i % reasons.length] + '\n';
+      }
+      downloadCSV(csv, '导入失败详情.csv');
+    }
+
+    // 通用CSV下载
+    function downloadCSV(csv, filename) {
+      var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
     }
 
     // 侧边栏菜单切换
