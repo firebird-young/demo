@@ -74,6 +74,7 @@
     .order-status { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; margin-bottom: 8px; }
     .status-pending { background: #fff7e6; color: #fa8c16; }
     .status-completed { background: #f6ffed; color: #52c41a; }
+    .status-cancelled { background: #f5f5f5; color: #999; }
     .action-btn { padding: 6px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; }
     .action-btn-primary { background: #D70C1F; color: #fff; }
 
@@ -92,6 +93,31 @@
     .info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
     .info-label { color: #999; width: 100px; flex-shrink: 0; }
     .info-value { color: #333; font-weight: 500; }
+
+    /* 详情弹窗样式 */
+    .detail-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+    .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f8f8f8; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #999; font-size: 13px; }
+    .detail-value { color: #333; font-size: 13px; font-weight: 500; }
+    .detail-section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
+    .detail-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .detail-product-image { width: 100px; height: 100px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; flex-shrink: 0; }
+    .detail-product-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .detail-product-name { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; }
+    .detail-product-spec { font-size: 12px; color: #666; margin-bottom: 6px; }
+    .benefits-detail { margin-top: 12px; }
+    .benefits-detail-title { font-size: 13px; font-weight: 500; color: #333; margin-bottom: 10px; }
+    .benefit-detail-item { display: flex; justify-content: space-between; padding: 8px 14px; background: #fafafa; border-radius: 6px; margin-bottom: 6px; }
+    .benefit-detail-item:last-child { margin-bottom: 0; }
+    .benefit-detail-name { font-size: 12px; color: #333; }
+    .benefit-detail-status { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+    .benefit-used { background: #f6ffed; color: #52c41a; }
+    .benefit-unused { background: #f0f5ff; color: #1890ff; }
+    .benefit-status { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .benefit-partial { background: #fff7e6; color: #fa8c16; }
+    .btn-group { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+    .btn-cancel { padding: 8px 20px; background: #f5f5f5; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
     .empty-state { padding: 60px 0; text-align: center; color: #999; font-size: 14px; }
     .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: slideIn 0.3s ease; }
@@ -149,7 +175,9 @@
       <div class="search-fields">
         <div class="search-field"><label>订单号</label><input type="text" id="orderNoInput" placeholder="请输入订单号"></div>
         <div class="search-field"><label>商品名称</label><input type="text" id="productNameInput" placeholder="请输入商品名称"></div>
-        <div class="search-field"><label>发行方</label><input type="text" id="issuerInput" placeholder="请输入发行方"></div>
+        <div class="search-field"><label>发行方</label><select id="issuerInput" style="height:36px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;width:150px"><option value="">全部</option><option value="贵州茅台集团">贵州茅台集团</option><option value="海底捞">海底捞</option><option value="王者荣耀">王者荣耀</option><option value="三体">三体</option><option value="鬼吹灯">鬼吹灯</option></select></div>
+        <div class="search-field"><label>款式</label><input type="text" id="specInput" placeholder="请输入款式"></div>
+        <div class="search-field"><label>买家账号</label><input type="text" id="buyerAccountInput" placeholder="请输入买家账号"></div>
         <div class="search-field"><label>买家ID</label><input type="text" id="buyerIdInput" placeholder="请输入买家ID"></div>
         <div class="search-field date-range"><label>下单日期</label><input type="date" id="startDateInput"><span class="date-separator">至</span><input type="date" id="endDateInput"></div>
         <button class="search-btn" onclick="searchOrders()">搜索</button>
@@ -161,6 +189,7 @@
       <button class="status-tab active" onclick="filterByStatus('all', this)">全部</button>
       <button class="status-tab" onclick="filterByStatus('pending', this)">待付款</button>
       <button class="status-tab" onclick="filterByStatus('completed', this)">已完成</button>
+      <button class="status-tab" onclick="filterByStatus('cancelled', this)">已取消</button>
     </div>
 
     <div id="orderList"></div>
@@ -178,9 +207,6 @@
       </div>
     </div>
     <div class="modal-body" id="detailContent"></div>
-    <div class="modal-footer">
-      <button class="search-btn reset-btn" onclick="closeDetailModal()">关闭</button>
-    </div>
   </div>
 </div>
 
@@ -188,16 +214,28 @@
 
 <script>
 var orders = [
-  { id: 'O20240601001', product: '1935·时光窖藏', spec: '凝时', img: '🎯', price: 599, status: 'pending', buyerId: 'U001', buyerName: '茅台收藏家', date: '2026-06-01 10:30', issuer: '贵州茅台集团', quantity: 1 },
-  { id: 'O20240601002', product: '飞天茅台·元宇宙酒票', spec: '标准款', img: '🍷', price: 299, status: 'completed', buyerId: 'U002', buyerName: '数字玩家', date: '2026-05-28 14:15', issuer: '贵州茅台集团', quantity: 2 },
-  { id: 'O20240601003', product: '1935·时光窖藏', spec: '守岁', img: '🎯', price: 699, status: 'pending', buyerId: 'U003', buyerName: '元宇宙探索者', date: '2026-06-02 09:00', issuer: '贵州茅台集团', quantity: 1 },
-  { id: 'O20240601004', product: '海底捞·黑海会员', spec: '黑海会员卡', img: '🍲', price: 199, status: 'completed', buyerId: 'U004', buyerName: '白酒爱好者', date: '2026-05-20 16:30', issuer: '海底捞', quantity: 1 },
-  { id: 'O20240601005', product: '王者荣耀·传说皮肤', spec: '皮肤A-李白', img: '🎮', price: 888, status: 'completed', buyerId: 'U005', buyerName: '收藏达人', date: '2026-05-15 11:00', issuer: '王者荣耀', quantity: 1 },
-  { id: 'O20240601006', product: '巴拿马金奖·复刻', spec: '典藏款', img: '🏆', price: 1999, status: 'pending', buyerId: 'U006', buyerName: '海贼迷', date: '2026-06-03 08:45', issuer: '贵州茅台集团', quantity: 1 },
-  { id: 'O20240601007', product: '王者荣耀·传说皮肤', spec: '皮肤B-貂蝉', img: '🎮', price: 888, status: 'completed', buyerId: 'U007', buyerName: '电竞选手', date: '2026-05-10 20:00', issuer: '王者荣耀', quantity: 1 },
-  { id: 'O20240601008', product: '三体·数字资产', spec: '标准款', img: '🌌', price: 399, status: 'pending', buyerId: 'U008', buyerName: '潮流先锋', date: '2026-06-02 15:00', issuer: '三体', quantity: 1 },
-  { id: 'O20240601009', product: '海底捞·黑海会员', spec: '黑海会员卡', img: '🍲', price: 199, status: 'completed', buyerId: 'U002', buyerName: '数字玩家', date: '2026-05-05 12:00', issuer: '海底捞', quantity: 1 },
-  { id: 'O20240601010', product: '鬼吹灯·数字资产', spec: '标准款', img: '🔦', price: 499, status: 'completed', buyerId: 'U001', buyerName: '茅台收藏家', date: '2026-06-01 18:30', issuer: '鬼吹灯', quantity: 1 }
+  { id: 'O20240601001', product:'1935·时光窖藏', spec:'凝时', img:'🎯', price:599, status:'pending', buyerId:'U20240001', buyerNick:'茅台收藏家', buyerAccount:'138****8888', date:'2026-06-01 10:30:25', issuer:'贵州茅台集团', quantity:1, payTime:'-', payMethod:'支付宝', benefitStatus:'-',
+    benefits:[{name:'限量编号证书', status:'unused'},{name:'VIP专属通道', status:'unused'}] },
+  { id: 'O20240601002', product:'飞天茅台·元宇宙酒票', spec:'标准款', img:'🍷', price:299, status:'completed', buyerId:'U20240002', buyerNick:'数字玩家', buyerAccount:'139****6666', date:'2026-05-28 14:15:10', issuer:'贵州茅台集团', quantity:2, payTime:'2026-05-28 14:16:05', payMethod:'微信支付', benefitStatus:'部分核销',
+    benefits:[{name:'线下品鉴会入场资格', status:'unused'},{name:'专属客服服务', status:'used'}] },
+  { id: 'O20240601003', product:'1935·时光窖藏', spec:'守岁', img:'🎯', price:699, status:'pending', buyerId:'U20240003', buyerNick:'元宇宙探索者', buyerAccount:'137****5555', date:'2026-06-02 09:00:33', issuer:'贵州茅台集团', quantity:1, payTime:'-', payMethod:'汇付', benefitStatus:'-',
+    benefits:[{name:'限量编号证书', status:'unused'}] },
+  { id: 'O20240601004', product:'海底捞·黑海会员', spec:'黑海会员卡', img:'🍲', price:199, status:'completed', buyerId:'U20240004', buyerNick:'白酒爱好者', buyerAccount:'136****4444', date:'2026-05-20 16:30:47', issuer:'海底捞', quantity:1, payTime:'2026-05-20 16:31:20', payMethod:'支付宝', benefitStatus:'全部已核销',
+    benefits:[{name:'黑海会员权益', status:'used'},{name:'优先订座', status:'used'}] },
+  { id: 'O20240601005', product:'王者荣耀·传说皮肤', spec:'皮肤A-李白', img:'🎮', price:888, status:'completed', buyerId:'U20240005', buyerNick:'收藏达人', buyerAccount:'135****3333', date:'2026-05-15 11:00:22', issuer:'王者荣耀', quantity:1, payTime:'2026-05-15 11:01:05', payMethod:'微信支付', benefitStatus:'全部未核销',
+    benefits:[{name:'限定皮肤体验', status:'unused'},{name:'游戏内称号', status:'unused'}] },
+  { id: 'O20240601006', product:'巴拿马金奖·复刻', spec:'典藏款', img:'🏆', price:1999, status:'pending', buyerId:'U20240006', buyerNick:'海贼迷', buyerAccount:'134****2222', date:'2026-06-03 08:45:15', issuer:'贵州茅台集团', quantity:1, payTime:'-', payMethod:'汇付', benefitStatus:'-',
+    benefits:[{name:'金奖复刻证书', status:'unused'},{name:'VIP品鉴会', status:'unused'}] },
+  { id: 'O20240601007', product:'王者荣耀·传说皮肤', spec:'皮肤B-貂蝉', img:'🎮', price:888, status:'completed', buyerId:'U20240007', buyerNick:'电竞选手', buyerAccount:'133****1111', date:'2026-05-10 20:00:10', issuer:'王者荣耀', quantity:1, payTime:'2026-05-10 20:01:30', payMethod:'支付宝', benefitStatus:'部分核销',
+    benefits:[{name:'限定皮肤体验', status:'used'},{name:'游戏内称号', status:'unused'}] },
+  { id: 'O20240601008', product:'三体·数字资产', spec:'标准款', img:'🌌', price:399, status:'pending', buyerId:'U20240008', buyerNick:'潮流先锋', buyerAccount:'132****0000', date:'2026-06-02 15:00:42', issuer:'三体', quantity:1, payTime:'-', payMethod:'微信支付', benefitStatus:'-',
+    benefits:[{name:'三体文明数字凭证', status:'unused'}] },
+  { id: 'O20240601009', product:'海底捞·黑海会员', spec:'黑海会员卡', img:'🍲', price:199, status:'completed', buyerId:'U20240002', buyerNick:'数字玩家', buyerAccount:'139****6666', date:'2026-05-05 12:00:55', issuer:'海底捞', quantity:1, payTime:'2026-05-05 12:01:18', payMethod:'微信支付', benefitStatus:'全部已核销',
+    benefits:[{name:'黑海会员权益', status:'used'}] },
+  { id: 'O20240601010', product:'鬼吹灯·数字资产', spec:'标准款', img:'🔦', price:499, status:'completed', buyerId:'U20240001', buyerNick:'茅台收藏家', buyerAccount:'138****8888', date:'2026-06-01 18:30:10', issuer:'鬼吹灯', quantity:1, payTime:'2026-06-01 18:31:05', payMethod:'支付宝', benefitStatus:'部分核销',
+    benefits:[{name:'摸金校尉勋章', status:'used'},{name:'场景解锁权', status:'unused'}] },
+  { id: 'O20240601011', product:'茅台会员积分', spec:'积分包', img:'💎', price:99, status:'cancelled', buyerId:'U20240006', buyerNick:'海贼迷', buyerAccount:'134****2222', date:'2026-06-05 11:20:00', issuer:'贵州茅台集团', quantity:1, payTime:'-', payMethod:'-', benefitStatus:'-',
+    benefits:[] }
 ];
 
 var currentFilter = 'all';
@@ -228,6 +266,8 @@ function resetSearch() {
   document.getElementById('orderNoInput').value = '';
   document.getElementById('productNameInput').value = '';
   document.getElementById('issuerInput').value = '';
+  document.getElementById('specInput').value = '';
+  document.getElementById('buyerAccountInput').value = '';
   document.getElementById('buyerIdInput').value = '';
   document.getElementById('startDateInput').value = '';
   document.getElementById('endDateInput').value = '';
@@ -238,6 +278,8 @@ function renderOrders() {
   var kwOrder = (document.getElementById('orderNoInput').value || '').toLowerCase();
   var kwProduct = (document.getElementById('productNameInput').value || '').toLowerCase();
   var kwIssuer = (document.getElementById('issuerInput').value || '').toLowerCase();
+  var kwSpec = (document.getElementById('specInput').value || '').toLowerCase();
+  var kwAccount = (document.getElementById('buyerAccountInput').value || '').toLowerCase();
   var kwBuyer = (document.getElementById('buyerIdInput').value || '').toLowerCase();
   var startDate = document.getElementById('startDateInput').value;
   var endDate = document.getElementById('endDateInput').value;
@@ -247,6 +289,8 @@ function renderOrders() {
     if (kwOrder && o.id.toLowerCase().indexOf(kwOrder) === -1) return false;
     if (kwProduct && o.product.toLowerCase().indexOf(kwProduct) === -1) return false;
     if (kwIssuer && o.issuer.toLowerCase().indexOf(kwIssuer) === -1) return false;
+    if (kwSpec && o.spec.toLowerCase().indexOf(kwSpec) === -1) return false;
+    if (kwAccount && o.buyerAccount.toLowerCase().indexOf(kwAccount) === -1) return false;
     if (kwBuyer && o.buyerId.toLowerCase().indexOf(kwBuyer) === -1) return false;
     if (startDate && o.date.substring(0,10) < startDate) return false;
     if (endDate && o.date.substring(0,10) > endDate) return false;
@@ -264,7 +308,7 @@ function renderOrders() {
     return '<div class="order-item" onclick="viewOrder(\'' + o.id + '\')">' +
       '<div class="order-left">' +
         '<div class="order-header"><span><label>订单号：</label>' + o.id + '</span><span class="order-date">' + o.date + '</span></div>' +
-        '<div class="buyer-info"><span><label>买家ID：</label>' + o.buyerId + '</span><span><label>买家：</label>' + o.buyerName + '</span></div>' +
+        '<div class="buyer-info"><span><label>买家账号：</label>' + o.buyerAccount + '</span><span><label>买家ID：</label>' + o.buyerId + '</span></div>' +
         '<div class="order-product">' +
           '<div class="product-image">' + o.img + '</div>' +
           '<div class="product-info">' +
@@ -276,7 +320,7 @@ function renderOrders() {
       '</div>' +
       '<div class="order-right">' +
         '<div class="order-price">¥' + (o.price * (o.quantity||1)).toLocaleString() + '</div>' +
-        '<div class="order-status ' + (o.status==='pending'?'status-pending':'status-completed') + '">' + (o.status==='pending'?'待付款':'已完成') + '</div>' +
+        '<div class="order-status ' + (o.status==='pending'?'status-pending':o.status==='completed'?'status-completed':'status-cancelled') + '">' + (o.status==='pending'?'待付款':o.status==='completed'?'已完成':'已取消') + '</div>' +
         '<button class="action-btn action-btn-primary" onclick="event.stopPropagation();viewOrder(\'' + o.id + '\')">查看详情</button>' +
       '</div>' +
     '</div>';
@@ -286,25 +330,46 @@ function renderOrders() {
 function viewOrder(id) {
   var o = orders.find(function(o) { return o.id === id; });
   if (!o) return;
+  var st = o.status === 'pending' ? '待付款' : o.status === 'completed' ? '已完成' : '已取消';
+  var stCls = o.status === 'pending' ? 'status-pending' : o.status === 'completed' ? 'status-completed' : 'status-cancelled';
+  var bCls = o.benefitStatus === '全部已核销' ? 'benefit-used' : o.benefitStatus === '全部未核销' ? 'benefit-unused' : 'benefit-partial';
+
   var h = '';
-  h += '<div class="info-section"><div class="info-section-title">订单信息</div>';
-  h += '<div class="info-row"><span class="info-label">订单号</span><span class="info-value">' + o.id + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">商品名称</span><span class="info-value">' + o.product + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">款式</span><span class="info-value">' + o.spec + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">数量</span><span class="info-value">' + (o.quantity||1) + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">金额</span><span class="info-value" style="color:#D70C1F;font-weight:700">¥' + (o.price * (o.quantity||1)).toLocaleString() + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">状态</span><span class="info-value"><span class="order-status ' + (o.status==='pending'?'status-pending':'status-completed') + '">' + (o.status==='pending'?'待付款':'已完成') + '</span></span></div>';
-  h += '<div class="info-row"><span class="info-label">下单时间</span><span class="info-value">' + o.date + '</span></div>';
+  h += '<div class="detail-section"><div class="detail-title">订单信息</div>';
+  h += '<div class="detail-row"><span class="detail-label">订单编号</span><span class="detail-value">' + o.id + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">下单时间</span><span class="detail-value">' + o.date + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">支付时间</span><span class="detail-value">' + (o.payTime||'-') + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status ' + stCls + '">' + st + '</span></span></div>';
+  h += '<div class="detail-row"><span class="detail-label">权益状态</span><span class="detail-value"><span class="benefit-status ' + bCls + '">' + (o.benefitStatus||'-') + '</span></span></div>';
   h += '</div>';
 
-  h += '<div class="info-section"><div class="info-section-title">买家信息</div>';
-  h += '<div class="info-row"><span class="info-label">买家ID</span><span class="info-value">' + o.buyerId + '</span></div>';
-  h += '<div class="info-row"><span class="info-label">买家名称</span><span class="info-value">' + o.buyerName + '</span></div>';
+  h += '<div class="detail-section"><div class="detail-title">买家信息</div>';
+  h += '<div class="detail-row"><span class="detail-label">买家昵称</span><span class="detail-value">' + o.buyerNick + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">买家账号</span><span class="detail-value">' + o.buyerAccount + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">买家ID</span><span class="detail-value">' + o.buyerId + '</span></div>';
+  h += '<div class="detail-row"><span class="detail-label">支付方式</span><span class="detail-value">' + o.payMethod + '</span></div>';
   h += '</div>';
 
-  h += '<div class="info-section"><div class="info-section-title">发行方信息</div>';
-  h += '<div class="info-row"><span class="info-label">发行方</span><span class="info-value" style="color:#D70C1F">' + o.issuer + '</span></div>';
+  h += '<div class="detail-section"><div class="detail-row" style="align-items:flex-start"><div class="detail-product-image">' + o.img + '</div>';
+  h += '<div class="detail-product-info"><div class="detail-product-name">' + o.product + '</div>';
+  h += '<div class="detail-product-spec">款式：' + o.spec + ' | 数量：' + (o.quantity||1) + '</div>';
+  h += '<div style="margin-top:8px;font-size:16px;font-weight:600;color:#ff4d4f">¥' + (o.price * (o.quantity||1)).toLocaleString() + '</div></div></div></div>';
+
+  h += '<div class="detail-section"><div class="detail-title">权益详情</div><div class="benefits-detail"><div class="benefits-detail-title">包含权益</div>';
+  if (o.benefits && o.benefits.length > 0) {
+    o.benefits.forEach(function(b) {
+      h += '<div class="benefit-detail-item"><span class="benefit-detail-name">' + b.name + '</span><span class="benefit-detail-status ' + (b.status==='used'?'benefit-used':'benefit-unused') + '">' + (b.status==='used'?'已核销':'未核销') + '</span></div>';
+    });
+  } else {
+    h += '<div style="font-size:12px;color:#999;padding:12px 0">暂无权益信息</div>';
+  }
+  h += '</div></div>';
+
+  h += '<div class="detail-section"><div class="detail-title">发行方信息</div>';
+  h += '<div class="detail-row"><span class="detail-label">发行方</span><span class="detail-value" style="color:#D70C1F;font-weight:600">' + o.issuer + '</span></div>';
   h += '</div>';
+
+  h += '<div class="btn-group"><button class="btn-cancel" onclick="closeDetailModal()">关闭</button></div>';
 
   document.getElementById('detailContent').innerHTML = h;
   document.getElementById('detailModal').classList.add('show');

@@ -398,6 +398,11 @@
       background: #f6ffed;
       color: #52c41a;
     }
+
+    .status-cancelled {
+      background: #f5f5f5;
+      color: #999;
+    }
     
     .benefit-status {
       padding: 4px 12px;
@@ -868,8 +873,9 @@
       <button class="status-tab active" onclick="filterByStatus('all', this)">全部</button>
       <button class="status-tab" onclick="filterByStatus('pending', this)">待付款</button>
       <button class="status-tab" onclick="filterByStatus('completed', this)">已完成</button>
+      <button class="status-tab" onclick="filterByStatus('cancelled', this)">已取消</button>
     </div>
-    
+
     <!-- 订单列表 -->
     <div class="order-list" id="orderList">
       <!-- 待付款订单 -->
@@ -1001,7 +1007,7 @@
               <div class="product-spec">款式：基础积分 | 数量：1</div>
             </div>
           </div>
-          <div class="benefit-status benefit-used">权益已核销</div>
+        </div>
         <div class="order-right">
           <div class="order-price">¥100.00</div>
           <div class="order-status status-completed">已完成</div>
@@ -1029,13 +1035,41 @@
               <div class="product-spec">款式：纪念款 | 数量：3</div>
             </div>
           </div>
-          <div class="benefit-status benefit-unused">权益未核销</div>
+        </div>
         <div class="order-right">
           <div class="order-price">¥3,897.00</div>
           <div class="order-status status-completed">已完成</div>
           <div class="benefit-status benefit-unused">未核销</div>
           <div class="order-actions">
             <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401110001')">查看详情</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已取消订单 -->
+      <div class="order-item" data-status="cancelled" onclick="viewOrder('O202401100001')">
+        <div class="order-left">
+          <div class="order-header">
+            <span><label>买家账号：</label>131****0000</span>
+            <span class="order-date">2024-01-10 16:20:45</span>
+          </div>
+          <div class="buyer-info">
+            <span><label>买家账号：</label>13100100000</span>
+            <span><label>买家ID：</label>U20240007</span>
+          </div>
+          <div class="order-product">
+            <div class="product-image">💎</div>
+            <div class="product-info">
+              <div class="product-name">茅台会员积分</div>
+              <div class="product-spec">款式：积分包 | 数量：1</div>
+            </div>
+          </div>
+        </div>
+        <div class="order-right">
+          <div class="order-price">¥99.00</div>
+          <div class="order-status status-cancelled">已取消</div>
+          <div class="order-actions">
+            <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401100001')">查看详情</button>
           </div>
         </div>
       </div>
@@ -1051,90 +1085,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </div>
       </div>
-      <div class="modal-body">
-        <!-- 订单基本信息 -->
-            <span class="detail-value">O202401140001</span>
-          <div class="detail-title">订单信息</div>
-          <div class="detail-row">
-            <span class="detail-label">订单编号</span>
-            <span class="detail-value">2024-01-14 09:20:33</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">下单时间</span>
-            <span class="detail-value">2024-01-14 09:22:18</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">支付时间</span>
-            <span class="detail-value" id="detailPayTime">2024-01-14 09:22:18</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">订单状态</span>
-            <span class="detail-value"><span class="benefit-status benefit-partial">部分核销</span></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">权益状态</span>
-            <span class="detail-value" id="detailBenefitStatus"><span class="benefit-status benefit-partial">部分核销</span></span>
-          </div>
-        </div>
-        
-        <!-- 买家信息 -->
-            <span class="detail-value">茅台收藏家</span>
-          <div class="detail-title">买家信息</div>
-          <div class="detail-row">
-            <span class="detail-label">买家昵称</span>
-            <span class="detail-value">137****5555</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">买家账号</span>
-            <span class="detail-value">U20240003</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">买家ID</span>
-            <span class="detail-value">汇付</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">支付方式</span>
-            <span class="detail-value" id="detailPayMethod">汇付</span>
-          </div>
-        </div>
-        
-            <div class="detail-product-image">🎨</div>
-        <div class="detail-section">
-              <div class="detail-product-name">艺术大师·臻品系列</div>
-              <div class="detail-product-spec">款式：山水意境 | 数量：1</div>
-              <div style="margin-top: 8px; font-size: 16px; font-weight: 600; color: #ff4d4f;">¥2,599.00</div>
-            <div class="detail-product-info">
-              <div class="detail-product-name" id="detailProductName">艺术大师·臻品系列</div>
-              <div class="detail-product-spec" id="detailProductSpec">款式：山水意境 | 数量：1</div>
-              <div style="margin-top: 8px; font-size: 16px; font-weight: 600; color: #ff4d4f;" id="detailProductPrice">¥2,599.00</div>
-            </div>
-          </div>
-        </div>
-          <div class="benefits-detail">
-        <!-- 权益详情 -->
-        <div class="detail-section">
-          <div class="detail-title">权益详情</div>
-          <div class="benefits-detail" id="detailBenefits">
-            <div class="benefits-detail-title">包含权益</div>
-            <div class="benefit-detail-item">
-              <span class="benefit-detail-name">线下品鉴会入场资格</span>
-              <span class="benefit-detail-status benefit-unused">未核销</span>
-            </div>
-            <div class="benefit-detail-item">
-              <span class="benefit-detail-name">专属客服服务</span>
-              <span class="benefit-detail-status benefit-unused">未核销</span>
-            </div>
-            <div class="benefit-detail-item">
-              <span class="benefit-detail-name">优先购买权</span>
-              <span class="benefit-detail-status benefit-used">已核销</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 操作按钮 -->
-        <div class="btn-group">
-          <button class="btn-cancel" onclick="closeModal()">关闭</button>
-        </div>
+      <div class="modal-body" id="modalBody">
       </div>
     </div>
   </div>
@@ -1236,40 +1187,59 @@
       'O202401110001': { id:'O202401110001', orderTime:'2024-01-11 10:05:15', payTime:'2024-01-11 10:06:30', status:'completed', benefitStatus:'全部已核销',
         buyerNick:'酒文化达人', buyerAccount:'134****2222', buyerId:'U20240006', payMethod:'汇付',
         productIcon:'🏅', productName:'国酒·数字徽章', productSpec:'款式：典藏版 | 数量：1', price:'¥1,888.00',
-        benefits:[{name:'数字徽章展示权', status:'used'},{name:'会员专属折扣', status:'used'}] }
+        benefits:[{name:'数字徽章展示权', status:'used'},{name:'会员专属折扣', status:'used'}] },
+      'O202401100001': { id:'O202401100001', orderTime:'2024-01-10 16:20:45', payTime:'-', status:'cancelled', benefitStatus:'-',
+        buyerNick:'过路游客', buyerAccount:'131****0000', buyerId:'U20240007', payMethod:'-',
+        productIcon:'💎', productName:'茅台会员积分', productSpec:'款式：积分包 | 数量：1', price:'¥99.00',
+        benefits:[] }
     };
     
     function viewOrder(orderId) {
       var data = orderDataMap[orderId];
       if (!data) return;
-      var st = data.status === 'pending' ? '待付款' : '已完成';
-      var stCls = data.status === 'pending' ? 'status-pending' : 'status-completed';
-      var bCls = data.benefitStatus === '全部已核销' ? 'benefit-all' : data.benefitStatus === '全部未核销' ? 'benefit-all' : 'benefit-partial';
+      var st = data.status === 'pending' ? '待付款' : data.status === 'completed' ? '已完成' : '已取消';
+      var stCls = data.status === 'pending' ? 'status-pending' : data.status === 'completed' ? 'status-completed' : 'status-cancelled';
+      var bCls = data.benefitStatus === '全部已核销' ? 'benefit-used' : data.benefitStatus === '全部未核销' ? 'benefit-unused' : 'benefit-partial';
       
       var h = '';
+      h += '<div class="detail-section">';
       h += '<div class="detail-title">订单信息</div>';
       h += '<div class="detail-row"><span class="detail-label">订单编号</span><span class="detail-value">'+data.id+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">下单时间</span><span class="detail-value">'+data.orderTime+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">支付时间</span><span class="detail-value">'+data.payTime+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status '+stCls+'">'+st+'</span></span></div>';
       h += '<div class="detail-row"><span class="detail-label">权益状态</span><span class="detail-value"><span class="benefit-status '+bCls+'">'+data.benefitStatus+'</span></span></div>';
+      h += '</div>';
+      
+      h += '<div class="detail-section">';
       h += '<div class="detail-title">买家信息</div>';
       h += '<div class="detail-row"><span class="detail-label">买家昵称</span><span class="detail-value">'+data.buyerNick+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">买家账号</span><span class="detail-value">'+data.buyerAccount+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">买家ID</span><span class="detail-value">'+data.buyerId+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">支付方式</span><span class="detail-value">'+data.payMethod+'</span></div>';
-      h += '<div class="detail-section"><div class="detail-row" style="align-items:flex-start"><div class="detail-product-image">'+data.productIcon+'</div>';
+      h += '</div>';
+      
+      h += '<div class="detail-section">';
+      h += '<div class="detail-title">商品信息</div>';
+      h += '<div class="detail-product">';
+      h += '<div class="detail-product-image">'+data.productIcon+'</div>';
       h += '<div class="detail-product-info"><div class="detail-product-name">'+data.productName+'</div>';
       h += '<div class="detail-product-spec">'+data.productSpec+'</div>';
-      h += '<div style="margin-top:8px;font-size:16px;font-weight:600;color:#ff4d4f">'+data.price+'</div></div></div></div>';
-      h += '<div class="detail-section"><div class="detail-title">权益详情</div><div class="benefits-detail"><div class="benefits-detail-title">包含权益</div>';
+      h += '<div style="margin-top:8px;font-size:16px;font-weight:600;color:#ff4d4f">'+data.price+'</div></div>';
+      h += '</div></div>';
+      
+      h += '<div class="detail-section">';
+      h += '<div class="detail-title">权益详情</div>';
+      h += '<div class="benefits-detail">';
+      h += '<div class="benefits-detail-title">包含权益</div>';
       data.benefits.forEach(function(b) {
         h += '<div class="benefit-detail-item"><span class="benefit-detail-name">'+b.name+'</span><span class="benefit-detail-status '+(b.status==='used'?'benefit-used':'benefit-unused')+'">'+(b.status==='used'?'已核销':'未核销')+'</span></div>';
       });
       h += '</div></div>';
+      
       h += '<div class="btn-group"><button class="btn-cancel" onclick="closeModal()">关闭</button></div>';
       
-      document.querySelector('#orderModal .modal-body').innerHTML = h;
+      document.getElementById('modalBody').innerHTML = h;
       document.getElementById('orderModal').classList.add('show');
     }
     
