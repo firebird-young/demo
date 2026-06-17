@@ -78,6 +78,78 @@
     letter-spacing: 1px;
   }
 
+  /* ── 角色头顶昵称 ── */
+  .origin-name {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    text-shadow: 0 1px 8px rgba(0,0,0,.8);
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(4px);
+    margin-bottom: 4px;
+    pointer-events: none;
+  }
+
+  /* ── 弹窗返回/关闭按钮 ── */
+  .role-modal-back {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    z-index: 10;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px;
+    color: rgba(255,255,255,.6);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 3px 10px;
+    transition: background .2s, color .2s;
+    line-height: 1;
+  }
+  .role-modal-back:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+  /* ── 右上角用户信息 ── */
+  .user-info-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 50;
+    pointer-events: auto;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 18px;
+    background: rgba(0,0,0,.4);
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background .2s;
+  }
+  .user-info-btn:hover { background: rgba(0,0,0,.6); }
+  .user-info-btn .u-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .user-info-btn .u-name {
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* ── 重置角色按钮（手机框外） ── */
   .reset-role-btn {
     position: absolute;
@@ -359,8 +431,7 @@
     transition: opacity .3s;
   }
   .role-modal-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
+    display: none;
   }
   .role-modal {
     background: #1e1e3a;
@@ -505,12 +576,18 @@
     .origin { width: 48px; height: 48px; }
     .origin-ring { inset: -6px; }
     .reset-role-btn { top: 6px; right: 6px; padding: 3px 8px; font-size: 10px; }
+    .user-info-btn { top: 6px; right: 80px; }
+    .origin-name { font-size: 10px; }
   }
   @media (max-width: 768px) and (orientation: landscape) {
     body { background: #000; }
     .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
     .phone-screen { border-radius: 0; }
     .reset-role-btn { top: 4px; right: 4px; padding: 2px 8px; font-size: 10px; }
+    .user-info-btn { top: 4px; right: 70px; padding: 2px 8px 2px 2px; }
+    .user-info-btn .u-avatar { width: 22px; height: 22px; }
+    .user-info-btn .u-name { font-size: 11px; }
+    .origin-name { font-size: 10px; }
     .role-modal { padding: 8px 10px 6px; width: 94%; max-width: 260px; }
     .role-modal-title { font-size: 13px; }
     .role-modal-sub { font-size: 9px; margin-bottom: 4px; }
@@ -556,9 +633,16 @@
       </div>
     </div>
 
+    <!-- 右上角用户信息 -->
+    <div class="user-info-btn" id="userInfoBtn" onclick="openEditUser()">
+      <img class="u-avatar" id="uAvatar" src="" alt="">
+      <span class="u-name" id="uName"></span>
+    </div>
+
     <!-- 角色选择弹窗 -->
     <div class="role-modal-overlay" id="roleModalOverlay">
       <div class="role-modal">
+        <button class="role-modal-back" id="roleModalBack" onclick="onBackClick()">←</button>
         <div class="role-modal-title">🎭 选择你的角色</div>
         <div class="role-modal-sub">选择一个形象进入元宇宙商场</div>
         <div class="role-grid" id="roleGrid">
@@ -646,6 +730,7 @@ const females = ROLE_AVATARS.filter(function(r){ return r.gender === 'female'; }
 
 let selectedAvatar = '';
 let userRole = null;
+let isEditingRole = false;
 
 // 读取已保存角色
 (function initRole() {
@@ -657,6 +742,7 @@ let userRole = null;
     // 已有角色，直接进入
     document.getElementById('roleModalOverlay').classList.add('hidden');
     document.getElementById('resetRoleBtn').style.display = 'block';
+    updateSceneUI();
   } else {
     // 无角色，显示弹窗，隐藏场景
     showRoleModal();
@@ -665,17 +751,19 @@ let userRole = null;
 })();
 
 function showRoleModal() {
-  // 隐藏所有场景
-  document.querySelectorAll('.scene-layer').forEach(function(el) { el.classList.add('hidden'); });
-  // 显示弹窗
+  document.querySelectorAll('.scene-layer').forEach(function(el) {
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  });
   var overlay = document.getElementById('roleModalOverlay');
   overlay.classList.remove('hidden');
-  // 生成角色卡片（按男女分组）
+  // 切换返回/关闭按钮
+  document.getElementById('roleModalBack').textContent = isEditingRole ? '✕ 关闭' : '← 返回';
+  // 生成角色卡片
   var grid = document.getElementById('roleGrid');
   grid.innerHTML = '';
   [[males, '👨 男角色'], [females, '👩 女角色']].forEach(function(group){
-    var list = group[0];
-    var title = group[1];
+    var list = group[0], title = group[1];
     var titleEl = document.createElement('div');
     titleEl.className = 'role-section-title';
     titleEl.textContent = title;
@@ -695,19 +783,51 @@ function showRoleModal() {
       grid.appendChild(card);
     });
   });
+  // 编辑时预选
+  if (isEditingRole && userRole) {
+    selectedAvatar = userRole.avatar;
+    var preCard = grid.querySelector('.role-card[data-avatar="' + userRole.avatar + '"]');
+    if (preCard) preCard.classList.add('selected');
+  }
   // 预设昵称
   var savedNick = localStorage.getItem('metaMallNick') || 'user2980';
-  document.getElementById('roleNameInput').value = savedNick;
+  document.getElementById('roleNameInput').value = isEditingRole && userRole ? userRole.name : savedNick;
   document.getElementById('roleNameInput').oninput = function() { updateConfirmBtn(); };
-  selectedAvatar = '';
-  document.getElementById('roleConfirmBtn').disabled = true;
+  if (!isEditingRole) { selectedAvatar = ''; }
+  updateConfirmBtn();
+}
+
+function onBackClick() {
+  if (isEditingRole) {
+    closeRoleModal();
+  } else {
+    window.location.href = 'user-index.html';
+  }
+}
+
+function closeRoleModal() {
+  document.getElementById('roleModalOverlay').classList.add('hidden');
+  isEditingRole = false;
+  var s1 = document.getElementById('scene1');
+  s1.style.display = 'block';
+  s1.style.opacity = '1';
+  s1.style.transform = 'none';
+  s1.classList.remove('hidden');
+  updateSceneUI();
+}
+
+function openEditUser() {
+  isEditingRole = true;
+  showRoleModal();
 }
 
 function resetRole() {
   localStorage.removeItem('metaMallRole');
   localStorage.removeItem('metaMallNick');
   userRole = null;
+  isEditingRole = false;
   document.getElementById('resetRoleBtn').style.display = 'none';
+  document.getElementById('userInfoBtn').style.display = 'none';
   showRoleModal();
 }
 
@@ -716,23 +836,40 @@ function updateConfirmBtn() {
   document.getElementById('roleConfirmBtn').disabled = !(selectedAvatar && name);
 }
 
+function updateSceneUI() {
+  if (!userRole) return;
+  document.getElementById('uAvatar').src = userRole.avatar;
+  document.getElementById('uName').textContent = userRole.name;
+  document.getElementById('userInfoBtn').style.display = 'flex';
+}
+
 function confirmRole() {
   var name = document.getElementById('roleNameInput').value.trim();
   if (!selectedAvatar || !name) return;
   userRole = { avatar: selectedAvatar, name: name };
   localStorage.setItem('metaMallRole', JSON.stringify(userRole));
   localStorage.setItem('metaMallNick', name);
-  // 隐藏弹窗
+  isEditingRole = false;
   document.getElementById('roleModalOverlay').classList.add('hidden');
-  // 显示重置按钮
   document.getElementById('resetRoleBtn').style.display = 'block';
-  // 显示场景1
-  document.getElementById('scene1').classList.remove('hidden');
-  // 重新渲染场景（使用选中的头像）
+  // 显示场景1，隐藏其余
+  [1,2,3].forEach(function(id){
+    var el = document.getElementById('scene' + id);
+    if (id === 1) {
+      el.style.display = 'block';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.classList.remove('hidden');
+    } else {
+      el.style.display = 'none';
+      el.classList.add('hidden');
+    }
+  });
+  // 渲染场景
   [1,2,3].forEach(function(id){ renderScene(id); });
-  document.getElementById('scene2').classList.add('hidden');
-  document.getElementById('scene3').classList.add('hidden');
   updateNavButtons(1);
+  // 显示用户信息
+  updateSceneUI();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -758,11 +895,14 @@ function renderScene(sceneId) {
   origin.style.top  = data.origin.top + '%';
   origin.style.transform = 'translate(-50%,-50%)';
   var avatarUrl = (userRole && userRole.avatar) ? userRole.avatar : '李白待机.gif';
+  var nick = (userRole && userRole.name) ? userRole.name : '';
+  var nameTag = nick ? '<span class="origin-name">' + nick + '</span>' : '';
   origin.innerHTML = `
     <div class="origin-ring"></div>
     <div class="origin-ring"></div>
     <div class="origin-ring"></div>
     <div class="origin-dot" style="background-image:url('${avatarUrl}')"></div>
+    ${nameTag}
   `;
   overlay.appendChild(origin);
 
@@ -878,15 +1018,22 @@ function switchScene(targetId) {
   if (targetId === currentScene) return;
   currentScene = targetId;
 
-  // DOM 已创建，只需切换显示
-  document.getElementById('scene1').classList.toggle('hidden', targetId !== 1);
-  document.getElementById('scene2').classList.toggle('hidden', targetId !== 2);
-  document.getElementById('scene3').classList.toggle('hidden', targetId !== 3);
+  // 只显示目标场景，其他全部隐藏
+  [1,2,3].forEach(function(id){
+    var el = document.getElementById('scene' + id);
+    if (id === targetId) {
+      el.style.display = 'block';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
+  });
 
-  // 重新渲染新场景（确保点击事件绑定）
+  // 渲染目标场景
   renderScene(targetId);
-
-  // 同步另一个场景的导航按钮
   updateNavButtons(targetId);
 }
 
@@ -903,10 +1050,19 @@ function updateNavButtons(activeId) {
 // 初始渲染（仅已有角色时；无角色由 confirmRole 触发）
 // ═══════════════════════════════════════════════════════
 if (userRole) {
+  [1,2,3].forEach(function(id){
+    var el = document.getElementById('scene' + id);
+    if (id === 1) {
+      el.style.display = 'block';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.classList.remove('hidden');
+    } else {
+      el.style.display = 'none';
+      el.classList.add('hidden');
+    }
+  });
   [1, 2, 3].forEach(function(id){ renderScene(id); });
-  document.getElementById('scene1').classList.remove('hidden');
-  document.getElementById('scene2').classList.add('hidden');
-  document.getElementById('scene3').classList.add('hidden');
   updateNavButtons(1);
 }
 

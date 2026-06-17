@@ -56,14 +56,33 @@
   }
   .scene-title .title-logo{width:20px;height:20px;vertical-align:middle;margin-right:4px;display:inline-block;object-fit:cover}
 
-  /* ── 起点（李白待机） ── */
+  /* ── 角色头顶昵称 ── */
+  .origin-name{
+    position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+    white-space:nowrap;color:#fff;font-size:12px;font-weight:600;
+    text-shadow:0 1px 8px rgba(0,0,0,.8);padding:2px 8px;
+    border-radius:10px;background:rgba(0,0,0,.5);
+    backdrop-filter:blur(4px);margin-bottom:4px;pointer-events:none;
+  }
+  /* ── 右上角用户信息 ── */
+  .user-info-btn{
+    position:absolute;top:10px;right:10px;z-index:50;pointer-events:auto;
+    display:flex;align-items:center;gap:6px;
+    padding:4px 10px 4px 4px;border:1px solid rgba(255,255,255,.15);
+    border-radius:18px;background:rgba(0,0,0,.4);
+    backdrop-filter:blur(6px);
+  }
+  .user-info-btn .u-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .user-info-btn .u-name{color:#fff;font-size:12px;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ── 起点 ── */
   .origin{
     position:absolute;width:64px;height:64px;cursor:default;z-index:10;
     transition:left 1.6s cubic-bezier(.34,1.56,.64,1),top 1.6s cubic-bezier(.34,1.56,.64,1);
   }
   .origin-dot{
     width:100%;height:100%;border-radius:50%;
-    background:url('李白待机.gif')center/cover no-repeat;
+    background:center/cover no-repeat;
     box-shadow:0 0 24px rgba(100,200,255,.6);
     animation:float 2.4s ease-in-out infinite;
   }
@@ -138,7 +157,11 @@
     .spot .spot-icon{width:32px;height:32px;font-size:15px}
     .back-btn{font-size:11px;padding:4px 10px;top:8px;left:8px}
     .origin{width:44px;height:44px}
+    .origin-name{font-size:10px}
     .scene-title{font-size:12px;padding:3px 12px;top:8px}
+    .user-info-btn{top:6px;right:6px;padding:2px 8px 2px 2px}
+    .user-info-btn .u-avatar{width:22px;height:22px}
+    .user-info-btn .u-name{font-size:11px}
   }
 </style>
 </head>
@@ -153,11 +176,18 @@
       <!-- 场景名称 -->
       <div class="scene-title"><img src="贵州茅台.jpg" class="title-logo"> 贵州茅台 · 元宇宙空间</div>
 
+      <!-- 右上角用户信息 -->
+      <div class="user-info-btn" id="userInfoBtn">
+        <img class="u-avatar" id="uAvatar" src="李白待机.gif" alt="">
+        <span class="u-name" id="uName">游客</span>
+      </div>
+
       <!-- 起点 -->
       <div class="origin" id="origin" style="left:30%;top:80%;transform:translate(-50%,-50%)">
         <div class="origin-ring"></div>
         <div class="origin-ring"></div>
-        <div class="origin-dot"></div>
+        <div class="origin-dot" id="originDot"></div>
+        <span class="origin-name" id="originName" style="display:none"></span>
       </div>
 
       <!-- 四个点位 -->
@@ -267,6 +297,24 @@
   }
   setInterval(spawnParticle,300);
   for(let i=0;i<8;i++)setTimeout(spawnParticle,i*400);
+
+  // ── 从 mall 带入角色 ──
+  (function initUser(){
+    var saved = localStorage.getItem('metaMallRole');
+    var role = null;
+    if (saved) { try { role = JSON.parse(saved); } catch(e) {} }
+    if (role && role.avatar && role.name) {
+      // 替换人物头像
+      document.getElementById('originDot').style.backgroundImage = 'url(' + role.avatar + ')';
+      // 显示昵称
+      var n = document.getElementById('originName');
+      n.textContent = role.name;
+      n.style.display = 'block';
+      // 右上角用户信息
+      document.getElementById('uAvatar').src = role.avatar;
+      document.getElementById('uName').textContent = role.name;
+    }
+  })();
 </script>
 </body>
 </html>
