@@ -143,6 +143,37 @@
   }
   .spot:hover .spot-label{background:rgba(70,180,255,.7);transform:translateX(-50%) scale(1.06);box-shadow:0 0 16px rgba(0,180,255,.4)}
 
+  /* 抽签热点 */
+  .lottery-spot{animation:lotteryPulse 2s ease-in-out infinite}
+  .lottery-spot:hover{transform:translate(-50%,-50%) scale(1.12)!important}
+  .lottery-img{width:44px;height:44px;display:block;border-radius:8px;box-shadow:0 0 16px rgba(255,200,50,.5)}
+  @keyframes lotteryPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+
+  /* 抽签弹窗 */
+  .lottery-mask{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center}
+  .lottery-mask.show{display:flex}
+  .lottery-box{background:linear-gradient(135deg,#2a1a3e,#1a1a38);border-radius:20px;padding:24px 20px 18px;text-align:center;max-width:320px;width:88vw;border:1px solid rgba(255,255,255,.1);box-shadow:0 0 40px rgba(200,150,50,.3)}
+  .lottery-box .lt-title{color:#ffcc66;font-size:18px;font-weight:700;margin-bottom:4px}
+  .lottery-box .lt-sub{color:rgba(255,255,255,.45);font-size:12px;margin-bottom:16px}
+  .lottery-anim{width:80px;height:80px;margin:0 auto 14px;border-radius:50%;background:rgba(255,204,102,.15);display:flex;align-items:center;justify-content:center;position:relative}
+  .lottery-anim.rolling .anim-ring{animation:spin .6s linear infinite}
+  .anim-ring{width:64px;height:64px;border-radius:50%;border:3px solid transparent;border-top-color:#ffcc66;border-right-color:#ffcc66}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .lottery-result{display:none}
+  .lottery-box.result .lottery-anim{display:none}
+  .lottery-box.result .lottery-result{display:block}
+  .lottery-result .lr-img{width:100px;height:100px;object-fit:contain;margin:0 auto 10px;display:block;animation:bounceIn .5s ease}
+  .lottery-result .lr-text{color:#ffcc66;font-size:16px;font-weight:700}
+  .lottery-result .lr-sub{color:rgba(255,255,255,.5);font-size:12px;margin-top:4px}
+  .lottery-miss{color:#aaa!important}
+  .lt-btn{display:inline-block;margin-top:14px;padding:6px 28px;border-radius:20px;background:linear-gradient(135deg,#ffcc66,#ff9966);color:#1a1a2e;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:transform .2s}
+  .lt-btn:hover{transform:scale(1.05)}
+  .lt-btn:active{transform:scale(.95)}
+  .lottery-box .lt-btn{display:none}
+  .lottery-box.result .lt-btn{display:inline-block}
+
+  @keyframes bounceIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
   @media (max-width:920px){
     .phone{width:calc(100vw - 40px);height:calc((100vw - 40px)*.5)}
   }
@@ -162,6 +193,14 @@
     .user-info-btn{top:6px;right:6px;padding:2px 8px 2px 2px}
     .user-info-btn .u-avatar{width:22px;height:22px}
     .user-info-btn .u-name{font-size:11px}
+    .lottery-box{padding:16px 14px 12px;max-width:260px}
+    .lottery-box .lt-title{font-size:15px}
+    .lottery-box .lt-sub{font-size:11px;margin-bottom:12px}
+    .lottery-anim{width:60px;height:60px;margin-bottom:10px}
+    .anim-ring{width:48px;height:48px}
+    .lottery-result .lr-img{width:70px;height:70px}
+    .lottery-result .lr-text{font-size:14px}
+    .lottery-img{width:34px;height:34px}
   }
 </style>
 </head>
@@ -206,6 +245,21 @@
       <div class="spot" style="left:50%;top:90%;transform:translate(-50%,-50%)" onclick="goSpot('miniapp')">
         <div class="spot-label">📱 茅台小程序</div>
       </div>
+
+      <!-- 抽签热点 -->
+      <div class="spot lottery-spot" style="left:20%;top:22%;transform:translate(-50%,-50%)" onclick="startLottery(1)">
+        <img class="lottery-img" src="热点1.png" alt="抽签">
+      </div>
+      <div class="spot lottery-spot" style="left:45%;top:18%;transform:translate(-50%,-50%)" onclick="startLottery(2)">
+        <img class="lottery-img" src="热点2.png" alt="抽签">
+      </div>
+      <div class="spot lottery-spot" style="left:70%;top:25%;transform:translate(-50%,-50%)" onclick="startLottery(3)">
+        <img class="lottery-img" src="热点1.png" alt="抽签">
+      </div>
+      <div class="spot lottery-spot" style="left:90%;top:15%;transform:translate(-50%,-50%)" onclick="startLottery(4)">
+        <img class="lottery-img" src="热点2.png" alt="抽签">
+      </div>
+
       <div class="particle-layer" id="particleLayer"></div>
     </div>
   </div>
@@ -235,6 +289,22 @@
   .mp-btn:active{transform:scale(.97)}
   .mp-close{display:block;margin-top:8px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer}
 </style>
+
+<!-- 抽签弹窗 -->
+<div class="lottery-mask" id="lotteryMask" onclick="closeLottery()">
+  <div class="lottery-box" id="lotteryBox" onclick="event.stopPropagation()">
+    <div class="lt-title">🎯 幸运奖励</div>
+    <div class="lt-sub" id="ltSub"></div>
+    <div class="lottery-anim" id="lotteryAnim"><div class="anim-ring"></div></div>
+    <div class="lottery-result" id="lotteryResult">
+      <img class="lr-img" id="lrImg" src="" alt="">
+      <div class="lr-text" id="lrText"></div>
+      <div class="lr-sub" id="lrSub"></div>
+    </div>
+    <button class="lt-btn" id="ltStartBtn" onclick="doDraw()">开始抽签</button>
+    <button class="lt-btn" id="ltCloseBtn" onclick="closeLottery()">关闭</button>
+  </div>
+</div>
 
 <script>
   const origin=document.getElementById('origin');
@@ -297,6 +367,56 @@
   }
   setInterval(spawnParticle,300);
   for(let i=0;i<8;i++)setTimeout(spawnParticle,i*400);
+
+  // ── 抽签 ──
+  var lotteryActive = false;
+  function startLottery(id) {
+    if (lotteryActive) return;
+    lotteryActive = true;
+    var box = document.getElementById('lotteryBox');
+    box.classList.remove('result');
+    document.getElementById('ltStartBtn').style.display = 'inline-block';
+    document.getElementById('ltCloseBtn').style.display = 'none';
+    document.getElementById('lotteryAnim').classList.remove('rolling');
+    document.getElementById('ltSub').textContent = '点击下方按钮开始抽签';
+    document.getElementById('lotteryMask').classList.add('show');
+  }
+
+  function doDraw() {
+    document.getElementById('ltStartBtn').style.display = 'none';
+    document.getElementById('lotteryAnim').classList.add('rolling');
+    document.getElementById('ltSub').textContent = '';
+
+    setTimeout(function(){
+      var box = document.getElementById('lotteryBox');
+      box.classList.add('result');
+      document.getElementById('lotteryAnim').classList.remove('rolling');
+      document.getElementById('ltCloseBtn').style.display = 'inline-block';
+
+      var hit = Math.random() < 0.4; // 40% 命中率
+      if (hit) {
+        var prizeImg = Math.random() < 0.5 ? '新品权.png' : '茅台积分.png';
+        var prizeName = prizeImg === '新品权.png' ? '新品购买权' : '茅台积分';
+        document.getElementById('lrImg').src = prizeImg;
+        document.getElementById('lrText').textContent = '🎉 恭喜获得';
+        document.getElementById('lrText').className = 'lr-text';
+        document.getElementById('lrSub').textContent = prizeName;
+      } else {
+        document.getElementById('lrImg').src = '';
+        document.getElementById('lrImg').style.display = 'none';
+        document.getElementById('lrText').textContent = '谢谢参与';
+        document.getElementById('lrText').className = 'lr-text lottery-miss';
+        document.getElementById('lrSub').textContent = '好运下次相见';
+      }
+    }, 2000);
+  }
+
+  function closeLottery() {
+    document.getElementById('lotteryMask').classList.remove('show');
+    lotteryActive = false;
+    document.getElementById('lrImg').style.display = 'block';
+    document.getElementById('lrImg').src = '';
+  }
 
   // ── 从 mall 带入角色 ──
   (function initUser(){
