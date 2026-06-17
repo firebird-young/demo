@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -557,6 +557,89 @@
     transform: none;
   }
 
+  /* ── 在线用户面板 ── */
+  .online-panel {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 100;
+    pointer-events: auto;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 140px;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    display: none;
+  }
+  .online-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .online-title {
+    color: rgba(255,255,255,.6);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .online-count {
+    color: #4ade80;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .online-count::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .online-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .online-list::-webkit-scrollbar {
+    display: none;
+  }
+  .online-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .online-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .online-name {
+    color: rgba(255,255,255,.7);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+  }
+
   /* ── 响应式 ── */
   @media (max-width: 920px) {
     .phone { width: calc(100vw - 40px); height: calc((100vw - 40px) * .5); }
@@ -637,6 +720,16 @@
     <div class="user-info-btn" id="userInfoBtn" onclick="openEditUser()">
       <img class="u-avatar" id="uAvatar" src="" alt="">
       <span class="u-name" id="uName"></span>
+    </div>
+
+    <!-- 在线用户面板 -->
+    <div class="online-panel" id="onlinePanel">
+      <div class="online-header">
+        <span class="online-title">在线用户</span>
+        <span class="online-count" id="onlineCount">128</span>
+      </div>
+      <div class="online-list" id="onlineList">
+      </div>
     </div>
 
     <!-- 角色选择弹窗 -->
@@ -841,6 +934,7 @@ function updateSceneUI() {
   document.getElementById('uAvatar').src = userRole.avatar;
   document.getElementById('uName').textContent = userRole.name;
   document.getElementById('userInfoBtn').style.display = 'flex';
+  document.getElementById('onlinePanel').style.display = 'block';
 }
 
 function confirmRole() {
@@ -1074,6 +1168,62 @@ document.addEventListener('click', (e) => {
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════
+// 在线用户模拟
+// ═══════════════════════════════════════════════════════
+const ONLINE_USER_AVATARS = [
+  '李白待机.gif', '诸葛亮待机.gif', '都江堰待机.gif',
+  '娲皇宫待机.gif', '安仁古镇待机.gif', '李白纪念馆待机.gif'
+];
+const ONLINE_USER_NAMES = [
+  '逍遥客', '云中君', '清风明月', '梦里水乡', '星河漫步',
+  '红尘过客', '竹林听雨', '墨染青衣', '清风徐来', '花开半夏',
+  '岁月如歌', '烟雨江南', '繁星点点', '清风拂面', '月色朦胧',
+  '春暖花开', '清风入袖', '梦里花落', '云淡风轻', '清风霁月'
+];
+
+let onlineUsers = [];
+let onlineCount = 128;
+
+function generateOnlineUsers() {
+  onlineUsers = [];
+  const count = Math.min(onlineCount, 20);
+  for (let i = 0; i < count; i++) {
+    onlineUsers.push({
+      id: i,
+      avatar: ONLINE_USER_AVATARS[Math.floor(Math.random() * ONLINE_USER_AVATARS.length)],
+      name: ONLINE_USER_NAMES[Math.floor(Math.random() * ONLINE_USER_NAMES.length)] + Math.floor(Math.random() * 100)
+    });
+  }
+}
+
+function renderOnlinePanel() {
+  const listEl = document.getElementById('onlineList');
+  const countEl = document.getElementById('onlineCount');
+  
+  countEl.textContent = onlineCount;
+  
+  listEl.innerHTML = onlineUsers.map(user => `
+    <div class="online-item">
+      <img class="online-avatar" src="${user.avatar}" alt="${user.name}">
+      <span class="online-name">${user.name}</span>
+    </div>
+  `).join('');
+}
+
+function updateOnlineCount() {
+  const change = Math.floor(Math.random() * 5) - 2;
+  onlineCount = Math.max(50, Math.min(200, onlineCount + change));
+  generateOnlineUsers();
+  renderOnlinePanel();
+}
+
+(function initOnlineUsers() {
+  generateOnlineUsers();
+  renderOnlinePanel();
+  setInterval(updateOnlineCount, 2000 + Math.random() * 2000);
+})();
 </script>
 
 </body>
