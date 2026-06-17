@@ -94,7 +94,7 @@
       <button class="btn btn-primary" onclick="openModal()">+ 新增项目</button>
     </div>
     <table>
-      <thead><tr><th>项目名称</th><th>奖励类型</th><th>奖励内容</th><th>数量范围</th><th>最大总量</th><th>每人上限</th><th style="width:140px">操作</th></tr></thead>
+      <thead><tr><th>项目名称</th><th>奖励类型</th><th>奖励内容</th><th>数量范围</th><th>最大总量</th><th>每人上限</th><th>领取人数</th><th>领取总量</th><th style="width:140px">操作</th></tr></thead>
       <tbody id="projectTbody"></tbody>
     </table>
     <div id="emptyState" style="text-align:center;padding:30px;color:#999;font-size:13px;display:none">暂无营销项目</div>
@@ -179,25 +179,25 @@
     if (saved) {
       try { projects = JSON.parse(saved); } catch(e) { projects = []; }
     }
-    // 检测旧格式数据（无 rewardType 或 perPersonLimit），强制刷新为默认数据
-    if (projects && projects.length > 0 && (projects[0].rewardType === undefined || projects[0].perPersonLimit === undefined)) { projects = []; }
+    // 检测旧格式数据（无 rewardType 或 claimedUsers），强制刷新为默认数据
+    if (projects && projects.length > 0 && (projects[0].rewardType === undefined || projects[0].claimedUsers === undefined)) { projects = []; }
     if (!projects || projects.length === 0) {
       projects = [
-        { id: 'p1', name: '奖励新品优先权', desc: '新品发布优先购买权', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 100, totalLimit: 500, perPersonLimit: 3 },
-        { id: 'p2', name: '中秋节积分活动', desc: '中秋期间积分翻倍', rewardType: 'points', productId: '', rewardMin: 100, rewardMax: 500, totalLimit: 10000, perPersonLimit: 5 },
-        { id: 'p3', name: '春节限定红包', desc: '春节期间发放限量红包', rewardType: 'points', productId: '', rewardMin: 50, rewardMax: 200, totalLimit: 8000, perPersonLimit: 3 },
-        { id: 'p4', name: '会员等级直升', desc: '消费达标直升会员等级', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 1, totalLimit: 100, perPersonLimit: 1 },
-        { id: 'p5', name: '限量数字藏品空投', desc: '随机空投限量NFT', rewardType: 'product', productId: 'prod1', rewardMin: 1, rewardMax: 3, totalLimit: 200, perPersonLimit: 1 },
-        { id: 'p6', name: '现金优惠券', desc: '消费满减现金券', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 5, totalLimit: 1000, perPersonLimit: 2 },
-        { id: 'p7', name: '端午积分翻倍', desc: '端午节消费积分双倍', rewardType: 'points', productId: '', rewardMin: 200, rewardMax: 1000, totalLimit: 20000, perPersonLimit: 5 },
-        { id: 'p8', name: '生肖兔优先购', desc: '茅台生肖兔·典藏优先购买', rewardType: 'product', productId: 'prod4', rewardMin: 1, rewardMax: 2, totalLimit: 300, perPersonLimit: 1 },
-        { id: 'p9', name: '双11限时抢购权', desc: '双11活动限时抢购', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 10, totalLimit: 2000, perPersonLimit: 3 },
-        { id: 'p10', name: '国酒徽章兑换', desc: '集齐积分兑换国酒数字徽章', rewardType: 'product', productId: 'prod8', rewardMin: 1, rewardMax: 1, totalLimit: 500, perPersonLimit: 1 },
-        { id: 'p11', name: '文旅藏品优先权', desc: '杜甫草堂藏品优先购买', rewardType: 'product', productId: 'prod5', rewardMin: 1, rewardMax: 2, totalLimit: 150, perPersonLimit: 1 },
-        { id: 'p12', name: '黑海会员体验', desc: '海底捞黑海会员限时体验', rewardType: 'product', productId: 'prod6', rewardMin: 1, rewardMax: 1, totalLimit: 300, perPersonLimit: 1 },
-        { id: 'p13', name: '巴拿马复刻预售', desc: '巴拿马金奖复刻款预售权', rewardType: 'product', productId: 'prod3', rewardMin: 1, rewardMax: 3, totalLimit: 400, perPersonLimit: 2 },
-        { id: 'p14', name: '周年庆积分大派送', desc: '周年庆期间积分加倍送', rewardType: 'points', productId: '', rewardMin: 300, rewardMax: 800, totalLimit: 15000, perPersonLimit: 5 },
-        { id: 'p15', name: '鬼吹灯联名优先权', desc: '鬼吹灯数字藏品联名权益', rewardType: 'product', productId: 'prod7', rewardMin: 1, rewardMax: 2, totalLimit: 250, perPersonLimit: 1 }
+        { id: 'p1', name: '奖励新品优先权', desc: '新品发布优先购买权', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 100, totalLimit: 500, perPersonLimit: 3, claimedUsers: 168, claimedTotal: 312 },
+        { id: 'p2', name: '中秋节积分活动', desc: '中秋期间积分翻倍', rewardType: 'points', productId: '', rewardMin: 100, rewardMax: 500, totalLimit: 10000, perPersonLimit: 5, claimedUsers: 1024, claimedTotal: 6200 },
+        { id: 'p3', name: '春节限定红包', desc: '春节期间发放限量红包', rewardType: 'points', productId: '', rewardMin: 50, rewardMax: 200, totalLimit: 8000, perPersonLimit: 3, claimedUsers: 856, claimedTotal: 4800 },
+        { id: 'p4', name: '会员等级直升', desc: '消费达标直升会员等级', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 1, totalLimit: 100, perPersonLimit: 1, claimedUsers: 78, claimedTotal: 78 },
+        { id: 'p5', name: '限量数字藏品空投', desc: '随机空投限量NFT', rewardType: 'product', productId: 'prod1', rewardMin: 1, rewardMax: 3, totalLimit: 200, perPersonLimit: 1, claimedUsers: 145, claimedTotal: 168 },
+        { id: 'p6', name: '现金优惠券', desc: '消费满减现金券', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 5, totalLimit: 1000, perPersonLimit: 2, claimedUsers: 420, claimedTotal: 680 },
+        { id: 'p7', name: '端午积分翻倍', desc: '端午节消费积分双倍', rewardType: 'points', productId: '', rewardMin: 200, rewardMax: 1000, totalLimit: 20000, perPersonLimit: 5, claimedUsers: 312, claimedTotal: 2100 },
+        { id: 'p8', name: '生肖兔优先购', desc: '茅台生肖兔·典藏优先购买', rewardType: 'product', productId: 'prod4', rewardMin: 1, rewardMax: 2, totalLimit: 300, perPersonLimit: 1, claimedUsers: 92, claimedTotal: 128 },
+        { id: 'p9', name: '双11限时抢购权', desc: '双11活动限时抢购', rewardType: 'purchase', productId: '', rewardMin: 1, rewardMax: 10, totalLimit: 2000, perPersonLimit: 3, claimedUsers: 680, claimedTotal: 1250 },
+        { id: 'p10', name: '国酒徽章兑换', desc: '集齐积分兑换国酒数字徽章', rewardType: 'product', productId: 'prod8', rewardMin: 1, rewardMax: 1, totalLimit: 500, perPersonLimit: 1, claimedUsers: 203, claimedTotal: 203 },
+        { id: 'p11', name: '文旅藏品优先权', desc: '杜甫草堂藏品优先购买', rewardType: 'product', productId: 'prod5', rewardMin: 1, rewardMax: 2, totalLimit: 150, perPersonLimit: 1, claimedUsers: 56, claimedTotal: 72 },
+        { id: 'p12', name: '黑海会员体验', desc: '海底捞黑海会员限时体验', rewardType: 'product', productId: 'prod6', rewardMin: 1, rewardMax: 1, totalLimit: 300, perPersonLimit: 1, claimedUsers: 118, claimedTotal: 118 },
+        { id: 'p13', name: '巴拿马复刻预售', desc: '巴拿马金奖复刻款预售权', rewardType: 'product', productId: 'prod3', rewardMin: 1, rewardMax: 3, totalLimit: 400, perPersonLimit: 2, claimedUsers: 176, claimedTotal: 245 },
+        { id: 'p14', name: '周年庆积分大派送', desc: '周年庆期间积分加倍送', rewardType: 'points', productId: '', rewardMin: 300, rewardMax: 800, totalLimit: 15000, perPersonLimit: 5, claimedUsers: 1100, claimedTotal: 7200 },
+        { id: 'p15', name: '鬼吹灯联名优先权', desc: '鬼吹灯数字藏品联名权益', rewardType: 'product', productId: 'prod7', rewardMin: 1, rewardMax: 2, totalLimit: 250, perPersonLimit: 1, claimedUsers: 62, claimedTotal: 85 }
       ];
       saveProjects();
     }
@@ -241,6 +241,8 @@
           '<td>' + getQtyRange(p) + '</td>' +
           '<td>' + (p.totalLimit || '-') + '</td>' +
           '<td>' + (p.perPersonLimit || '-') + '</td>' +
+          '<td style="color:#667eea;font-weight:600">' + (p.claimedUsers || 0) + ' 人</td>' +
+          '<td style="color:#52c41a;font-weight:600">' + (p.claimedTotal || 0) + '</td>' +
           '<td style="white-space:nowrap"><button class="btn btn-default btn-sm" onclick="editProject(\'' + p.id + '\')">编辑</button> <button class="btn btn-danger btn-sm" onclick="deleteProject(\'' + p.id + '\')">删除</button></td></tr>';
       }).join('');
     }
