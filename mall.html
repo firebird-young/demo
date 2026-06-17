@@ -78,6 +78,27 @@
     letter-spacing: 1px;
   }
 
+  /* ── 重置角色按钮（手机框外） ── */
+  .reset-role-btn {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    z-index: 50;
+    padding: 3px 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    background: rgba(0,0,0,.4);
+    color: rgba(255,255,255,.5);
+    font-size: 11px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background .2s, color .2s;
+  }
+  .reset-role-btn:hover {
+    background: rgba(0,0,0,.6);
+    color: #fff;
+  }
+
   /* ── 起点（李白待机） ── */
   .origin {
     position: absolute;
@@ -89,7 +110,7 @@
   .origin-dot {
     width: 100%; height: 100%;
     border-radius: 50%;
-    background: url('李白待机.gif') center / cover no-repeat;
+    background: center / cover no-repeat;
     box-shadow: 0 0 24px rgba(100,200,255,.6);
     animation: float 2.4s ease-in-out infinite;
   }
@@ -326,6 +347,145 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* ── 角色选择弹窗（在 phone-screen 内，一窗展示无滚动） ── */
+  .role-modal-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .3s;
+  }
+  .role-modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .role-modal {
+    background: #1e1e3a;
+    border-radius: 10px;
+    padding: 10px 14px 10px;
+    width: 75%;
+    max-width: 300px;
+    max-height: 100%;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,.5);
+    border: 1px solid rgba(255,255,255,.08);
+    animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes modalIn {
+    0% { opacity: 0; transform: scale(.9) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .role-modal-title {
+    text-align: center;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 1px;
+  }
+  .role-modal-sub {
+    text-align: center;
+    color: rgba(255,255,255,.4);
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .role-card {
+    cursor: pointer;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(255,255,255,.04);
+    border: 1.5px solid transparent;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .role-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .role-card.selected {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102,126,234,.3);
+  }
+  .role-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .role-section-title {
+    color: rgba(255,255,255,.4);
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 1px;
+    padding-left: 2px;
+    grid-column: 1 / -1;
+  }
+  .role-section-title:not(:first-child) {
+    margin-top: 2px;
+  }
+  .role-name-group {
+    margin-bottom: 6px;
+  }
+  .role-name-group label {
+    display: block;
+    color: rgba(255,255,255,.6);
+    font-size: 10px;
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+  .role-name-input {
+    width: 100%;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .role-name-input:focus {
+    border-color: #667eea;
+  }
+  .role-name-input::placeholder {
+    color: rgba(255,255,255,.25);
+  }
+  .role-confirm-btn {
+    width: 100%;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+  }
+  .role-confirm-btn:hover {
+    opacity: .9;
+  }
+  .role-confirm-btn:active {
+    transform: scale(.97);
+  }
+  .role-confirm-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
   /* ── 响应式 ── */
   @media (max-width: 920px) {
     .phone { width: calc(100vw - 40px); height: calc((100vw - 40px) * .5); }
@@ -333,7 +493,7 @@
   @media (max-height: 500px) {
     .phone { height: calc(100vh - 40px); width: calc((100vh - 40px) * 2); }
   }
-  /* ── 手机端横屏全屏适配 ── */
+  /* ── 手机端 ── */
   @media (max-width: 768px) and (orientation: portrait) {
     body { overflow: auto; background: #000; }
     .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
@@ -344,17 +504,29 @@
     .nav-btn img { width: 36px; }
     .origin { width: 48px; height: 48px; }
     .origin-ring { inset: -6px; }
+    .reset-role-btn { top: 6px; right: 6px; padding: 3px 8px; font-size: 10px; }
   }
   @media (max-width: 768px) and (orientation: landscape) {
     body { background: #000; }
     .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
     .phone-screen { border-radius: 0; }
+    .reset-role-btn { top: 4px; right: 4px; padding: 2px 8px; font-size: 10px; }
+    .role-modal { padding: 8px 10px 6px; width: 94%; max-width: 260px; }
+    .role-modal-title { font-size: 13px; }
+    .role-modal-sub { font-size: 9px; margin-bottom: 4px; }
+    .role-grid { gap: 3px; margin-bottom: 4px; }
+    .role-card { border-radius: 4px; border-width: 1.5px; }
+    .role-section-title { font-size: 9px; }
+    .role-name-input { height: 26px; font-size: 11px; }
+    .role-name-group { margin-bottom: 4px; }
+    .role-confirm-btn { height: 28px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
 
 <div class="phone" id="phone">
+  <button class="reset-role-btn" id="resetRoleBtn" style="display:none" onclick="resetRole()">🔄 重置角色</button>
   <div class="phone-screen">
 
     <!-- 场景1 -->
@@ -381,6 +553,22 @@
          style="background-image:url('scene3.png')">
       <div class="scene-overlay" data-scene="3">
         <div class="scene-title">影视区</div>
+      </div>
+    </div>
+
+    <!-- 角色选择弹窗 -->
+    <div class="role-modal-overlay" id="roleModalOverlay">
+      <div class="role-modal">
+        <div class="role-modal-title">🎭 选择你的角色</div>
+        <div class="role-modal-sub">选择一个形象进入元宇宙商场</div>
+        <div class="role-grid" id="roleGrid">
+          <!-- 由JS动态生成 -->
+        </div>
+        <div class="role-name-group">
+          <label>你的昵称</label>
+          <input class="role-name-input" id="roleNameInput" placeholder="请输入昵称" maxlength="12">
+        </div>
+        <button class="role-confirm-btn" id="roleConfirmBtn" disabled onclick="confirmRole()">确认进入</button>
       </div>
     </div>
 
@@ -442,6 +630,112 @@ const SCENES = {
 let currentScene = 1;
 
 // ═══════════════════════════════════════════════════════
+// 角色选择
+// ═══════════════════════════════════════════════════════
+const ROLE_AVATARS = [
+  { src: '李白待机.gif', gender: 'male', name: '李白' },
+  { src: '诸葛亮待机.gif', gender: 'male', name: '诸葛亮' },
+  { src: '都江堰待机.gif', gender: 'male', name: '都江堰' },
+  { src: '娲皇宫待机.gif', gender: 'female', name: '娲皇宫' },
+  { src: '安仁古镇待机.gif', gender: 'female', name: '安仁古镇' },
+  { src: '李白纪念馆待机.gif', gender: 'female', name: '李白纪念馆' }
+];
+
+const males = ROLE_AVATARS.filter(function(r){ return r.gender === 'male'; });
+const females = ROLE_AVATARS.filter(function(r){ return r.gender === 'female'; });
+
+let selectedAvatar = '';
+let userRole = null;
+
+// 读取已保存角色
+(function initRole() {
+  var saved = localStorage.getItem('metaMallRole');
+  if (saved) {
+    try { userRole = JSON.parse(saved); } catch(e) { userRole = null; }
+  }
+  if (userRole && userRole.avatar && userRole.name) {
+    // 已有角色，直接进入
+    document.getElementById('roleModalOverlay').classList.add('hidden');
+    document.getElementById('resetRoleBtn').style.display = 'block';
+  } else {
+    // 无角色，显示弹窗，隐藏场景
+    showRoleModal();
+    document.getElementById('resetRoleBtn').style.display = 'none';
+  }
+})();
+
+function showRoleModal() {
+  // 隐藏所有场景
+  document.querySelectorAll('.scene-layer').forEach(function(el) { el.classList.add('hidden'); });
+  // 显示弹窗
+  var overlay = document.getElementById('roleModalOverlay');
+  overlay.classList.remove('hidden');
+  // 生成角色卡片（按男女分组）
+  var grid = document.getElementById('roleGrid');
+  grid.innerHTML = '';
+  [[males, '👨 男角色'], [females, '👩 女角色']].forEach(function(group){
+    var list = group[0];
+    var title = group[1];
+    var titleEl = document.createElement('div');
+    titleEl.className = 'role-section-title';
+    titleEl.textContent = title;
+    titleEl.style.gridColumn = '1 / -1';
+    grid.appendChild(titleEl);
+    list.forEach(function(role) {
+      var card = document.createElement('div');
+      card.className = 'role-card';
+      card.dataset.avatar = role.src;
+      card.innerHTML = '<img src="' + role.src + '" alt="' + role.name + '">';
+      card.addEventListener('click', function() {
+        grid.querySelectorAll('.role-card').forEach(function(c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        selectedAvatar = role.src;
+        updateConfirmBtn();
+      });
+      grid.appendChild(card);
+    });
+  });
+  // 预设昵称
+  var savedNick = localStorage.getItem('metaMallNick') || 'user2980';
+  document.getElementById('roleNameInput').value = savedNick;
+  document.getElementById('roleNameInput').oninput = function() { updateConfirmBtn(); };
+  selectedAvatar = '';
+  document.getElementById('roleConfirmBtn').disabled = true;
+}
+
+function resetRole() {
+  localStorage.removeItem('metaMallRole');
+  localStorage.removeItem('metaMallNick');
+  userRole = null;
+  document.getElementById('resetRoleBtn').style.display = 'none';
+  showRoleModal();
+}
+
+function updateConfirmBtn() {
+  var name = document.getElementById('roleNameInput').value.trim();
+  document.getElementById('roleConfirmBtn').disabled = !(selectedAvatar && name);
+}
+
+function confirmRole() {
+  var name = document.getElementById('roleNameInput').value.trim();
+  if (!selectedAvatar || !name) return;
+  userRole = { avatar: selectedAvatar, name: name };
+  localStorage.setItem('metaMallRole', JSON.stringify(userRole));
+  localStorage.setItem('metaMallNick', name);
+  // 隐藏弹窗
+  document.getElementById('roleModalOverlay').classList.add('hidden');
+  // 显示重置按钮
+  document.getElementById('resetRoleBtn').style.display = 'block';
+  // 显示场景1
+  document.getElementById('scene1').classList.remove('hidden');
+  // 重新渲染场景（使用选中的头像）
+  [1,2,3].forEach(function(id){ renderScene(id); });
+  document.getElementById('scene2').classList.add('hidden');
+  document.getElementById('scene3').classList.add('hidden');
+  updateNavButtons(1);
+}
+
+// ═══════════════════════════════════════════════════════
 // 渲染场景
 // ═══════════════════════════════════════════════════════
 function renderScene(sceneId) {
@@ -463,10 +757,12 @@ function renderScene(sceneId) {
   origin.style.left = data.origin.left + '%';
   origin.style.top  = data.origin.top + '%';
   origin.style.transform = 'translate(-50%,-50%)';
+  var avatarUrl = (userRole && userRole.avatar) ? userRole.avatar : '李白待机.gif';
   origin.innerHTML = `
     <div class="origin-ring"></div>
     <div class="origin-ring"></div>
-    <div class="origin-dot"></div>
+    <div class="origin-ring"></div>
+    <div class="origin-dot" style="background-image:url('${avatarUrl}')"></div>
   `;
   overlay.appendChild(origin);
 
@@ -604,15 +900,15 @@ function updateNavButtons(activeId) {
 }
 
 // ═══════════════════════════════════════════════════════
-// 为每个场景预创建 DOM（避免切换闪烁）
+// 初始渲染（仅已有角色时；无角色由 confirmRole 触发）
 // ═══════════════════════════════════════════════════════
-[1, 2, 3].forEach(function(id){ renderScene(id); });
-document.getElementById('scene1').classList.remove('hidden');
-document.getElementById('scene2').classList.add('hidden');
-document.getElementById('scene3').classList.add('hidden');
-
-// 第一次渲染后同步导航
-updateNavButtons(1);
+if (userRole) {
+  [1, 2, 3].forEach(function(id){ renderScene(id); });
+  document.getElementById('scene1').classList.remove('hidden');
+  document.getElementById('scene2').classList.add('hidden');
+  document.getElementById('scene3').classList.add('hidden');
+  updateNavButtons(1);
+}
 
 // 点击非导航区域关闭所有导航弹窗
 document.addEventListener('click', (e) => {

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -98,6 +98,19 @@
     #uploadInput { display: none; }
     .preview-img { display: none; max-width: 100%; margin-top: 12px; border-radius: 8px; }
 
+    /* 图片列表 */
+    .image-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 16px; }
+    .image-item { position: relative; border-radius: 8px; overflow: hidden; border: 2px solid #f0f0f0; cursor: grab; transition: all 0.2s; }
+    .image-item:active { cursor: grabbing; }
+    .image-item:hover { border-color: #D70C1F; }
+    .image-item.selected { border-color: #D70C1F; box-shadow: 0 0 0 2px rgba(215, 12, 31, 0.2); }
+    .image-item.dragging { opacity: 0.5; transform: scale(0.95); }
+    .image-item.drag-over { border-color: #667eea; border-style: dashed; background: rgba(102, 126, 234, 0.05); }
+    .image-item img { width: 100%; height: 90px; object-fit: cover; display: block; }
+    .image-item .delete-btn { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; opacity: 0; transition: opacity 0.2s; }
+    .image-item:hover .delete-btn { opacity: 1; }
+    .image-item .delete-btn:hover { background: #D70C1F; }
+
     .empty-state { padding: 60px 0; text-align: center; }
     .empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .empty-icon svg { width: 32px; height: 32px; color: #ccc; }
@@ -181,13 +194,9 @@
             <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
             <div class="upload-text">点击上传空间背景图</div>
             <div class="upload-hint">支持 JPG、PNG，建议 1920×1080</div>
-            <input type="file" id="uploadInput" accept="image/*" onchange="handleFileUpload()">
+            <input type="file" id="uploadInput" accept="image/*" multiple onchange="handleFileUpload()">
           </div>
-          <img id="previewImage" class="preview-img" src="" alt="预览">
-        </div>
-        <div class="form-group" id="currentImageGroup" style="display:none">
-          <label class="form-label">当前背景图</label>
-          <img id="currentImage" style="max-width:100%;border-radius:8px" src="" alt="当前图片">
+          <div class="image-list" id="imageList"></div>
         </div>
       </div>
 
@@ -265,7 +274,8 @@ let merchants = [
 
 let curStep = 1;
 let curMerchantId = null;
-let tempImage = null; // 弹窗内暂存的图片 dataUrl
+let tempImages = []; // 弹窗内暂存的图片列表
+let selectedImageIndex = 0; // 当前选中的图片索引
 let isDrawing = false, drawStartX = 0, drawStartY = 0, drawingBox = null;
 
 function navigateTo(url) { window.location.href = url; }
@@ -280,7 +290,7 @@ function renderMerchantList() {
   }
   document.querySelector('.merchant-table').style.display = ''; empty.style.display = 'none';
   tbody.innerHTML = merchants.map(m => {
-    const decorated = !!(m.spaceImage);
+    const decorated = !!(m.spaceImages && m.spaceImages.length > 0);
     return `<tr>
       <td><span class="ms-name">${m.name}</span><span class="ms-tag">${m.tag}</span></td>
       <td style="font-size:12px;color:#999">${m.tag}</td>
@@ -296,40 +306,180 @@ function openDecorateModal(merchantId) {
   if (!m) return;
   if (!m.spaceHotspots) m.spaceHotspots = [];
   if (!m.spaceItems) m.spaceItems = [];
+  if (!m.spaceImages) m.spaceImages = [];
   curMerchantId = merchantId;
   curStep = 1;
   document.getElementById('decorateMerchantName').textContent = m.name;
   document.getElementById('decorateModal').dataset.merchantId = merchantId;
   document.getElementById('uploadInput').value = '';
-  document.getElementById('previewImage').style.display = 'none';
-  tempImage = null;
+  tempImages = [];
 
-  if (m.spaceImage) {
-    document.getElementById('currentImageGroup').style.display = 'block';
-    document.getElementById('currentImage').src = m.spaceImage;
-  } else {
-    document.getElementById('currentImageGroup').style.display = 'none';
-  }
+  renderImageList();
   renderStep();
   document.getElementById('decorateModal').classList.add('show');
 }
 
 function closeDecorateModal() {
   document.getElementById('decorateModal').classList.remove('show');
-  curMerchantId = null; tempImage = null; curStep = 1;
+  curMerchantId = null; tempImages = []; curStep = 1; selectedImageIndex = 0;
 }
 
 function handleFileUpload() {
-  const file = document.getElementById('uploadInput').files[0];
-  if (file) {
+  const files = document.getElementById('uploadInput').files;
+  if (files.length === 0) return;
+
+  const m = merchants.find(m => m.id === curMerchantId);
+  if (!m) return;
+
+  Array.from(files).forEach(file => {
     const reader = new FileReader();
     reader.onload = function(e) {
-      tempImage = e.target.result;
-      document.getElementById('previewImage').src = tempImage;
-      document.getElementById('previewImage').style.display = 'block';
+      tempImages.push({
+        id: Date.now() + Math.random(),
+        url: e.target.result,
+        name: file.name
+      });
+      renderImageList();
     };
     reader.readAsDataURL(file);
+  });
+}
+
+function renderImageList() {
+  const m = merchants.find(m => m.id === curMerchantId);
+  if (!m) return;
+
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  const container = document.getElementById('imageList');
+
+  if (allImages.length === 0) {
+    container.innerHTML = '';
+    return;
   }
+
+  container.innerHTML = allImages.map((img, index) => `
+    <div class="image-item ${index === selectedImageIndex ? 'selected' : ''}" 
+         draggable="true" 
+         ondragstart="onDragStart(event, ${index})" 
+         ondragend="onDragEnd(event)"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event, ${index})"
+         onclick="selectImage(${index})">
+      <img src="${img.url}" alt="${img.name || '图片'}">
+      <div class="delete-btn" onclick="event.stopPropagation(); deleteImage(${index})">×</div>
+    </div>
+  `).join('');
+}
+
+let dragStartIndex = -1;
+
+function onDragStart(event, index) {
+  dragStartIndex = index;
+  event.target.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function onDragEnd(event) {
+  event.target.classList.remove('dragging');
+  dragStartIndex = -1;
+  document.querySelectorAll('.image-item').forEach(item => {
+    item.classList.remove('drag-over');
+  });
+}
+
+function onDragOver(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  const target = event.target.closest('.image-item');
+  if (target && !target.classList.contains('dragging')) {
+    target.classList.add('drag-over');
+  }
+}
+
+function onDragLeave(event) {
+  const target = event.target.closest('.image-item');
+  if (target) {
+    target.classList.remove('drag-over');
+  }
+}
+
+function onDrop(event, dropIndex) {
+  event.preventDefault();
+  event.target.classList.remove('drag-over');
+
+  if (dragStartIndex === -1 || dragStartIndex === dropIndex) {
+    return;
+  }
+
+  const m = merchants.find(m => m.id === curMerchantId);
+  if (!m) return;
+
+  // 先保存原状态映射（在修改之前）
+  const originalSavedIds = new Set((m.spaceImages || []).map(img => img.id));
+
+  // 获取合并列表
+  let allImages = [...(m.spaceImages || []), ...tempImages];
+  
+  // 执行拖拽交换
+  const draggedImage = allImages[dragStartIndex];
+  allImages.splice(dragStartIndex, 1);
+  allImages.splice(dropIndex, 0, draggedImage);
+
+  // 将排序后的图片重新分配到spaceImages和tempImages，保持排序
+  m.spaceImages = [];
+  tempImages = [];
+  
+  allImages.forEach(img => {
+    if (originalSavedIds.has(img.id)) {
+      m.spaceImages.push(img);
+    } else {
+      tempImages.push(img);
+    }
+  });
+
+  // 调整选中索引
+  if (selectedImageIndex === dragStartIndex) {
+    selectedImageIndex = dropIndex;
+  } else if (selectedImageIndex > dragStartIndex && selectedImageIndex <= dropIndex) {
+    selectedImageIndex--;
+  } else if (selectedImageIndex < dragStartIndex && selectedImageIndex >= dropIndex) {
+    selectedImageIndex++;
+  }
+
+  renderImageList();
+}
+
+function selectImage(index) {
+  selectedImageIndex = index;
+  renderImageList();
+}
+
+function deleteImage(index) {
+  const m = merchants.find(m => m.id === curMerchantId);
+  if (!m) return;
+
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  const imgToDelete = allImages[index];
+
+  // 删除已保存的图片
+  const savedIndex = m.spaceImages?.findIndex(img => img.id === imgToDelete.id);
+  if (savedIndex !== undefined && savedIndex >= 0) {
+    m.spaceImages.splice(savedIndex, 1);
+  }
+
+  // 删除临时图片
+  const tempIndex = tempImages.findIndex(img => img.id === imgToDelete.id);
+  if (tempIndex >= 0) {
+    tempImages.splice(tempIndex, 1);
+  }
+
+  // 调整选中索引
+  if (selectedImageIndex >= index && selectedImageIndex > 0) {
+    selectedImageIndex--;
+  }
+
+  renderImageList();
 }
 
 function renderStep() {
@@ -352,11 +502,8 @@ function renderStep() {
 function nextStep() {
   const m = cm();
   if (!m) return;
-  // 确定使用的图片：优先用新上传的，其次已有图
-  const img = tempImage || m.spaceImage;
-  if (!img) { showToast('请先上传空间背景图', 'error'); return; }
-  // 暂存图片到内存
-  if (tempImage) m._tmpImage = tempImage;
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  if (allImages.length === 0) { showToast('请先上传空间背景图', 'error'); return; }
   curStep = 2;
   renderStep();
 }
@@ -370,13 +517,24 @@ function prevStep() {
 function renderStep2Editor() {
   const m = cm();
   if (!m) return;
-  const img = m._tmpImage || m.spaceImage;
-  document.getElementById('editorImage').src = img;
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  const selectedImg = allImages[selectedImageIndex] || allImages[0];
+
+  if (!selectedImg) {
+    showToast('请先选择一张图片', 'error');
+    curStep = 1;
+    renderStep();
+    return;
+  }
+
+  document.getElementById('editorImage').src = selectedImg.url;
 
   const editor = document.getElementById('hotspotEditor');
   editor.querySelectorAll('.hotspot-box').forEach(b => b.remove());
 
-  m.spaceHotspots.forEach(h => {
+  // 显示当前图片的热区
+  const currentHotspots = m.spaceHotspots?.filter(h => h.imageId === selectedImg.id) || [];
+  currentHotspots.forEach(h => {
     const box = document.createElement('div');
     box.className = 'hotspot-box';
     box.style.left = h.x + '%'; box.style.top = h.y + '%';
@@ -488,6 +646,12 @@ function saveHotspot() {
   const targetId = document.getElementById('hotspotEditTarget').value;
   const name = document.getElementById('hotspotEditName').value.trim();
   if (!name) { showToast('请输入热区名称', 'error'); return; }
+
+  // 获取当前选中图片的ID
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  const selectedImg = allImages[selectedImageIndex] || allImages[0];
+  const imageId = selectedImg ? selectedImg.id : null;
+
   if (editId) {
     const h = m.spaceHotspots.find(h => h.id === editId);
     if (h) { h.targetId = targetId; h.name = name; }
@@ -499,7 +663,7 @@ function saveHotspot() {
       y: Math.round(parseFloat(modal.dataset.tempY) * 10) / 10,
       width: Math.round(parseFloat(modal.dataset.tempWidth)),
       height: Math.round(parseFloat(modal.dataset.tempHeight)),
-      targetId, name
+      targetId, name, imageId
     });
     showToast('热区已添加', 'success');
   }
@@ -520,9 +684,22 @@ function deleteHotspotItem(hotspotId) {
 
 function renderHotspotList() {
   const m = cm(); const c = document.getElementById('hotspotList'); const e = document.getElementById('emptyHotspotList');
-  if (!m || !m.spaceHotspots || m.spaceHotspots.length === 0) { c.innerHTML = ''; e.style.display = 'block'; return; }
+
+  if (!m) { c.innerHTML = ''; e.style.display = 'block'; return; }
+
+  // 获取当前选中图片的热区
+  const allImages = [...(m.spaceImages || []), ...tempImages];
+  const selectedImg = allImages[selectedImageIndex] || allImages[0];
+
+  if (!selectedImg) {
+    c.innerHTML = ''; e.style.display = 'block'; return;
+  }
+
+  const currentHotspots = m.spaceHotspots?.filter(h => h.imageId === selectedImg.id) || [];
+
+  if (!currentHotspots || currentHotspots.length === 0) { c.innerHTML = ''; e.style.display = 'block'; return; }
   e.style.display = 'none';
-  c.innerHTML = m.spaceHotspots.map(h => {
+  c.innerHTML = currentHotspots.map(h => {
     let tn = '未关联';
     if (h.targetId === 'start_position') tn = '人物起始位置';
     else { const si = (m.spaceItems || []).find(s => s.id === h.targetId); if (si) tn = si.name; }
@@ -536,7 +713,14 @@ function renderHotspotList() {
 // ── 保存所有 ──
 function saveAllDecorate() {
   const m = cm(); if (!m) return;
-  if (m._tmpImage) { m.spaceImage = m._tmpImage; delete m._tmpImage; }
+  // 保存所有图片
+  if (!m.spaceImages) m.spaceImages = [];
+  tempImages.forEach(img => {
+    if (!m.spaceImages.find(si => si.id === img.id)) {
+      m.spaceImages.push(img);
+    }
+  });
+  tempImages = [];
   closeDecorateModal();
   renderMerchantList();
   showToast('空间装修已保存', 'success');

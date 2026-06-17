@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -56,16 +56,19 @@
 
     /* ── 场景列表 ── */
     .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    .scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; }
+    .scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; position: relative; }
     .scene-card:hover { transform: translateY(-4px); }
+    .scene-card.is-start { border: 2px solid #D70C1F; }
+    .scene-start-badge { position: absolute; top: 8px; left: 8px; background: #D70C1F; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; z-index: 10; }
     .scene-cover { width: 100%; height: 120px; object-fit: cover; }
     .scene-info { padding: 12px; }
     .scene-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
     .scene-hotspots { font-size: 12px; color: #999; }
-    .scene-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .scene-btn { flex: 1; padding: 6px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; }
+    .scene-actions { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
+    .scene-btn { flex: 1; min-width: 0; padding: 4px 6px; font-size: 10px; border-radius: 4px; border: none; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .scene-btn.edit { background: #f5f5f5; color: #666; }
     .scene-btn.delete { background: #fff5f5; color: #D70C1F; }
+    .scene-btn.set-start { background: #e8f5e9; color: #4caf50; flex: 1.2; }
 
     /* ── 模态框 ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
@@ -221,9 +224,9 @@
   <script>
     // 场景数据
     let scenes = [
-      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [] },
-      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [] },
-      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [] }
+      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [], isStart: true },
+      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [], isStart: false },
+      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [], isStart: false }
     ];
 
     // 导航
@@ -244,18 +247,35 @@
       
       emptyState.style.display = 'none';
       container.innerHTML = scenes.map(scene => `
-        <div class="scene-card">
+        <div class="scene-card ${scene.isStart ? 'is-start' : ''}">
+          ${scene.isStart ? '<div class="scene-start-badge">起始场景</div>' : ''}
           <img class="scene-cover" src="${scene.image}" alt="${scene.name}">
           <div class="scene-info">
             <div class="scene-name">${scene.name}</div>
             <div class="scene-hotspots">${scene.hotspots.length} 个热区</div>
             <div class="scene-actions">
               <button class="scene-btn edit" onclick="editScene('${scene.id}')">编辑</button>
+              <button class="scene-btn set-start" onclick="setStartScene('${scene.id}')">设为起始</button>
               <button class="scene-btn delete" onclick="deleteScene('${scene.id}')">删除</button>
             </div>
           </div>
         </div>
       `).join('');
+    }
+
+    // 设置起始场景
+    function setStartScene(sceneId) {
+      // 取消其他场景的起始标记
+      scenes.forEach(scene => {
+        scene.isStart = false;
+      });
+      // 设置当前场景为起始
+      const scene = scenes.find(s => s.id === sceneId);
+      if (scene) {
+        scene.isStart = true;
+      }
+      renderSceneList();
+      showToast('已设置起始场景', 'success');
     }
 
     // 打开上传弹窗
