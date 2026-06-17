@@ -901,11 +901,19 @@ function onBackClick() {
 function closeRoleModal() {
   document.getElementById('roleModalOverlay').classList.add('hidden');
   isEditingRole = false;
-  var s1 = document.getElementById('scene1');
-  s1.style.display = 'block';
-  s1.style.opacity = '1';
-  s1.style.transform = 'none';
-  s1.classList.remove('hidden');
+  // 恢复所有场景的显示状态，只显示当前场景
+  document.querySelectorAll('.scene-layer').forEach(function(el) {
+    var sceneId = parseInt(el.id.replace('scene', ''));
+    if (sceneId === currentScene) {
+      el.style.display = 'block';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.classList.remove('hidden');
+    } else {
+      el.style.display = 'none';
+      el.classList.add('hidden');
+    }
+  });
   updateSceneUI();
 }
 
