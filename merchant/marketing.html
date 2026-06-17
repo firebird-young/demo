@@ -121,7 +121,7 @@
     <li><a class="menu-title" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>首页</a></li>
     <li><div class="menu-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><polyline points="21 15 16 10 5 21"/></svg>数字资产</div><ul class="submenu"><li><a class="submenu-item" href="asset-management.html">数字资产管理</a></li></ul></li>
     <li><div class="menu-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>订单管理</div><ul class="submenu"><li><a class="submenu-item" href="order-management.html">订单管理</a></li><li><a class="submenu-item" href="delivery-management.html">发货管理</a></li></ul></li>
-    <li><div class="menu-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>营销管理</div><ul class="submenu"><li><a class="submenu-item active" href="marketing.html">元宇宙营销</a></li></ul></li>
+    <li><div class="menu-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>营销管理</div><ul class="submenu"><li><a class="submenu-item" href="marketing-projects.html">营销项目管理</a></li><li><a class="submenu-item active" href="marketing.html">营销触点管理</a></li></ul></li>
     <li><div class="menu-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>系统管理</div><ul class="submenu"><li><a class="submenu-item" href="operator-management.html">操作员管理</a></li><li><a class="submenu-item" href="role-management.html">角色管理</a></li></ul></li>
   </ul>
 </div>
@@ -202,14 +202,8 @@
       </div>
       <div class="form-group">
         <label class="form-label">选择营销项目</label>
-        <select class="form-select" id="rewardSelect" onchange="onRewardChange()">
+        <select class="form-select" id="rewardSelect">
           <option value="">请选择营销项目</option>
-          <option value="new_product">奖励新品优先权</option>
-          <option value="mid_autumn">中秋节积分活动</option>
-          <option value="spring_festival">春节限定红包</option>
-          <option value="vip_upgrade">会员等级直升</option>
-          <option value="limited_nft">限量数字藏品空投</option>
-          <option value="cash_coupon">现金优惠券</option>
         </select>
       </div>
       <div class="form-group">
@@ -430,6 +424,7 @@
   var projectCardData = '';
   function openProjectModal() {
     editingProjectId = null;
+    loadMarketingProjects();
     document.getElementById('projectName').value = '';
     document.getElementById('triggerAction').value = '';
     document.getElementById('triggerContentGroup').style.display = 'none';
@@ -444,7 +439,24 @@
     document.getElementById('projectModal').classList.add('show');
   }
 
-  function onRewardChange() {} // 保留兼容
+  function loadMarketingProjects() {
+    var sel = document.getElementById('rewardSelect');
+    var saved = localStorage.getItem('merchantMarketingProjects');
+    var list = [];
+    if (saved) { try { list = JSON.parse(saved); } catch(e) {} }
+    if (list.length === 0) {
+      list = [
+        { id: 'new_product', name: '奖励新品优先权' },
+        { id: 'mid_autumn', name: '中秋节积分活动' },
+        { id: 'spring_festival', name: '春节限定红包' },
+        { id: 'vip_upgrade', name: '会员等级直升' },
+        { id: 'limited_nft', name: '限量数字藏品空投' },
+        { id: 'cash_coupon', name: '现金优惠券' }
+      ];
+    }
+    sel.innerHTML = '<option value="">请选择营销项目</option>';
+    list.forEach(function(p){ sel.innerHTML += '<option value="' + p.id + '">' + p.name + '</option>'; });
+  }
 
   function handleCardUpload(input) {
     var file = input.files[0];
@@ -592,17 +604,22 @@
     var empty = document.getElementById('emptyProjects');
     if (marketingProjects.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
     empty.style.display = 'none';
+    // 从 localStorage 读取营销项目名称映射
+    var saved = localStorage.getItem('merchantMarketingProjects');
+    var projList = [];
+    if (saved) { try { projList = JSON.parse(saved); } catch(e) {} }
+    var rewardMap = {};
+    projList.forEach(function(x){ rewardMap[x.id] = x.name; });
     tbody.innerHTML = marketingProjects.map(function(p){
       var actionLabel = p.action === 'hotspot' ? '点击热区' : p.action === 'project' ? '点击项目' : '停留时长';
       var contentLabel = p.action === 'duration' ? p.content + '秒' : p.content;
-      var rewards = { new_product: '新品优先权', mid_autumn: '中秋积分活动', spring_festival: '春节红包', vip_upgrade: '会员直升', limited_nft: 'NFT空投', cash_coupon: '现金券' };
       var cardTd = p.cardImg ? '<img src="' + p.cardImg + '" style="width:40px;height:30px;object-fit:cover;border-radius:4px">' : '-';
       return '<tr>' +
         '<td><strong>' + p.name + '</strong></td>' +
         '<td>' + actionLabel + '</td>' +
         '<td>' + contentLabel + '</td>' +
         '<td>' + (p.probability || 100) + '%</td>' +
-        '<td>' + (rewards[p.reward] || p.reward) + '</td>' +
+        '<td>' + (rewardMap[p.reward] || p.reward) + '</td>' +
         '<td><span class="status-tag active">生效中</span></td>' +
         '<td style="white-space:nowrap"><button class="btn btn-default btn-sm" onclick="editProject(\'' + p.id + '\')">编辑</button> <button class="btn btn-danger btn-sm" onclick="deleteProject(\'' + p.id + '\')">删除</button></td></tr>';
     }).join('');
@@ -623,6 +640,7 @@
     setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.remove(); }, 300); }, 1800);
   }
 
+  loadMarketingProjects();
   renderProjectList();
 </script>
 </body>
