@@ -290,6 +290,19 @@
   .mp-close{display:block;margin-top:8px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer}
 </style>
 
+<!-- 停留奖励弹窗 -->
+<div class="lottery-mask" id="dwellRewardMask" onclick="closeDwellReward()">
+  <div class="lottery-box" onclick="event.stopPropagation()">
+    <div class="lt-title">🎁 停留奖励</div>
+    <div class="lottery-result" style="display:block">
+      <img class="lr-img" src="新品权.png" alt="新品优先权">
+      <div class="lr-text">🎉 恭喜你</div>
+      <div class="lr-sub">停留时间超过10s，获得新品优先权奖励</div>
+    </div>
+    <button class="lt-btn" style="display:inline-block" onclick="closeDwellReward()">收下奖励</button>
+  </div>
+</div>
+
 <!-- 抽签弹窗 -->
 <div class="lottery-mask" id="lotteryMask" onclick="closeLottery()">
   <div class="lottery-box" id="lotteryBox" onclick="event.stopPropagation()">
@@ -368,6 +381,39 @@
   setInterval(spawnParticle,300);
   for(let i=0;i<8;i++)setTimeout(spawnParticle,i*400);
 
+  // ── 停留奖励 ──
+  var dwellRewarded = false;
+  var dwellTimer = null;
+  var dwellRetryTimer = null;
+
+  function startDwellTimer() {
+    dwellTimer = setTimeout(function() {
+      checkDwellReward();
+    }, 10000);
+  }
+
+  function checkDwellReward() {
+    if (dwellRewarded) return;
+    // 如果弹窗开着，等待 5 秒重试
+    if (document.getElementById('lotteryMask').classList.contains('show')) {
+      dwellRetryTimer = setTimeout(checkDwellReward, 5000);
+      return;
+    }
+    var hit = Math.random() < 1; // 100% 命中率（演示用）
+    if (hit) {
+      dwellRewarded = true;
+      document.getElementById('dwellRewardMask').classList.add('show');
+      if (lotteryActive) closeLottery();
+    }
+  }
+
+  function closeDwellReward() {
+    document.getElementById('dwellRewardMask').classList.remove('show');
+    if (dwellRetryTimer) { clearTimeout(dwellRetryTimer); dwellRetryTimer = null; }
+  }
+
+  startDwellTimer();
+
   // ── 抽签 ──
   var lotteryActive = false;
   function startLottery(id) {
@@ -416,6 +462,8 @@
     lotteryActive = false;
     document.getElementById('lrImg').style.display = 'block';
     document.getElementById('lrImg').src = '';
+    // 关闭后尝试触发停留奖励
+    if (!dwellRewarded) { dwellRetryTimer = setTimeout(checkDwellReward, 1000); }
   }
 
   // ── 从 mall 带入角色 ──
