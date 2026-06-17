@@ -183,10 +183,16 @@
       <div class="modal-body">
         <input type="hidden" id="hotspotEditId">
         <div class="form-group">
-          <label class="form-label">关联目标</label>
-          <select class="form-select" id="hotspotEditMerchant" onchange="onMerchantSelectChange()">
+          <label class="form-label">关联类型</label>
+          <select class="form-select" id="hotspotEditType" onchange="onTargetTypeChange()">
             <option value="">不关联</option>
-            <option value="start_position">人物起始位置</option>
+            <option value="merchant">商家</option>
+            <option value="element">元素</option>
+          </select>
+        </div>
+        <div class="form-group" id="targetGroup" style="display:none">
+          <label class="form-label">关联目标</label>
+          <select class="form-select" id="hotspotEditTarget" onchange="onTargetSelectChange()">
           </select>
         </div>
         <div class="form-group">
@@ -255,7 +261,6 @@
       renderHotspotSceneList();
       renderHotspotEditor();
       renderHotspotList();
-      updateHotspotEditMerchantSelect();
     }
 
     // 渲染热区编辑器
@@ -379,7 +384,9 @@
       
       // 保存临时热区数据到弹窗
       document.getElementById('hotspotEditId').value = '';
-      document.getElementById('hotspotEditMerchant').value = '';
+      document.getElementById('hotspotEditType').value = '';
+      document.getElementById('targetGroup').style.display = 'none';
+      document.getElementById('hotspotEditTarget').innerHTML = '';
       document.getElementById('hotspotEditName').value = '';
       document.getElementById('hotspotModalTitle').textContent = '创建热区';
       
@@ -421,22 +428,32 @@
     }
 
     // 关联目标选择变化时自动填充名称
-    function onMerchantSelectChange() {
-      const merchantId = document.getElementById('hotspotEditMerchant').value;
-      
-      if (merchantId === 'start_position') {
-        const nameInput = document.getElementById('hotspotEditName');
-        if (!nameInput.value) {
-          nameInput.value = '人物起始位置';
-        }
+    function onTargetTypeChange() {
+      var type = document.getElementById('hotspotEditType').value;
+      var group = document.getElementById('targetGroup');
+      var sel = document.getElementById('hotspotEditTarget');
+      if (type === 'merchant') {
+        group.style.display = 'block';
+        sel.innerHTML = merchants.map(function(m){ return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join('');
+      } else if (type === 'element') {
+        group.style.display = 'block';
+        sel.innerHTML = '<option value="start_position">人物起始位置</option>';
       } else {
-        const merchant = merchants.find(m => m.id === merchantId);
-        if (merchant) {
-          const nameInput = document.getElementById('hotspotEditName');
-          if (!nameInput.value) {
-            nameInput.value = merchant.name;
-          }
-        }
+        group.style.display = 'none';
+        sel.innerHTML = '';
+      }
+      onTargetSelectChange();
+    }
+
+    function onTargetSelectChange() {
+      var type = document.getElementById('hotspotEditType').value;
+      var targetVal = document.getElementById('hotspotEditTarget').value;
+      var nameInput = document.getElementById('hotspotEditName');
+      if (type === 'element' && targetVal === 'start_position') {
+        nameInput.value = '人物起始位置';
+      } else if (type === 'merchant' && targetVal) {
+        var found = merchants.find(function(m){ return 'm_' + m.id === targetVal; });
+        if (found) nameInput.value = found.name;
       }
     }
 
@@ -446,9 +463,26 @@
       if (!hotspot) return;
       
       document.getElementById('hotspotEditId').value = hotspot.id;
-      document.getElementById('hotspotEditMerchant').value = hotspot.merchantId || '';
       document.getElementById('hotspotEditName').value = hotspot.name || '';
       document.getElementById('hotspotModalTitle').textContent = '编辑热区';
+      
+      // 根据已有 merchantId 回填二级联动
+      var mid = hotspot.merchantId || '';
+      if (mid === 'start_position') {
+        document.getElementById('hotspotEditType').value = 'element';
+        document.getElementById('targetGroup').style.display = 'block';
+        document.getElementById('hotspotEditTarget').innerHTML = '<option value="start_position">人物起始位置</option>';
+        document.getElementById('hotspotEditTarget').value = 'start_position';
+      } else if (mid) {
+        document.getElementById('hotspotEditType').value = 'merchant';
+        document.getElementById('targetGroup').style.display = 'block';
+        var sel = document.getElementById('hotspotEditTarget');
+        sel.innerHTML = merchants.map(function(m){ return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join('');
+        sel.value = 'm_' + mid;
+      } else {
+        document.getElementById('hotspotEditType').value = '';
+        document.getElementById('targetGroup').style.display = 'none';
+      }
       
       // 显示删除按钮，隐藏重绘按钮
       document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = '';
@@ -493,10 +527,7 @@
 
     // 更新商家选择下拉框
     function updateHotspotEditMerchantSelect() {
-      const select = document.getElementById('hotspotEditMerchant');
-      select.innerHTML = `<option value="">不关联</option>
-        <option value="start_position">人物起始位置</option>` + 
-        merchants.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      // 不再需要（已改为二级联动，在 onTargetTypeChange 中动态填充）
     }
 
     // 关闭热区弹窗
@@ -512,7 +543,10 @@
     function saveHotspot() {
       const modal = document.getElementById('hotspotEditModal');
       const editId = document.getElementById('hotspotEditId').value;
-      const merchantId = document.getElementById('hotspotEditMerchant').value;
+      var type = document.getElementById('hotspotEditType').value;
+      var targetVal = document.getElementById('hotspotEditTarget').value;
+      // 去掉 m_ 前缀，保持与 merchants 数组 id 一致
+      var merchantId = type ? (targetVal === 'start_position' ? targetVal : targetVal.replace('m_', '')) : '';
       const name = document.getElementById('hotspotEditName').value.trim();
       
       if (!name) {
