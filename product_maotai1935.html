@@ -7,7 +7,8 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; overflow-x: hidden; }
-.page { max-width: 430px; width: 100%; min-height: 100vh; background: #f6f7fb; padding-bottom: 100px; position: relative; box-sizing: border-box; }
+.page { max-width: 430px; width: 100%; height: 100vh; background: #f6f7fb; position: relative; box-sizing: border-box; overflow: hidden; }
+.page-scroll { height: 100%; overflow-y: auto; padding-bottom: 100px; box-sizing: border-box; }
 @media(max-width:430px) { .page { max-width: 100%; } }
 
 /* ── 顶部导航 ── */
@@ -96,10 +97,56 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .tl-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
 .tl-tag.now { background: #FFF2F3; color: #D70C1F; }
 .tl-tag.done-tag { background: #f5f5f7; color: #bbb; }
+
+/* ── 浏览倒计时条 ── */
+.browse-timer-bar{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:rgba(26,26,46,.92);border-radius:14px;
+  padding:10px 8px;border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  backdrop-filter:blur(8px);
+  z-index:200;
+  transition:opacity .3s,transform .3s;
+}
+.browse-timer-bar.hidden{opacity:0;pointer-events:none;transform:translateY(-50%) scale(.8)}
+.browse-timer-circle{
+  position:relative;width:48px;height:48px;
+}
+.browse-timer-circle svg{width:48px;height:48px;transform:rotate(-90deg)}
+.browse-timer-circle .bg{fill:none;stroke:rgba(255,255,255,.1);stroke-width:3}
+.browse-timer-circle .fg{fill:none;stroke:#26de81;stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.browse-timer-text{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;color:#fff;
+}
+.browse-timer-label{
+  font-size:10px;color:rgba(255,255,255,.6);
+  text-align:center;line-height:1.3;
+}
+.browse-timer-done{
+  display:none;flex-direction:column;align-items:center;gap:6px;
+}
+.browse-timer-bar.done .browse-timer-circle{display:none}
+.browse-timer-bar.done .browse-timer-label{display:none}
+.browse-timer-bar.done .browse-timer-done{display:flex}
+.browse-timer-done-icon{font-size:32px}
+.browse-timer-done-text{font-size:11px;color:#26de81;font-weight:600;text-align:center}
+.browse-timer-back-btn{
+  margin-top:2px;padding:4px 12px;
+  background:linear-gradient(135deg,#26de81,#20bf6b);
+  border:none;border-radius:12px;
+  color:#fff;font-size:11px;font-weight:600;cursor:pointer;
+  transition:transform .2s;
+}
+.browse-timer-back-btn:active{transform:scale(.9)}
 </style>
 </head>
 <body>
 <div class="page">
+
+<div class="page-scroll">
 
 <!-- 顶部导航 -->
 <div class="nav-bar">
@@ -227,6 +274,26 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
   </button>
 </div>
 
+</div><!-- /page-scroll -->
+
+<!-- 浏览倒计时条（absolute固定在手机框中部右侧，不随滚动移动） -->
+<div class="browse-timer-bar hidden" id="browseTimerBar">
+  <div class="browse-timer-circle">
+    <svg viewBox="0 0 48 48">
+      <circle class="bg" cx="24" cy="24" r="21"/>
+      <circle class="fg" id="browseTimerFg" cx="24" cy="24" r="21" stroke-dasharray="131.95" stroke-dashoffset="0"/>
+    </svg>
+    <span class="browse-timer-text" id="browseTimerText">10</span>
+  </div>
+  <div class="browse-timer-label">浏览<br>倒计时</div>
+  <div class="browse-timer-done">
+    <span class="browse-timer-done-icon">🎁</span>
+    <span class="browse-timer-done-text">奖励已获取</span>
+    <button class="browse-timer-back-btn" onclick="goBackWithReward()">点击返回</button>
+  </div>
+</div>
+</div>
+
 </div><!-- /page -->
 
 <!-- 3D浮层 -->
@@ -238,6 +305,50 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 
 <script>
 var PID="maotai1935";
+
+// ── 浏览倒计时逻辑 ──
+(function initBrowseTimer(){
+  // 检查是否从 assets_maotai.html 进入
+  var ref = document.referrer || '';
+  var fromAssets = ref.indexOf('assets_maotai.html') !== -1;
+  // 也支持通过 URL 参数标记（兜底）
+  var params = new URLSearchParams(window.location.search);
+  var fromTask = params.get('from') === 'assets';
+
+  if(fromAssets || fromTask){
+    var timerBar = document.getElementById('browseTimerBar');
+    var timerFg = document.getElementById('browseTimerFg');
+    var timerText = document.getElementById('browseTimerText');
+    var totalSeconds = 10;
+    var remaining = totalSeconds;
+    var circumference = 131.95; // 2*π*21
+
+    // 显示倒计时条
+    timerBar.classList.remove('hidden');
+
+    var countdown = setInterval(function(){
+      remaining--;
+      timerText.textContent = remaining;
+      // 更新环形进度
+      var offset = circumference * (1 - (totalSeconds - remaining) / totalSeconds);
+      timerFg.style.strokeDashoffset = circumference - offset;
+
+      if(remaining <= 0){
+        clearInterval(countdown);
+        // 显示完成状态
+        timerBar.classList.add('done');
+        // 设置奖励标记，供任务中心读取
+        localStorage.setItem('metaProductRewardFlag', '1');
+      }
+    }, 1000);
+  }
+})();
+
+function goBackWithReward(){
+  localStorage.setItem('metaProductRewardFlag', '1');
+  history.back();
+}
+
 function toggleCollect(){
   var list = JSON.parse(localStorage.getItem("favorites") || "[]");
   var i = list.indexOf(PID);
