@@ -88,19 +88,34 @@
 
     /* 热区选择区 */
     .hotspot-select-area{
-      position:relative;background:#1a1a2e;border-radius:10px;overflow:hidden;
-      margin-top:6px;user-select:none;max-height:300px;
+      position:relative;background:#1a1a2e;border-radius:0 0 10px 10px;overflow:hidden;
+      margin-top:0;user-select:none;max-height:260px;
     }
     .hotspot-select-area img{width:100%;display:block}
+    .hs-img-tabs{
+      display:flex;gap:4px;overflow-x:auto;padding:6px 6px 0;background:#1a1a2e;border-radius:10px 10px 0 0;
+      scrollbar-width:none;
+    }
+    .hs-img-tabs::-webkit-scrollbar{display:none}
+    .hs-img-tab{
+      flex-shrink:0;padding:5px 12px;border-radius:8px 8px 0 0;
+      font-size:11px;color:rgba(255,255,255,.5);cursor:pointer;
+      border:1px solid transparent;border-bottom:none;
+      background:rgba(255,255,255,.04);white-space:nowrap;
+      transition:all .2s;
+    }
+    .hs-img-tab:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.08)}
+    .hs-img-tab.active{color:#fff;background:rgba(32,191,107,.15);border-color:rgba(32,191,107,.3)}
+    .hs-img-tab .tab-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#20bf6b;margin-right:5px;vertical-align:middle}
     .hs-box{
-      position:absolute;border:2px solid rgba(255,255,255,.3);
-      background:rgba(255,255,255,.05);cursor:pointer;z-index:5;
+      position:absolute;border:2px solid rgba(32,191,107,.35);
+      background:rgba(32,191,107,.06);cursor:pointer;z-index:5;
       display:flex;align-items:center;justify-content:center;
       transition:border .2s,background .2s;
     }
-    .hs-box:hover{border-color:rgba(102,126,234,.8);background:rgba(102,126,234,.15)}
-    .hs-box.selected{border:2px solid #667eea;background:rgba(102,126,234,.3);box-shadow:0 0 10px rgba(102,126,234,.4)}
-    .hs-box .hs-num{font-size:14px;font-weight:700;color:rgba(255,255,255,.5);pointer-events:none}
+    .hs-box:hover{border-color:rgba(32,191,107,.8);background:rgba(32,191,107,.18)}
+    .hs-box.selected{border:2px solid #20bf6b;background:rgba(32,191,107,.3);box-shadow:0 0 10px rgba(32,191,107,.4)}
+    .hs-box .hs-num{font-size:14px;font-weight:700;color:#20bf6b;pointer-events:none}
     .hs-box.selected .hs-num{color:#fff}
     .hs-hint{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.5);font-size:11px;z-index:6;background:rgba(0,0,0,.5);padding:2px 10px;border-radius:10px;pointer-events:none}
 
@@ -222,6 +237,7 @@
       <div id="lotteryGroup" style="display:none">
         <div class="form-group">
           <label class="form-label">选择空间热区（多选，点击热区框选中）</label>
+          <div class="hs-img-tabs" id="hsImgTabs" style="display:none"></div>
           <div class="hotspot-select-area" id="hotspotSelectArea">
             <img id="hotspotSelectImg" src="" alt="空间图片">
             <div class="hs-hint">点击热区框进行多选</div>
@@ -388,11 +404,13 @@
   }
 
   // ======== 热区数据 ========
+  var hsCurrentImgIdx = 0;  // 当前显示的图片索引
+
   function loadHotspotData() {
     var images = [];
     var hotspotsMap = {};
-    var savedImg = localStorage.getItem('merchantSpaceImages');
-    var savedHs = localStorage.getItem('merchantHotspotsMap');
+    var savedImg = localStorage.getItem('merchantSpaceImages_v2');
+    var savedHs = localStorage.getItem('merchantHotspotsMap_v2');
     if (savedImg) { try { images = JSON.parse(savedImg); } catch(e) {} }
     if (savedHs) { try { hotspotsMap = JSON.parse(savedHs); } catch(e) {} }
     return { images: images, hotspotsMap: hotspotsMap };
@@ -402,27 +420,48 @@
     var data = loadHotspotData();
     var images = data.images;
     var hotspotsMap = data.hotspotsMap;
+    var tabsEl = document.getElementById('hsImgTabs');
     var area = document.getElementById('hotspotSelectArea');
     var img = document.getElementById('hotspotSelectImg');
     var noMsg = document.getElementById('noHotspotMsg');
 
-    // 清除旧热区框
-    area.querySelectorAll('.hs-box').forEach(function(b){ b.remove(); });
-
-    // 找第一张有热区的图片
-    var activeImg = null;
+    // 筛选有热区的图片
+    var validImages = [];
     for (var i = 0; i < images.length; i++) {
       var hs = hotspotsMap[images[i].id] || [];
-      if (hs.length > 0) { activeImg = images[i]; break; }
+      if (hs.length > 0) validImages.push(images[i]);
     }
-    if (!activeImg) {
+    if (validImages.length === 0) {
+      tabsEl.style.display = 'none';
       area.style.display = 'none'; noMsg.style.display = 'block';
       document.getElementById('selectedHotspotsText').textContent = '无';
       return;
     }
+
+    // 修正当前索引
+    if (hsCurrentImgIdx >= validImages.length) hsCurrentImgIdx = 0;
+
+    // 渲染图片切换 tabs
+    if (validImages.length > 1) {
+      tabsEl.style.display = 'flex';
+      area.style.borderRadius = '0 0 10px 10px';
+      tabsEl.innerHTML = validImages.map(function(img, idx){
+        return '<div class="hs-img-tab' + (idx === hsCurrentImgIdx ? ' active' : '') + '" onclick="switchHotspotImage(' + idx + ')">' +
+          '<span class="tab-dot"></span>' + htmlEscape(img.name) +
+        '</div>';
+      }).join('');
+    } else {
+      tabsEl.style.display = 'none';
+      area.style.borderRadius = '10px';
+    }
+
     area.style.display = 'block'; noMsg.style.display = 'none';
+    var activeImg = validImages[hsCurrentImgIdx];
     img.src = activeImg.src;
     var activeHotspots = hotspotsMap[activeImg.id] || [];
+
+    // 清除旧热区框
+    area.querySelectorAll('.hs-box').forEach(function(b){ b.remove(); });
 
     // 绘制热区框
     area.onload = null;
@@ -451,8 +490,12 @@
         area.appendChild(box);
       });
     };
-    // 如果图片已缓存，手动触发
     if (img.complete) img.onload();
+  }
+
+  function switchHotspotImage(idx) {
+    hsCurrentImgIdx = idx;
+    renderHotspotSelection(selectedHotspotNums);
   }
 
   function updateSelectedText() {
@@ -517,6 +560,7 @@
     editingTaskId = null;
     selectedHotspotNums = [];
     selectedProjectIds = [];
+    hsCurrentImgIdx = 0;
     document.getElementById('taskModalTitle').textContent = '新建任务';
     document.getElementById('taskName').value = '';
     document.getElementById('taskTrigger').value = '';
