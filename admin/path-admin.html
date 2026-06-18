@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -101,8 +101,7 @@
     <!-- 左侧菜单 -->
         <div class="sidebar">
       <div class="sidebar-group-title">元宇宙管理</div>
-      <div class="sidebar-item" onclick="navigateTo('scene-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>场景管理</div>
-      <div class="sidebar-item" onclick="navigateTo('hotspot-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>热区标注</div>
+      <div class="sidebar-item" onclick="navigateTo('hotspot-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>场景和热区</div>
       <div class="sidebar-item active" onclick="navigateTo('path-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>跳转路径</div>
       <div class="sidebar-item" onclick="navigateTo('space-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>商家元宇宙空间管理</div>
       <div class="sidebar-item" onclick="navigateTo('role-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>角色管理</div>
@@ -152,15 +151,15 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">从场景</label>
+          <label class="form-label">从图片</label>
           <select class="form-select" id="pathFrom">
-            <option value="">请选择起始场景</option>
+            <option value="">请选择起始图片</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">跳转到场景</label>
+          <label class="form-label">跳转到图片</label>
           <select class="form-select" id="pathTo">
-            <option value="">请选择目标场景</option>
+            <option value="">请选择目标图片</option>
           </select>
         </div>
         <div class="form-group">
@@ -199,153 +198,122 @@
   </div>
 
   <script>
-    // 场景数据
-    let scenes = [
-      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [] },
-      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [] },
-      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [] }
+    var scenes = [
+      { id: 'scene1', name: '食品区',
+        images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1.png' }] },
+      { id: 'scene2', name: '文旅区',
+        images: [
+          { imgId: 'img_1', name: '文旅区主图', src: '../scene2.png' },
+          { imgId: 'img_2', name: '文旅区副图', src: '../scene1.png' }
+        ] },
+      { id: 'scene3', name: '影视区',
+        images: [{ imgId: 'img_1', name: '影视区主图', src: '../scene3.png' }] }
     ];
 
-    // 路径数据
-    let paths = [];
+    // paths: { id, fromScene, fromImg, toScene, toImg, arrowV, arrowH, arrowAngle }
+    var paths = [];
 
-    // 导航
-    function navigateTo(url) {
-      window.location.href = url;
+    function navigateTo(url) { window.location.href = url; }
+
+    // 辅助：根据sceneId+imgId查找名称
+    function getImageLabel(sceneId, imgId) {
+      var s = scenes.find(function(x) { return x.id === sceneId; });
+      if (!s) return sceneId + '/' + imgId;
+      var img = (s.images || []).find(function(x) { return x.imgId === imgId; });
+      return s.name + (img ? ' / ' + img.name : '');
     }
 
-    // 渲染路径列表
+    // 构建图片选项（optgroup分组）
+    function buildImageOptions() {
+      return scenes.reduce(function(html, s) {
+        if (!s.images || s.images.length === 0) return html;
+        html += '<optgroup label="' + s.name + '">';
+        s.images.forEach(function(img) {
+          html += '<option value="' + s.id + '|' + img.imgId + '">' + img.name + '</option>';
+        });
+        html += '</optgroup>';
+        return html;
+      }, '<option value="">请选择图片</option>');
+    }
+
     function renderPathList() {
-      const container = document.getElementById('pathList');
-      const emptyState = document.getElementById('emptyPaths');
-      
-      if (paths.length === 0) {
-        container.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-      }
-      
-      emptyState.style.display = 'none';
-      container.innerHTML = paths.map(path => {
-        const fromScene = scenes.find(s => s.id === path.from);
-        const toScene = scenes.find(s => s.id === path.to);
-        const arrowV = path.arrowV ? getPositionLabel(path.arrowV) : '-';
-        const arrowH = path.arrowH ? getPositionLabel(path.arrowH) : '-';
-        const angle = path.arrowAngle !== undefined ? path.arrowAngle + '°' : '0°';
-        return `
-          <div class="path-item">
-            <div class="path-from">${fromScene?.name || path.from}</div>
-            <div class="path-arrow">→</div>
-            <div class="path-to">${toScene?.name || path.to}</div>
-            <div class="path-info">${arrowV}${arrowH} · ${angle}</div>
-            <div class="path-delete" onclick="deletePath('${path.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </div>
-          </div>
-        `;
+      var container = document.getElementById('pathList');
+      var empty = document.getElementById('emptyPaths');
+      if (paths.length === 0) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      container.innerHTML = paths.map(function(p) {
+        var fromLabel = getImageLabel(p.fromScene, p.fromImg);
+        var toLabel = getImageLabel(p.toScene, p.toImg);
+        var arrowV = p.arrowV ? getPositionLabel(p.arrowV) : '-';
+        var arrowH = p.arrowH ? getPositionLabel(p.arrowH) : '-';
+        return '<div class="path-item">' +
+          '<div class="path-from">' + fromLabel + '</div>' +
+          '<div class="path-arrow">→</div>' +
+          '<div class="path-to">' + toLabel + '</div>' +
+          '<div class="path-info">' + arrowV + arrowH + ' · ' + (p.arrowAngle || 0) + '°</div>' +
+          '<div class="path-delete" onclick="deletePath(\'' + p.id + '\')">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>';
       }).join('');
     }
 
-    // 获取位置标签
     function getPositionLabel(pos) {
-      const labels = { top: '上', bottom: '下', left: '左', right: '右', center: '' };
-      return labels[pos] || '';
+      var m = { top: '上', bottom: '下', left: '左', right: '右', center: '' };
+      return m[pos] || '';
     }
 
-    // 打开路径弹窗
     function openPathModal() {
-      const fromSelect = document.getElementById('pathFrom');
-      const toSelect = document.getElementById('pathTo');
-      
-      fromSelect.innerHTML = '<option value="">请选择起始场景</option>' + 
-        scenes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-      
-      toSelect.innerHTML = '<option value="">请选择目标场景</option>' + 
-        scenes.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-      
+      var opts = buildImageOptions();
+      document.getElementById('pathFrom').innerHTML = opts;
+      document.getElementById('pathTo').innerHTML = opts;
+      document.getElementById('pathFrom').value = '';
+      document.getElementById('pathTo').value = '';
       document.getElementById('pathArrowV').value = '';
       document.getElementById('pathArrowH').value = '';
       document.getElementById('pathArrowAngle').value = '0';
-      
-      document.querySelectorAll('.pos-btn').forEach(btn => btn.classList.remove('active'));
-      
+      document.querySelectorAll('.pos-btn').forEach(function(b) { b.classList.remove('active'); });
       document.getElementById('pathModal').classList.add('show');
     }
 
-    // 关闭路径弹窗
-    function closePathModal() {
-      document.getElementById('pathModal').classList.remove('show');
+    function closePathModal() { document.getElementById('pathModal').classList.remove('show'); }
+
+    function setPathArrowPosition(axis, pos) {
+      if (axis === 'v') document.getElementById('pathArrowV').value = pos;
+      else document.getElementById('pathArrowH').value = pos;
+      var btns = document.querySelectorAll('.pos-buttons:nth-of-type(' + (axis === 'v' ? 1 : 2) + ') .pos-btn');
+      btns.forEach(function(b) { b.classList.toggle('active', b.textContent === getPositionLabel(pos)); });
     }
 
-    // 设置箭头位置
-    function setPathArrowPosition(axis, position) {
-      if (axis === 'v') {
-        document.getElementById('pathArrowV').value = position;
-      } else {
-        document.getElementById('pathArrowH').value = position;
-      }
-      
-      const buttons = document.querySelectorAll(`.pos-buttons:nth-of-type(${axis === 'v' ? 1 : 2}) .pos-btn`);
-      buttons.forEach(btn => btn.classList.toggle('active', btn.textContent === getPositionLabel(position)));
-    }
-
-    // 保存路径
     function savePath() {
-      const from = document.getElementById('pathFrom').value;
-      const to = document.getElementById('pathTo').value;
-      const arrowV = document.getElementById('pathArrowV').value;
-      const arrowH = document.getElementById('pathArrowH').value;
-      const arrowAngle = parseInt(document.getElementById('pathArrowAngle').value) || 0;
+      var fromVal = document.getElementById('pathFrom').value;
+      var toVal = document.getElementById('pathTo').value;
+      if (!fromVal || !toVal) { showToast('请选择起始和目标图片', 'error'); return; }
+      if (fromVal === toVal) { showToast('起始和目标不能相同', 'error'); return; }
+      var fp = fromVal.split('|'), tp = toVal.split('|');
+      var fromScene = fp[0], fromImg = fp[1], toScene = tp[0], toImg = tp[1];
+      var arrowV = document.getElementById('pathArrowV').value;
+      var arrowH = document.getElementById('pathArrowH').value;
+      var arrowAngle = parseInt(document.getElementById('pathArrowAngle').value) || 0;
 
-      if (!from || !to) {
-        showToast('请选择起始场景和目标场景', 'error');
-        return;
-      }
-
-      if (from === to) {
-        showToast('起始场景和目标场景不能相同', 'error');
-        return;
-      }
-
-      const exists = paths.some(p => p.from === from && p.to === to);
-      if (exists) {
-        showToast('该路径已存在', 'error');
-        return;
-      }
-
-      paths.push({
-        id: 'path' + Date.now(),
-        from,
-        to,
-        arrowV,
-        arrowH,
-        arrowAngle
+      var exists = paths.some(function(p) {
+        return p.fromScene === fromScene && p.fromImg === fromImg && p.toScene === toScene && p.toImg === toImg;
       });
+      if (exists) { showToast('该路径已存在', 'error'); return; }
 
+      paths.push({ id: 'path' + Date.now(), fromScene, fromImg, toScene, toImg, arrowV, arrowH, arrowAngle });
       showToast('路径添加成功', 'success');
       closePathModal();
       renderPathList();
     }
 
-    // 删除路径
     function deletePath(id) {
-      if (confirm('确定要删除这条路径吗？')) {
-        paths = paths.filter(p => p.id !== id);
-        showToast('路径删除成功', 'success');
-        renderPathList();
-      }
+      if (!confirm('确定删除？')) return;
+      paths = paths.filter(function(p) { return p.id !== id; });
+      showToast('已删除', 'success'); renderPathList();
     }
 
-    // 显示提示
-    function showToast(message, type) {
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + type;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 2000);
+    function showToast(msg, type) {
+      var t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+      document.body.appendChild(t); setTimeout(function() { t.remove(); }, 2000);
     }
 
     document.addEventListener('DOMContentLoaded', renderPathList);

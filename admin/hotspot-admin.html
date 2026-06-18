@@ -1,22 +1,19 @@
-﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-  <title>热区标注 - 元宇宙商城后台</title>
+  <title>场景与热区管理 - 元宇宙商城后台</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
 
-    /* ── 顶部导航 ── */
     .header { background: linear-gradient(135deg, #D70C1F, #F12B3D); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
     .header-title { font-size: 18px; font-weight: 600; }
     .header-user { font-size: 14px; }
 
-    /* ── 主布局 ── */
     .main-container { display: flex; min-height: calc(100vh - 60px); }
 
-    /* ── 左侧菜单 ── */
     .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8e8e8; padding: 16px 0; }
     .sidebar-group-title { padding: 8px 24px; font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .sidebar-item { padding: 10px 24px 10px 48px; font-size: 14px; color: #666; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -24,7 +21,6 @@
     .sidebar-item.active { background: rgba(215, 12, 31, 0.1); color: #D70C1F; font-weight: 600; }
     .sidebar-item svg { width: 14px; height: 14px; }
 
-    /* ── 右侧内容区 ── */
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .content-title { font-size: 18px; font-weight: 600; color: #1a1a2e; }
@@ -33,38 +29,66 @@
     .btn-primary:hover { background: #c60a1b; }
     .btn-default { background: #fff; color: #666; border: 1px solid #ddd; }
     .btn-default:hover { background: #f5f5f5; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-danger-sm { background: #fff5f5; color: #D70C1F; border: 1px solid #ffcccc; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+    .btn-danger-sm:hover { background: #ffeaea; }
 
-    /* ── 卡片样式 ── */
     .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; display: flex; justify-content: space-between; align-items: center; }
 
-    /* ── 表单样式 ── */
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
     .form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
     .form-input:focus { border-color: #D70C1F; }
     .form-select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+    .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
 
-    /* ── 场景列表 ── */
-    .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    .scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; }
+    /* 图片上传区 */
+    .upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .upload-area:hover { border-color: #D70C1F; background: rgba(215, 12, 31, 0.02); }
+    .upload-icon { width: 48px; height: 48px; margin: 0 auto 12px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .upload-icon svg { width: 24px; height: 24px; color: #999; }
+    .upload-text { font-size: 13px; color: #666; }
+    .upload-hint { font-size: 12px; color: #999; margin-top: 4px; }
+
+    .image-list { margin-top: 10px; }
+    .image-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; }
+    .image-item img { width: 80px; height: 50px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+    .image-item .img-info { flex: 1; min-width: 0; }
+    .image-item .img-name-input { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
+    .image-item .img-name-input:focus { border-color: #D70C1F; }
+
+    /* 场景列表 */
+    .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s; position: relative; }
     .scene-card:hover { transform: translateY(-4px); }
     .scene-card.selected { border: 2px solid #D70C1F; }
     .scene-cover { width: 100%; height: 120px; object-fit: cover; }
+    .scene-img-count { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.5); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; z-index: 10; }
     .scene-info { padding: 12px; }
     .scene-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
-    .scene-hotspots { font-size: 12px; color: #999; }
+    .scene-hotspots { font-size: 12px; color: #999; margin-bottom: 8px; }
+    .scene-actions { display: flex; gap: 4px; }
+    .scene-btn { flex: 1; padding: 4px 8px; font-size: 11px; border-radius: 4px; border: none; cursor: pointer; }
+    .scene-btn.select { background: #e8f0fe; color: #1967d2; }
+    .scene-btn.edit { background: #f5f5f5; color: #666; }
+    .scene-btn.delete { background: #fff5f5; color: #D70C1F; }
 
-    /* ── 热区编辑区域 ── */
+    /* 图片切换器 */
+    .img-switcher { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .img-switch-item { padding: 6px 14px; border-radius: 8px; font-size: 13px; background: #f5f5f5; border: 1px solid #ddd; cursor: pointer; transition: all .2s; }
+    .img-switch-item:hover { border-color: #D70C1F; }
+    .img-switch-item.active { background: #D70C1F; color: #fff; border-color: #D70C1F; }
+
+    /* 热区编辑 */
     .hotspot-editor { position: relative; background: #f9f9f9; border-radius: 12px; overflow: hidden; }
     .editor-image { display: block; max-width: 100%; height: auto; }
     .hotspot-box { position: absolute; border: 2px dashed #D70C1F; background: rgba(215, 12, 31, 0.1); cursor: pointer; z-index: 10; }
     .hotspot-box:hover { border-style: solid; background: rgba(215, 12, 31, 0.15); }
     .hotspot-box.selected { border-style: solid; background: rgba(215, 12, 31, 0.2); box-shadow: 0 0 0 3px rgba(215, 12, 31, 0.3); }
     .hotspot-box.drawing { border-style: solid; border-color: #20C997; background: rgba(32, 201, 151, 0.2); }
-    .hotspot-box-label { position: absolute; bottom: -20px; left: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .hotspot-box-label { position: absolute; bottom: -20px; left: 0; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
 
-    /* ── 热区列表 ── */
     .hotspot-list { margin-top: 8px; }
     .hotspot-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; }
     .hi-info { flex: 1; }
@@ -76,24 +100,22 @@
     .hi-btn.edit { background: #f5f5f5; color: #666; }
     .hi-btn.delete { background: #fff5f5; color: #D70C1F; }
 
-    /* ── 模态框 ── */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    /* 模态框 */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-overlay.show { display: flex; }
-    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
     .modal-title { font-size: 16px; font-weight: 600; }
-    .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .modal-close svg { width: 14px; height: 14px; color: #666; }
+    .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #666; }
+    .modal-close:hover { background: #e8e8e8; }
     .modal-body { padding: 20px; }
     .modal-footer { padding: 16px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; }
 
-    /* ── 空状态 ── */
     .empty-state { padding: 60px 0; text-align: center; }
     .empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .empty-icon svg { width: 32px; height: 32px; color: #ccc; }
     .empty-text { font-size: 14px; color: #999; }
 
-    /* ── 提示信息 ── */
     .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: slideIn 0.3s ease; }
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
@@ -101,19 +123,14 @@
   </style>
 </head>
 <body>
-  <!-- 顶部导航 -->
   <div class="header">
     <div class="header-title">元宇宙商城 - 后台管理</div>
     <div class="header-user">管理员</div>
   </div>
-
-  <!-- 主布局 -->
   <div class="main-container">
-    <!-- 左侧菜单 -->
-        <div class="sidebar">
+    <div class="sidebar">
       <div class="sidebar-group-title">元宇宙管理</div>
-      <div class="sidebar-item" onclick="navigateTo('scene-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>场景管理</div>
-      <div class="sidebar-item active" onclick="navigateTo('hotspot-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>热区标注</div>
+      <div class="sidebar-item active" onclick="navigateTo('hotspot-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>场景和热区</div>
       <div class="sidebar-item" onclick="navigateTo('path-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 19 19 12 12 5 5 12"/><circle cx="12" cy="12" r="3"/></svg>跳转路径</div>
       <div class="sidebar-item" onclick="navigateTo('space-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>商家元宇宙空间管理</div>
       <div class="sidebar-item" onclick="navigateTo('role-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>角色管理</div>
@@ -130,71 +147,133 @@
       <div class="sidebar-item" onclick="navigateTo('wallet-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>钱包管理</div>
     </div>
 
-    <!-- 右侧内容区 -->
     <div class="content">
       <div class="content-header">
-        <div class="content-title">热区标注</div>
+        <div class="content-title">场景与热区管理</div>
+        <button class="btn btn-primary" onclick="openUploadSceneModal()">+ 上传场景</button>
       </div>
 
+      <!-- ====== 场景列表 ====== -->
       <div class="card">
-        <div class="card-title">选择场景</div>
-        <div class="scene-list" id="hotspotSceneList">
-          <!-- 场景卡片将通过JS渲染 -->
+        <div class="card-title"><span>场景列表</span></div>
+        <div class="scene-list" id="hotspotSceneList"></div>
+        <div class="empty-state" id="emptyScenes" style="display:none">
+          <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <div class="empty-text">暂无场景，请上传场景图片</div>
         </div>
       </div>
 
+      <!-- ====== 热区编辑 ====== -->
       <div class="card">
         <div class="card-title">热区编辑</div>
+        <div class="img-switcher" id="imgSwitcher" style="display:none"></div>
         <div class="hotspot-editor" id="hotspotEditor" style="display: none;">
           <img class="editor-image" id="editorImage" src="" alt="场景图片">
-          <!-- 热区标记将通过JS渲染 -->
         </div>
         <div class="empty-state" id="emptyHotspot">
-          <div class="empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
-          </div>
-          <div class="empty-text">请先选择一个场景进行热区编辑</div>
+          <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></div>
+          <div class="empty-text">请先选择一个场景的图片进行热区编辑</div>
         </div>
       </div>
 
+      <!-- ====== 热区列表 ====== -->
       <div class="card">
         <div class="card-title">热区列表</div>
-        <div class="hotspot-list" id="hotspotList">
-          <!-- 热区列表将通过JS渲染 -->
-        </div>
+        <div class="hotspot-list" id="hotspotList"></div>
         <div class="empty-state" id="emptyHotspotList" style="display: none;">
-          <div class="empty-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
-          </div>
+          <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg></div>
           <div class="empty-text">暂无热区，请在图片上拖拽绘制热区</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 热区编辑弹窗 -->
+  <!-- ====== 上传场景弹窗 ====== -->
+  <div class="modal-overlay" id="uploadSceneModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">上传场景</div>
+        <div class="modal-close" onclick="closeUploadSceneModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">场景名称</label>
+          <input class="form-input" id="newSceneName" placeholder="输入场景名称">
+        </div>
+        <div class="form-group">
+          <label class="form-label">场景描述</label>
+          <textarea class="form-textarea" id="newSceneDesc" placeholder="输入场景描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">场景图片（可多次添加，每张命名后方便跳转设置）</label>
+          <div class="upload-area" onclick="document.getElementById('newSceneImgUpload').click()">
+            <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="upload-text">点击添加图片</div>
+            <div class="upload-hint">可多次点击添加多张，每张可单独命名</div>
+          </div>
+          <input type="file" id="newSceneImgUpload" accept="image/*" onchange="addNewSceneImage()" style="display:none">
+          <div class="image-list" id="newImageList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeUploadSceneModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveNewScene()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 编辑场景弹窗 ====== -->
+  <div class="modal-overlay" id="editSceneModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">编辑场景</div>
+        <div class="modal-close" onclick="closeEditSceneModal()">✕</div>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editSceneId">
+        <div class="form-group">
+          <label class="form-label">场景名称</label>
+          <input class="form-input" id="editSceneName" placeholder="输入场景名称">
+        </div>
+        <div class="form-group">
+          <label class="form-label">场景描述</label>
+          <textarea class="form-textarea" id="editSceneDesc" placeholder="输入场景描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">图片管理（可增删，每张需命名）</label>
+          <div class="image-list" id="editImageList"></div>
+          <div class="upload-area" onclick="document.getElementById('editSceneImgUpload').click()" style="margin-top:10px">
+            <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+            <div class="upload-text">+ 添加更多图片</div>
+          </div>
+          <input type="file" id="editSceneImgUpload" accept="image/*" onchange="addEditSceneImage()" style="display:none">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeEditSceneModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveEditScene()">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 热区编辑弹窗 ====== -->
   <div class="modal-overlay" id="hotspotEditModal">
     <div class="modal-box">
       <div class="modal-header">
         <div class="modal-title" id="hotspotModalTitle">编辑热区</div>
-        <div class="modal-close" onclick="closeHotspotModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </div>
+        <div class="modal-close" onclick="closeHotspotModal()">✕</div>
       </div>
       <div class="modal-body">
         <input type="hidden" id="hotspotEditId">
         <div class="form-group">
           <label class="form-label">关联类型</label>
           <select class="form-select" id="hotspotEditType" onchange="onTargetTypeChange()">
-            <option value="">不关联</option>
-            <option value="merchant">商家</option>
-            <option value="element">元素</option>
+            <option value="">不关联</option><option value="merchant">商家</option><option value="element">元素</option>
           </select>
         </div>
         <div class="form-group" id="targetGroup" style="display:none">
           <label class="form-label">关联目标</label>
-          <select class="form-select" id="hotspotEditTarget" onchange="onTargetSelectChange()">
-          </select>
+          <select class="form-select" id="hotspotEditTarget" onchange="onTargetSelectChange()"></select>
         </div>
         <div class="form-group">
           <label class="form-label">热区名称</label>
@@ -203,425 +282,300 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-default" onclick="deleteHotspotFromModal()" style="background:#fff5f5;color:#D70C1F;border-color:#ffcccc">删除热区</button>
-        <button class="btn btn-default" id="redrawHotspotBtn" onclick="redrawHotspot()">重绘</button>
         <button class="btn btn-primary" onclick="saveHotspot()">确认保存</button>
       </div>
     </div>
   </div>
 
   <script>
-    // 场景数据
-    let scenes = [
-      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [] },
-      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [] },
-      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [] }
+    // ── 场景数据 ──
+    var scenes = [
+      { id: 'scene1', name: '食品区', desc: '食品区场景',
+        images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1.png' }], hotspots: [] },
+      { id: 'scene2', name: '文旅区', desc: '文旅区场景',
+        images: [
+          { imgId: 'img_1', name: '文旅区主图', src: '../scene2.png' },
+          { imgId: 'img_2', name: '文旅区副图', src: '../scene1.png' }
+        ], hotspots: [] },
+      { id: 'scene3', name: '影视区', desc: '影视区场景',
+        images: [{ imgId: 'img_1', name: '影视区主图', src: '../scene3.png' }], hotspots: [] }
     ];
 
-    // 商家数据
-    let merchants = [
-      { id: 'm1', name: '贵州茅台', type: 'food', tag: '数字酒庄 · 品牌馆', desc: '茅台酒起源于秦汉' },
-      { id: 'm2', name: '王者荣耀', type: 'ent', tag: '游戏资产 · 数字皮肤', desc: '全球领先的MOBA手游' },
-      { id: 'm3', name: '五粮液', type: 'food', tag: '品牌馆 · 数字珍藏', desc: '中国浓香型白酒代表' },
-      { id: 'm4', name: '妙可蓝多', type: 'food', tag: '新零售 · 品牌馆', desc: '中国领先奶酪品牌' },
-      { id: 'm5', name: '杜甫草堂', type: 'tour', tag: '文旅 · 数字藏品', desc: '唐代大诗人杜甫故居' },
-      { id: 'm6', name: '海底捞', type: 'food', tag: '餐饮 · 会员数字卡', desc: '中国领先餐饮品牌' },
-      { id: 'm7', name: '鬼吹灯', type: 'film', tag: '影视 · 数字资产', desc: '经典盗墓题材IP' },
-      { id: 'm8', name: '三体', type: 'film', tag: '影视 · 数字资产', desc: '刘慈欣科幻巨著IP' }
+    var merchants = [
+      { id: 'm1', name: '贵州茅台', type: 'food' }, { id: 'm2', name: '王者荣耀', type: 'ent' },
+      { id: 'm3', name: '五粮液', type: 'food' }, { id: 'm4', name: '妙可蓝多', type: 'food' },
+      { id: 'm5', name: '杜甫草堂', type: 'tour' }, { id: 'm6', name: '海底捞', type: 'food' },
+      { id: 'm7', name: '鬼吹灯', type: 'film' }, { id: 'm8', name: '三体', type: 'film' }
     ];
 
-    let selectedScene = null;
-    let selectedHotspot = null;
-    let isDrawing = false;
-    let drawStartX = 0;
-    let drawStartY = 0;
-    let drawingBox = null;
+    var selectedScene = null;
+    var currentImgIdx = 0;
+    var selectedHotspot = null;
+    var isDrawing = false, drawStartX = 0, drawStartY = 0, drawingBox = null;
+    var newImages = [], editImages = [];
 
-    // 导航
-    function navigateTo(url) {
-      window.location.href = url;
-    }
+    function navigateTo(url) { window.location.href = url; }
 
-    // 渲染场景列表
-    function renderHotspotSceneList() {
-      const container = document.getElementById('hotspotSceneList');
-      
-      container.innerHTML = scenes.map(scene => `
-        <div class="scene-card ${selectedScene?.id === scene.id ? 'selected' : ''}" onclick="selectSceneForHotspot('${scene.id}')">
-          <img class="scene-cover" src="${scene.image}" alt="${scene.name}">
-          <div class="scene-info">
-            <div class="scene-name">${scene.name}</div>
-            <div class="scene-hotspots">${scene.hotspots.length} 个热区</div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // 选择场景进行热区编辑
-    function selectSceneForHotspot(sceneId) {
-      selectedScene = scenes.find(s => s.id === sceneId);
-      renderHotspotSceneList();
-      renderHotspotEditor();
-      renderHotspotList();
-    }
-
-    // 渲染热区编辑器
-    function renderHotspotEditor() {
-      if (!selectedScene) return;
-      
-      const editor = document.getElementById('hotspotEditor');
-      const emptyState = document.getElementById('emptyHotspot');
-      
-      editor.style.display = 'block';
-      emptyState.style.display = 'none';
-      selectedHotspot = null;
-      
-      document.getElementById('editorImage').src = selectedScene.image;
-      
-      // 清空现有热区
-      const existingBoxes = editor.querySelectorAll('.hotspot-box');
-      existingBoxes.forEach(b => b.remove());
-      
-      // 添加热区框
-      selectedScene.hotspots.forEach(hotspot => {
-        const box = document.createElement('div');
-        box.className = 'hotspot-box';
-        box.style.left = hotspot.x + '%';
-        box.style.top = hotspot.y + '%';
-        box.style.width = (hotspot.width || 80) + 'px';
-        box.style.height = (hotspot.height || 60) + 'px';
-        box.dataset.hotspotId = hotspot.id;
-        box.innerHTML = `<div class="hotspot-box-label">${hotspot.name || '热区'}</div>`;
-        box.onclick = function(e) {
-          e.stopPropagation();
-          editHotspot(hotspot.id);
-        };
-        editor.appendChild(box);
-      });
-      
-      // 设置编辑器事件
-      editor.onmousedown = startDrawing;
-      editor.onmousemove = drawHotspot;
-      editor.onmouseup = finishDrawing;
-      editor.onmouseleave = cancelDrawing;
-      editor.ontouchstart = handleTouchStart;
-      editor.ontouchmove = handleTouchMove;
-      editor.ontouchend = finishDrawing;
-    }
-
-    // 开始绘制热区
-    function startDrawing(e) {
-      if (!selectedScene) return;
-      
-      const target = e.target || e.touches?.[0]?.target;
-      if (target.classList.contains('hotspot-box') || target.classList.contains('hotspot-box-label')) {
-        return;
-      }
-      
-      // 如果已有绘制中的框，先移除
-      if (drawingBox) {
-        drawingBox.remove();
-        drawingBox = null;
-      }
-      
-      isDrawing = true;
-      const editor = document.getElementById('hotspotEditor');
-      const rect = editor.getBoundingClientRect();
-      
-      const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
-      const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
-      
-      drawStartX = ((clientX - rect.left) / rect.width) * 100;
-      drawStartY = ((clientY - rect.top) / rect.height) * 100;
-      
-      // 创建绘制中的热区框
-      drawingBox = document.createElement('div');
-      drawingBox.className = 'hotspot-box drawing';
-      drawingBox.style.left = drawStartX + '%';
-      drawingBox.style.top = drawStartY + '%';
-      drawingBox.style.width = '0px';
-      drawingBox.style.height = '0px';
-      editor.appendChild(drawingBox);
-    }
-
-    // 绘制热区
-    function drawHotspot(e) {
-      if (!isDrawing || !drawingBox || !selectedScene) return;
-      
-      const editor = document.getElementById('hotspotEditor');
-      const rect = editor.getBoundingClientRect();
-      
-      const clientX = e.clientX || e.touches?.[0]?.clientX || 0;
-      const clientY = e.clientY || e.touches?.[0]?.clientY || 0;
-      
-      const currentX = ((clientX - rect.left) / rect.width) * 100;
-      const currentY = ((clientY - rect.top) / rect.height) * 100;
-      
-      // 计算热区位置和大小，确保不超出图片边界
-      const x = Math.min(Math.max(0, Math.min(drawStartX, currentX)), 95);
-      const y = Math.min(Math.max(0, Math.min(drawStartY, currentY)), 90);
-      const width = Math.abs(currentX - drawStartX) * (rect.width / 100);
-      const height = Math.abs(currentY - drawStartY) * (rect.height / 100);
-      
-      drawingBox.style.left = x + '%';
-      drawingBox.style.top = y + '%';
-      drawingBox.style.width = Math.max(20, width) + 'px';
-      drawingBox.style.height = Math.max(20, height) + 'px';
-    }
-
-    // 完成绘制热区
-    function finishDrawing() {
-      if (!isDrawing || !drawingBox) return;
-      
-      isDrawing = false;
-      
-      const width = parseFloat(drawingBox.style.width);
-      const height = parseFloat(drawingBox.style.height);
-      
-      // 如果热区太小则取消
-      if (width < 20 || height < 20) {
-        cancelDrawing();
-        return;
-      }
-      
-      // 保存临时热区数据到弹窗
-      document.getElementById('hotspotEditId').value = '';
-      document.getElementById('hotspotEditType').value = '';
-      document.getElementById('targetGroup').style.display = 'none';
-      document.getElementById('hotspotEditTarget').innerHTML = '';
-      document.getElementById('hotspotEditName').value = '';
-      document.getElementById('hotspotModalTitle').textContent = '创建热区';
-      
-      // 隐藏删除按钮，显示重绘按钮
-      document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = 'none';
-      document.getElementById('redrawHotspotBtn').style.display = '';
-      
-      // 保存临时数据到弹窗元素
-      const modal = document.getElementById('hotspotEditModal');
-      modal.dataset.tempX = drawingBox.style.left;
-      modal.dataset.tempY = drawingBox.style.top;
-      modal.dataset.tempWidth = drawingBox.style.width;
-      modal.dataset.tempHeight = drawingBox.style.height;
-      
-      // 显示弹窗
-      modal.classList.add('show');
-    }
-
-    // 取消绘制
-    function cancelDrawing() {
-      isDrawing = false;
-      
-      if (drawingBox) {
-        drawingBox.remove();
-        drawingBox = null;
-      }
-    }
-
-    // 处理触摸开始
-    function handleTouchStart(e) {
-      e.preventDefault();
-      startDrawing(e);
-    }
-
-    // 处理触摸移动
-    function handleTouchMove(e) {
-      e.preventDefault();
-      drawHotspot(e);
-    }
-
-    // 关联目标选择变化时自动填充名称
-    function onTargetTypeChange() {
-      var type = document.getElementById('hotspotEditType').value;
-      var group = document.getElementById('targetGroup');
-      var sel = document.getElementById('hotspotEditTarget');
-      if (type === 'merchant') {
-        group.style.display = 'block';
-        sel.innerHTML = merchants.map(function(m){ return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join('');
-      } else if (type === 'element') {
-        group.style.display = 'block';
-        sel.innerHTML = '<option value="start_position">人物起始位置</option>';
-      } else {
-        group.style.display = 'none';
-        sel.innerHTML = '';
-      }
-      onTargetSelectChange();
-    }
-
-    function onTargetSelectChange() {
-      var type = document.getElementById('hotspotEditType').value;
-      var targetVal = document.getElementById('hotspotEditTarget').value;
-      var nameInput = document.getElementById('hotspotEditName');
-      if (type === 'element' && targetVal === 'start_position') {
-        nameInput.value = '人物起始位置';
-      } else if (type === 'merchant' && targetVal) {
-        var found = merchants.find(function(m){ return 'm_' + m.id === targetVal; });
-        if (found) nameInput.value = found.name;
-      }
-    }
-
-    // 编辑热区
-    function editHotspot(hotspotId) {
-      const hotspot = selectedScene.hotspots.find(h => h.id === hotspotId);
-      if (!hotspot) return;
-      
-      document.getElementById('hotspotEditId').value = hotspot.id;
-      document.getElementById('hotspotEditName').value = hotspot.name || '';
-      document.getElementById('hotspotModalTitle').textContent = '编辑热区';
-      
-      // 根据已有 merchantId 回填二级联动
-      var mid = hotspot.merchantId || '';
-      if (mid === 'start_position') {
-        document.getElementById('hotspotEditType').value = 'element';
-        document.getElementById('targetGroup').style.display = 'block';
-        document.getElementById('hotspotEditTarget').innerHTML = '<option value="start_position">人物起始位置</option>';
-        document.getElementById('hotspotEditTarget').value = 'start_position';
-      } else if (mid) {
-        document.getElementById('hotspotEditType').value = 'merchant';
-        document.getElementById('targetGroup').style.display = 'block';
-        var sel = document.getElementById('hotspotEditTarget');
-        sel.innerHTML = merchants.map(function(m){ return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join('');
-        sel.value = 'm_' + mid;
-      } else {
-        document.getElementById('hotspotEditType').value = '';
-        document.getElementById('targetGroup').style.display = 'none';
-      }
-      
-      // 显示删除按钮，隐藏重绘按钮
-      document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = '';
-      document.getElementById('redrawHotspotBtn').style.display = 'none';
-      
-      document.getElementById('hotspotEditModal').classList.add('show');
-    }
-
-    // 渲染热区列表
-    function renderHotspotList() {
-      if (!selectedScene) return;
-      
-      const container = document.getElementById('hotspotList');
-      const emptyState = document.getElementById('emptyHotspotList');
-      
-      if (selectedScene.hotspots.length === 0) {
-        container.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-      }
-      
-      emptyState.style.display = 'none';
-      container.innerHTML = selectedScene.hotspots.map(hotspot => {
-        const isStartPosition = hotspot.merchantId === 'start_position';
-        const merchant = !isStartPosition ? merchants.find(m => m.id === hotspot.merchantId) : null;
-        const merchantName = isStartPosition ? '人物起始位置' : (merchant?.name || '未关联');
-        return `
-          <div class="hotspot-item">
-            <div class="hi-info">
-              <div class="hi-name">${hotspot.name || '未命名热区'}</div>
-              <div class="hi-merchant">${merchantName}</div>
-              <div class="hi-pos">位置: ${Math.round(hotspot.x)}%, ${Math.round(hotspot.y)}% · 大小: ${hotspot.width || 80}×${hotspot.height || 60}</div>
-            </div>
-            <div class="hi-actions">
-              <button class="hi-btn edit" onclick="editHotspot('${hotspot.id}')">编辑</button>
-              <button class="hi-btn delete" onclick="deleteHotspotItem('${hotspot.id}')">删除</button>
-            </div>
-          </div>
-        `;
+    // ═══════ 场景列表渲染 ═══════
+    function renderSceneList() {
+      var container = document.getElementById('hotspotSceneList');
+      var empty = document.getElementById('emptyScenes');
+      if (scenes.length === 0) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      container.innerHTML = scenes.map(function(s) {
+        var cover = (s.images && s.images.length) ? s.images[0].src : '';
+        var count = (s.images && s.images.length > 1) ? s.images.length : 0;
+        return '<div class="scene-card' + (selectedScene && selectedScene.id === s.id ? ' selected' : '') + '">' +
+          (count > 0 ? '<div class="scene-img-count">' + count + '张</div>' : '') +
+          '<img class="scene-cover" src="' + cover + '" alt="' + s.name + '" onclick="selectSceneForHotspot(\'' + s.id + '\')">' +
+          '<div class="scene-info">' +
+          '<div class="scene-name">' + s.name + '</div>' +
+          '<div class="scene-hotspots">' + (s.hotspots || []).length + ' 个热区 | ' + (s.images || []).length + ' 张图</div>' +
+          '<div class="scene-actions">' +
+          '<button class="scene-btn select" onclick="event.stopPropagation();selectSceneForHotspot(\'' + s.id + '\')">标注</button>' +
+          '<button class="scene-btn edit" onclick="event.stopPropagation();editScene(\'' + s.id + '\')">编辑</button>' +
+          '<button class="scene-btn delete" onclick="event.stopPropagation();deleteScene(\'' + s.id + '\')">删除</button>' +
+          '</div></div></div>';
       }).join('');
     }
 
-    // 更新商家选择下拉框
-    function updateHotspotEditMerchantSelect() {
-      // 不再需要（已改为二级联动，在 onTargetTypeChange 中动态填充）
+    // ═══════ 场景管理 CRUD ═══════
+    var uploadingImages = [];
+    function openUploadSceneModal() {
+      document.getElementById('newSceneName').value = '';
+      document.getElementById('newSceneDesc').value = '';
+      newImages = [];
+      renderNewImageList();
+      document.getElementById('newSceneImgUpload').value = '';
+      document.getElementById('uploadSceneModal').classList.add('show');
+    }
+    function closeUploadSceneModal() { document.getElementById('uploadSceneModal').classList.remove('show'); }
+    function addNewSceneImage() {
+      var f = document.getElementById('newSceneImgUpload').files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) { newImages.push({ imgId: 'img_' + Date.now(), name: f.name.replace(/\.[^.]+$/, ''), src: e.target.result }); renderNewImageList(); };
+      r.readAsDataURL(f);
+      document.getElementById('newSceneImgUpload').value = '';
+    }
+    function removeNewImage(idx) { newImages.splice(idx, 1); renderNewImageList(); }
+    function renderNewImageList() {
+      var el = document.getElementById('newImageList');
+      el.innerHTML = newImages.length === 0 ? '' : newImages.map(function(img, i) {
+        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="newImages[' + i + '].name=this.value"></div><button class="btn-danger-sm" onclick="removeNewImage(' + i + ')">删除</button></div>';
+      }).join('');
+    }
+    function saveNewScene() {
+      var n = document.getElementById('newSceneName').value.trim();
+      if (!n) { showToast('请输入名称', 'error'); return; }
+      if (newImages.length === 0) { showToast('请至少上传一张图', 'error'); return; }
+      scenes.push({ id: 'scene' + Date.now(), name: n, desc: document.getElementById('newSceneDesc').value.trim() || '暂无描述', images: newImages.slice(), hotspots: [] });
+      showToast('场景创建成功', 'success'); closeUploadSceneModal(); renderSceneList();
     }
 
-    // 关闭热区弹窗
-    function closeHotspotModal() {
-      const modal = document.getElementById('hotspotEditModal');
-      modal.classList.remove('show');
-      cancelDrawing();
+    function editScene(id) {
+      var s = scenes.find(function(x) { return x.id === id; }); if (!s) return;
+      document.getElementById('editSceneId').value = id;
+      document.getElementById('editSceneName').value = s.name;
+      document.getElementById('editSceneDesc').value = s.desc;
+      editImages = (s.images || []).map(function(img) { return Object.assign({}, img); });
+      renderEditImageList();
+      document.getElementById('editSceneImgUpload').value = '';
+      document.getElementById('editSceneModal').classList.add('show');
+    }
+    function closeEditSceneModal() { document.getElementById('editSceneModal').classList.remove('show'); }
+    function addEditSceneImage() {
+      var f = document.getElementById('editSceneImgUpload').files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) { editImages.push({ imgId: 'img_' + Date.now(), name: f.name.replace(/\.[^.]+$/, ''), src: e.target.result }); renderEditImageList(); };
+      r.readAsDataURL(f);
+      document.getElementById('editSceneImgUpload').value = '';
+    }
+    function removeEditImage(idx) { editImages.splice(idx, 1); renderEditImageList(); }
+    function renderEditImageList() {
+      var el = document.getElementById('editImageList');
+      el.innerHTML = editImages.length === 0 ? '<div style="color:#999;font-size:13px;padding:10px">暂无图片</div>' : editImages.map(function(img, i) {
+        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="editImages[' + i + '].name=this.value"></div><button class="btn-danger-sm" onclick="removeEditImage(' + i + ')">删除</button></div>';
+      }).join('');
+    }
+    function saveEditScene() {
+      var id = document.getElementById('editSceneId').value;
+      var n = document.getElementById('editSceneName').value.trim();
+      if (!n) { showToast('请输入名称', 'error'); return; }
+      if (editImages.length === 0) { showToast('至少保留一张图', 'error'); return; }
+      var s = scenes.find(function(x) { return x.id === id; });
+      if (s) { s.name = n; s.desc = document.getElementById('editSceneDesc').value.trim() || '暂无描述'; s.images = editImages.slice(); }
+      if (selectedScene && selectedScene.id === id) { currentImgIdx = 0; renderImageSwitcher(); renderHotspotEditor(); }
+      showToast('修改成功', 'success'); closeEditSceneModal(); renderSceneList();
+    }
+    function deleteScene(id) {
+      if (!confirm('确定删除该场景？热区数据也将清除。')) return;
+      scenes = scenes.filter(function(s) { return s.id !== id; });
+      if (selectedScene && selectedScene.id === id) { selectedScene = null; document.getElementById('hotspotEditor').style.display = 'none'; document.getElementById('emptyHotspot').style.display = 'block'; document.getElementById('imgSwitcher').style.display = 'none'; renderHotspotList(); }
+      showToast('已删除', 'success'); renderSceneList();
+    }
+
+    // ═══════ 热区编辑 ═══════
+    function selectSceneForHotspot(sceneId) {
+      selectedScene = scenes.find(function(s) { return s.id === sceneId; });
+      currentImgIdx = 0;
+      renderSceneList();
+      renderImageSwitcher();
       renderHotspotEditor();
       renderHotspotList();
     }
+    function switchEditImage(idx) { if (!selectedScene) return; currentImgIdx = idx; renderImageSwitcher(); renderHotspotEditor(); }
+    function renderImageSwitcher() {
+      var sw = document.getElementById('imgSwitcher');
+      if (!selectedScene || !selectedScene.images || selectedScene.images.length <= 1) { sw.style.display = 'none'; return; }
+      sw.style.display = 'flex';
+      sw.innerHTML = selectedScene.images.map(function(img, i) {
+        return '<div class="img-switch-item' + (i === currentImgIdx ? ' active' : '') + '" onclick="switchEditImage(' + i + ')">' + img.name + '</div>';
+      }).join('');
+    }
+    function renderHotspotEditor() {
+      if (!selectedScene) return;
+      var editor = document.getElementById('hotspotEditor');
+      var empty = document.getElementById('emptyHotspot');
+      var img = (selectedScene.images && selectedScene.images.length) ? selectedScene.images[currentImgIdx].src : '';
+      editor.style.display = 'block'; empty.style.display = 'none';
+      document.getElementById('editorImage').src = img;
+      selectedHotspot = null;
+      editor.querySelectorAll('.hotspot-box').forEach(function(b) { b.remove(); });
+      (selectedScene.hotspots || []).forEach(function(hotspot) {
+        var box = document.createElement('div');
+        box.className = 'hotspot-box';
+        box.style.left = hotspot.x + '%'; box.style.top = hotspot.y + '%';
+        box.style.width = (hotspot.width || 80) + 'px'; box.style.height = (hotspot.height || 60) + 'px';
+        box.dataset.hotspotId = hotspot.id;
+        box.innerHTML = '<div class="hotspot-box-label">' + (hotspot.name || '热区') + '</div>';
+        box.onclick = function(e) { e.stopPropagation(); editHotspot(hotspot.id); };
+        editor.appendChild(box);
+      });
+      editor.onmousedown = startDrawing; editor.onmousemove = drawHotspot; editor.onmouseup = finishDrawing; editor.onmouseleave = cancelDrawing;
+      editor.ontouchstart = handleTouchStart; editor.ontouchmove = handleTouchMove; editor.ontouchend = finishDrawing;
+    }
 
-    // 保存热区
+    function startDrawing(e) {
+      if (!selectedScene) return;
+      var t = e.target;
+      if (t.classList.contains('hotspot-box') || t.classList.contains('hotspot-box-label')) return;
+      if (drawingBox) { drawingBox.remove(); drawingBox = null; }
+      isDrawing = true;
+      var rect = document.getElementById('hotspotEditor').getBoundingClientRect();
+      var cx = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      var cy = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      drawStartX = ((cx - rect.left) / rect.width) * 100;
+      drawStartY = ((cy - rect.top) / rect.height) * 100;
+      drawingBox = document.createElement('div'); drawingBox.className = 'hotspot-box drawing';
+      drawingBox.style.left = drawStartX + '%'; drawingBox.style.top = drawStartY + '%';
+      drawingBox.style.width = '0px'; drawingBox.style.height = '0px';
+      document.getElementById('hotspotEditor').appendChild(drawingBox);
+    }
+    function drawHotspot(e) {
+      if (!isDrawing || !drawingBox || !selectedScene) return;
+      var rect = document.getElementById('hotspotEditor').getBoundingClientRect();
+      var cx = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      var cy = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      var curX = ((cx - rect.left) / rect.width) * 100, curY = ((cy - rect.top) / rect.height) * 100;
+      var x = Math.min(Math.max(0, Math.min(drawStartX, curX)), 95);
+      var y = Math.min(Math.max(0, Math.min(drawStartY, curY)), 90);
+      drawingBox.style.left = x + '%'; drawingBox.style.top = y + '%';
+      drawingBox.style.width = Math.max(20, Math.abs(curX - drawStartX) * (rect.width / 100)) + 'px';
+      drawingBox.style.height = Math.max(20, Math.abs(curY - drawStartY) * (rect.height / 100)) + 'px';
+    }
+    function finishDrawing() {
+      if (!isDrawing || !drawingBox) return; isDrawing = false;
+      var w = parseFloat(drawingBox.style.width), h = parseFloat(drawingBox.style.height);
+      if (w < 20 || h < 20) { cancelDrawing(); return; }
+      document.getElementById('hotspotEditId').value = '';
+      document.getElementById('hotspotEditType').value = ''; document.getElementById('targetGroup').style.display = 'none';
+      document.getElementById('hotspotEditTarget').innerHTML = ''; document.getElementById('hotspotEditName').value = '';
+      document.getElementById('hotspotModalTitle').textContent = '创建热区';
+      document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = 'none';
+      var modal = document.getElementById('hotspotEditModal');
+      modal.dataset.tempX = drawingBox.style.left; modal.dataset.tempY = drawingBox.style.top;
+      modal.dataset.tempWidth = drawingBox.style.width; modal.dataset.tempHeight = drawingBox.style.height;
+      modal.classList.add('show');
+    }
+    function cancelDrawing() { isDrawing = false; if (drawingBox) { drawingBox.remove(); drawingBox = null; } }
+    function handleTouchStart(e) { e.preventDefault(); startDrawing(e); }
+    function handleTouchMove(e) { e.preventDefault(); drawHotspot(e); }
+    function onTargetTypeChange() {
+      var type = document.getElementById('hotspotEditType').value;
+      var group = document.getElementById('targetGroup'), sel = document.getElementById('hotspotEditTarget');
+      if (type === 'merchant') { group.style.display = 'block'; sel.innerHTML = merchants.map(function(m) { return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join(''); }
+      else if (type === 'element') { group.style.display = 'block'; sel.innerHTML = '<option value="start_position">人物起始位置</option>'; }
+      else { group.style.display = 'none'; sel.innerHTML = ''; }
+      onTargetSelectChange();
+    }
+    function onTargetSelectChange() {
+      var type = document.getElementById('hotspotEditType').value, targetVal = document.getElementById('hotspotEditTarget').value;
+      var nameInput = document.getElementById('hotspotEditName');
+      if (type === 'element' && targetVal === 'start_position') nameInput.value = '人物起始位置';
+      else if (type === 'merchant' && targetVal) { var found = merchants.find(function(m) { return 'm_' + m.id === targetVal; }); if (found) nameInput.value = found.name; }
+    }
+    function editHotspot(hotspotId) {
+      var hotspot = selectedScene.hotspots.find(function(h) { return h.id === hotspotId; });
+      if (!hotspot) return;
+      document.getElementById('hotspotEditId').value = hotspot.id;
+      document.getElementById('hotspotEditName').value = hotspot.name || '';
+      document.getElementById('hotspotModalTitle').textContent = '编辑热区';
+      var mid = hotspot.merchantId || '';
+      if (mid === 'start_position') { document.getElementById('hotspotEditType').value = 'element'; document.getElementById('targetGroup').style.display = 'block'; document.getElementById('hotspotEditTarget').innerHTML = '<option value="start_position">人物起始位置</option>'; document.getElementById('hotspotEditTarget').value = 'start_position'; }
+      else if (mid) { document.getElementById('hotspotEditType').value = 'merchant'; document.getElementById('targetGroup').style.display = 'block'; document.getElementById('hotspotEditTarget').innerHTML = merchants.map(function(m) { return '<option value="m_' + m.id + '">' + m.name + '</option>'; }).join(''); document.getElementById('hotspotEditTarget').value = 'm_' + mid; }
+      else { document.getElementById('hotspotEditType').value = ''; document.getElementById('targetGroup').style.display = 'none'; }
+      document.getElementById('hotspotEditModal').querySelector('[onclick="deleteHotspotFromModal()"]').style.display = '';
+      document.getElementById('hotspotEditModal').classList.add('show');
+    }
+    function closeHotspotModal() { document.getElementById('hotspotEditModal').classList.remove('show'); cancelDrawing(); renderHotspotEditor(); renderHotspotList(); }
     function saveHotspot() {
-      const modal = document.getElementById('hotspotEditModal');
-      const editId = document.getElementById('hotspotEditId').value;
+      var modal = document.getElementById('hotspotEditModal');
+      var editId = document.getElementById('hotspotEditId').value;
       var type = document.getElementById('hotspotEditType').value;
       var targetVal = document.getElementById('hotspotEditTarget').value;
-      // 去掉 m_ 前缀，保持与 merchants 数组 id 一致
       var merchantId = type ? (targetVal === 'start_position' ? targetVal : targetVal.replace('m_', '')) : '';
-      const name = document.getElementById('hotspotEditName').value.trim();
-      
-      if (!name) {
-        showToast('请输入热区名称', 'error');
-        return;
-      }
-      
+      var name = document.getElementById('hotspotEditName').value.trim();
+      if (!name) { showToast('请输入热区名称', 'error'); return; }
       if (editId) {
-        // 编辑现有热区
-        const hotspot = selectedScene.hotspots.find(h => h.id === editId);
-        if (hotspot) {
-          hotspot.merchantId = merchantId;
-          hotspot.name = name;
-        }
+        var h = selectedScene.hotspots.find(function(x) { return x.id === editId; });
+        if (h) { h.merchantId = merchantId; h.name = name; }
         showToast('热区已更新', 'success');
       } else {
-        // 创建新热区
-        const x = parseFloat(modal.dataset.tempX);
-        const y = parseFloat(modal.dataset.tempY);
-        const width = parseFloat(modal.dataset.tempWidth);
-        const height = parseFloat(modal.dataset.tempHeight);
-        
-        const hotspot = {
-          id: 'h' + Date.now(),
-          x: Math.round(x * 10) / 10,
-          y: Math.round(y * 10) / 10,
-          width: Math.round(width),
-          height: Math.round(height),
-          merchantId: merchantId,
-          name: name
-        };
-        
-        selectedScene.hotspots.push(hotspot);
+        var x = parseFloat(modal.dataset.tempX), y = parseFloat(modal.dataset.tempY);
+        var w = parseFloat(modal.dataset.tempWidth), ht = parseFloat(modal.dataset.tempHeight);
+        selectedScene.hotspots.push({ id: 'h' + Date.now(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, width: Math.round(w), height: Math.round(ht), merchantId: merchantId, name: name });
         showToast('热区已添加', 'success');
       }
-      
       closeHotspotModal();
     }
-
-    // 从弹窗中删除热区
     function deleteHotspotFromModal() {
-      const editId = document.getElementById('hotspotEditId').value;
-      if (!editId) return;
-      if (confirm('确定要删除这个热区吗？')) {
-        selectedScene.hotspots = selectedScene.hotspots.filter(h => h.id !== editId);
-        closeHotspotModal();
-        showToast('热区已删除', 'success');
-      }
+      var id = document.getElementById('hotspotEditId').value;
+      if (!id) return;
+      if (confirm('确定删除该热区？')) { selectedScene.hotspots = selectedScene.hotspots.filter(function(h) { return h.id !== id; }); closeHotspotModal(); showToast('已删除', 'success'); }
     }
-
-    // 从列表中删除热区
     function deleteHotspotItem(hotspotId) {
-      if (confirm('确定要删除这个热区吗？')) {
-        selectedScene.hotspots = selectedScene.hotspots.filter(h => h.id !== hotspotId);
-        renderHotspotEditor();
-        renderHotspotList();
-        showToast('热区已删除', 'success');
-      }
+      if (confirm('确定删除该热区？')) { selectedScene.hotspots = selectedScene.hotspots.filter(function(h) { return h.id !== hotspotId; }); renderHotspotEditor(); renderHotspotList(); showToast('已删除', 'success'); }
+    }
+    function renderHotspotList() {
+      var container = document.getElementById('hotspotList');
+      var empty = document.getElementById('emptyHotspotList');
+      if (!selectedScene || selectedScene.hotspots.length === 0) { container.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      container.innerHTML = selectedScene.hotspots.map(function(hotspot) {
+        var isStart = hotspot.merchantId === 'start_position';
+        var m = !isStart ? merchants.find(function(x) { return x.id === hotspot.merchantId; }) : null;
+        return '<div class="hotspot-item"><div class="hi-info"><div class="hi-name">' + (hotspot.name || '未命名') + '</div><div class="hi-merchant">' + (isStart ? '人物起始位置' : (m ? m.name : '未关联')) + '</div><div class="hi-pos">' + Math.round(hotspot.x) + '%,' + Math.round(hotspot.y) + '% | ' + (hotspot.width || 80) + '×' + (hotspot.height || 60) + '</div></div><div class="hi-actions"><button class="hi-btn edit" onclick="editHotspot(\'' + hotspot.id + '\')">编辑</button><button class="hi-btn delete" onclick="deleteHotspotItem(\'' + hotspot.id + '\')">删除</button></div></div>';
+      }).join('');
     }
 
-    // 显示提示
-    function showToast(message, type) {
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + type;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 2000);
+    function showToast(msg, type) {
+      var t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg;
+      document.body.appendChild(t); setTimeout(function() { t.remove(); }, 2000);
     }
 
-    // 页面加载完成后渲染场景列表
-    document.addEventListener('DOMContentLoaded', renderHotspotSceneList);
+    document.addEventListener('DOMContentLoaded', renderSceneList);
   </script>
 </body>
 </html>
