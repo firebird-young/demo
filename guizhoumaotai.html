@@ -11,6 +11,9 @@
     display:flex;justify-content:center;align-items:center;
     min-height:100vh;overflow:hidden;user-select:none;
   }
+  .phone-wrap{
+    display:flex;flex-direction:column;align-items:center;
+  }
   .phone{
     position:relative;width:860px;height:430px;
     border-radius:36px;background:#1a1a2e;padding:12px;
@@ -22,11 +25,31 @@
     position:relative;width:100%;height:100%;border-radius:24px;
     overflow:hidden;background:#000;
   }
-  .screen::before{
-    content:'';position:absolute;inset:0;
-    background:url('茅台空间.png')center/cover no-repeat;
-    z-index:0;
+
+  /* ── 场景图层 ── */
+  .scene-layer{
+    position:absolute;inset:0;z-index:0;
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+    transition:opacity .7s ease,transform .7s ease;
   }
+  .scene-layer.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+
+  /* ── 场景切换箭头 ── */
+  .scene-arrow{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    z-index:55;cursor:pointer;pointer-events:auto;
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.15);
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+    transition:transform .25s,right .25s;
+  }
+  .scene-arrow:hover{transform:translateY(-50%) scale(1.1);background:rgba(0,0,0,.6)}
+  .scene-arrow:active{transform:translateY(-50%) scale(.9)}
+  .scene-arrow img{width:20px;height:auto;display:block}
+  .scene-arrow.rev{right:auto;left:8px}
+  .scene-arrow.rev img{transform:rotate(180deg)}
 
   /* ── 覆盖层 ── */
   .overlay{position:absolute;inset:0;z-index:1;pointer-events:none}
@@ -295,11 +318,28 @@
   .progress-num{font-size:11px;color:#aaa;white-space:nowrap}
   .task-item.done .progress-num{color:#26de81}
   .task-reward{font-size:11px;color:#ffcc66;margin-top:4px}
+
+  /* ── 重置停留奖励按钮 ── */
+  .reset-dwell-btn{
+    display:block;margin:10px auto 0;padding:6px 18px;
+    background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);
+    border:1px solid rgba(255,255,255,.15);border-radius:14px;
+    font-size:11px;cursor:pointer;transition:all .2s;
+    text-align:center;
+  }
+  .reset-dwell-btn:hover{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)}
+  .dwell-count{font-size:10px;color:rgba(255,255,255,.4);text-align:center;margin-top:4px}
 </style>
 </head>
 <body>
+<div class="phone-wrap">
 <div class="phone">
   <div class="screen">
+
+    <!-- 场景图层 -->
+    <div class="scene-layer" id="scene1" style="background-image:url('茅台空间.png')"></div>
+    <div class="scene-layer hidden" id="scene2" style="background-image:url('茅台空间2号.png')"></div>
+
     <div class="overlay">
 
       <!-- 返回按钮 -->
@@ -322,41 +362,60 @@
         <span class="origin-name" id="originName" style="display:none"></span>
       </div>
 
-      <!-- 四个点位 -->
-      <div class="spot" style="left:12%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('vr')">
+      <!-- ===== 场景1 点位 ===== -->
+      <div class="spot" data-scene="1" style="left:12%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('vr')">
         <div class="spot-label">VR云参观</div>
       </div>
-      <div class="spot" style="left:32%;top:60%;transform:translate(-50%,-50%)" onclick="goSpot('assets')">
+      <div class="spot" data-scene="1" style="left:32%;top:60%;transform:translate(-50%,-50%)" onclick="goSpot('assets')">
         <div class="spot-label">数字资产商城</div>
       </div>
-      <div class="spot" style="left:68%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('brew')">
+      <div class="spot" data-scene="1" style="left:68%;top:50%;transform:translate(-50%,-50%)" onclick="goSpot('brew')">
         <div class="spot-label">酿酒工艺演示</div>
       </div>
-      <div class="spot" style="left:88%;top:70%;transform:translate(-50%,-50%)" onclick="goSpot('digital')">
+      <div class="spot" data-scene="1" style="left:88%;top:70%;transform:translate(-50%,-50%)" onclick="goSpot('digital')">
         <div class="spot-label">茅小美·数字人</div>
       </div>
-      <div class="spot" style="left:50%;top:90%;transform:translate(-50%,-50%)" onclick="goSpot('miniapp')">
+      <div class="spot" data-scene="1" style="left:50%;top:90%;transform:translate(-50%,-50%)" onclick="goSpot('miniapp')">
         <div class="spot-label">📱 茅台小程序</div>
       </div>
 
-      <!-- 抽签热点 -->
-      <div class="spot lottery-spot" style="left:20%;top:22%;transform:translate(-50%,-50%)" onclick="startLottery(1)">
+      <!-- 抽签热点（仅场景1） -->
+      <div class="spot lottery-spot" data-scene="1" style="left:20%;top:22%;transform:translate(-50%,-50%)" onclick="startLottery(1)">
         <img class="lottery-img" src="热点1.png" alt="抽签">
       </div>
-      <div class="spot lottery-spot" style="left:45%;top:18%;transform:translate(-50%,-50%)" onclick="startLottery(2)">
+      <div class="spot lottery-spot" data-scene="1" style="left:45%;top:18%;transform:translate(-50%,-50%)" onclick="startLottery(2)">
         <img class="lottery-img" src="热点2.png" alt="抽签">
       </div>
-      <div class="spot lottery-spot" style="left:70%;top:25%;transform:translate(-50%,-50%)" onclick="startLottery(3)">
+      <div class="spot lottery-spot" data-scene="1" style="left:70%;top:25%;transform:translate(-50%,-50%)" onclick="startLottery(3)">
         <img class="lottery-img" src="热点1.png" alt="抽签">
       </div>
-      <div class="spot lottery-spot" style="left:90%;top:15%;transform:translate(-50%,-50%)" onclick="startLottery(4)">
+      <div class="spot lottery-spot" data-scene="1" style="left:90%;top:15%;transform:translate(-50%,-50%)" onclick="startLottery(4)">
         <img class="lottery-img" src="热点2.png" alt="抽签">
+      </div>
+
+      <!-- ===== 场景2 点位 ===== -->
+      <div class="spot" data-scene="2" style="left:25%;top:40%;transform:translate(-50%,-50%);display:none" onclick="goSpot('master')">
+        <div class="spot-label">茅台大师课堂</div>
+      </div>
+      <div class="spot" data-scene="2" style="left:70%;top:50%;transform:translate(-50%,-50%);display:none" onclick="goSpot('river')">
+        <div class="spot-label">赤水河生态馆</div>
+      </div>
+      <div class="spot" data-scene="2" style="left:20%;top:80%;transform:translate(-50%,-50%);display:none" onclick="goSpot('cellar')">
+        <div class="spot-label">数字酒窖</div>
+      </div>
+      <div class="spot" data-scene="2" style="left:80%;top:80%;transform:translate(-50%,-50%);display:none" onclick="goSpot('brewer')">
+        <div class="spot-label">数字酿酒师</div>
       </div>
 
       <!-- 任务中心按钮 -->
       <div class="task-center-btn" id="taskCenterBtn" onclick="openTaskCenter()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span class="task-badge" id="taskBadge" style="display:none">0</span>
+      </div>
+
+      <!-- 场景切换箭头 -->
+      <div class="scene-arrow" id="sceneArrow" onclick="switchScene(currentScene===1?2:1)">
+        <img src="arrow.png" alt="切换场景">
       </div>
 
       <div class="particle-layer" id="particleLayer"></div>
@@ -447,6 +506,12 @@
   </div>
 </div>
 
+<!-- 重置停留奖励按钮（手机框外） -->
+<div class="reset-dwell-btn" onclick="resetDwellReward()">🔄 重置停留时长奖励</div>
+<div class="dwell-count" id="dwellCountLabel">已领取：0/2</div>
+
+</div><!-- /phone-wrap -->
+
 <!-- 抽签弹窗 -->
 <div class="lottery-mask" id="lotteryMask" onclick="closeLottery()">
   <div class="lottery-box" id="lotteryBox" onclick="event.stopPropagation()">
@@ -466,7 +531,49 @@
 <script>
   const origin=document.getElementById('origin');
 
+  // ── 场景切换 ──
+  var currentScene = 1;
+  var sceneTitles = {1:'贵州茅台 · 元宇宙空间', 2:'贵州茅台 · 空间2号'};
+
+  function switchScene(targetId) {
+    if (targetId === currentScene) return;
+    currentScene = targetId;
+    // 显示目标场景，隐藏其他
+    [1,2].forEach(function(id){
+      var el = document.getElementById('scene' + id);
+      if (id === targetId) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+    // 更新场景名称
+    var titleEl = document.querySelector('.scene-title');
+    if (titleEl) {
+      titleEl.innerHTML = '<img src="贵州茅台.jpg" class="title-logo"> ' + (sceneTitles[targetId] || '');
+    }
+    // 显示/隐藏点位（只显示当前场景的点位）
+    document.querySelectorAll('.spot[data-scene]').forEach(function(spot){
+      if (spot.dataset.scene == targetId) {
+        spot.style.display = '';
+      } else {
+        spot.style.display = 'none';
+      }
+    });
+    // 切换箭头方向：场景1箭头朝右，场景2箭头朝左
+    var arrow = document.getElementById('sceneArrow');
+    if (targetId === 2) {
+      arrow.classList.add('rev');
+      arrow.title = '返回场景1';
+    } else {
+      arrow.classList.remove('rev');
+      arrow.title = '切换到场景2';
+    }
+  }
+
   function goSpot(type){
+    // 场景2不允许人物移动
+    if (currentScene === 2) return;
     const spots={
       vr:{left:12,top:50},
       assets:{left:32,top:60},
@@ -526,18 +633,25 @@
   for(let i=0;i<8;i++)setTimeout(spawnParticle,i*400);
 
   // ── 停留奖励 ──
-  var dwellRewarded = false;
+  var dwellCount = 0;
+  var dwellMax = 2;
   var dwellTimer = null;
   var dwellRetryTimer = null;
 
+  function updateDwellLabel(){
+    var el = document.getElementById('dwellCountLabel');
+    if(el) el.textContent = '已领取：' + dwellCount + '/' + dwellMax;
+  }
+
   function startDwellTimer() {
+    if (dwellCount >= dwellMax) return;
     dwellTimer = setTimeout(function() {
       checkDwellReward();
     }, 10000);
   }
 
   function checkDwellReward() {
-    if (dwellRewarded) return;
+    if (dwellCount >= dwellMax) return;
     // 如果弹窗开着，等待 5 秒重试
     if (document.getElementById('lotteryMask').classList.contains('show')) {
       dwellRetryTimer = setTimeout(checkDwellReward, 5000);
@@ -545,10 +659,15 @@
     }
     var hit = Math.random() < 1; // 100% 命中率（演示用）
     if (hit) {
-      dwellRewarded = true;
+      dwellCount++;
+      updateDwellLabel();
       incrTask('t1'); // 任务1：停留奖励进度+1
       document.getElementById('dwellRewardMask').classList.add('show');
       if (lotteryActive) closeLottery();
+      // 未达上限则继续计时
+      if (dwellCount < dwellMax) {
+        startDwellTimer();
+      }
     }
   }
 
@@ -557,6 +676,16 @@
     if (dwellRetryTimer) { clearTimeout(dwellRetryTimer); dwellRetryTimer = null; }
   }
 
+  function resetDwellReward(){
+    dwellCount = 0;
+    if (dwellTimer) clearTimeout(dwellTimer);
+    if (dwellRetryTimer) clearTimeout(dwellRetryTimer);
+    updateDwellLabel();
+    startDwellTimer();
+    toast('停留时长奖励已重置');
+  }
+
+  updateDwellLabel();
   startDwellTimer();
 
   // ── 抽签 ──
@@ -610,7 +739,7 @@
     document.getElementById('lrImg').style.display = 'block';
     document.getElementById('lrImg').src = '';
     // 关闭后尝试触发停留奖励
-    if (!dwellRewarded) { dwellRetryTimer = setTimeout(checkDwellReward, 1000); }
+    if (dwellCount < dwellMax) { dwellRetryTimer = setTimeout(checkDwellReward, 1000); }
   }
 
   // ── 任务中心逻辑 ──
