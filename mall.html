@@ -267,6 +267,22 @@
     50% { transform: translateY(-5px); }
   }
 
+  /* ── 主地图返回标准商城按钮 ── */
+  .mall-back-btn{
+    position:absolute;top:14px;left:14px;z-index:30;
+    pointer-events:auto;cursor:pointer;
+    display:flex;align-items:center;gap:4px;
+    padding:5px 12px;border-radius:16px;
+    background:rgba(0,0,0,.45);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.12);
+    color:#fff;font-size:12px;font-weight:500;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
+    transition:transform .2s;
+  }
+  .mall-back-btn:hover{transform:scale(1.05);background:rgba(0,0,0,.6)}
+  .mall-back-btn:active{transform:scale(.92)}
+  .mall-back-btn svg{width:14px;height:14px;flex-shrink:0}
+
   /* ── 导航弹窗（场景列表） ── */
   .nav-popup {
     position: absolute;
@@ -689,22 +705,20 @@
   <button class="reset-role-btn" id="resetRoleBtn" style="display:none" onclick="resetRole()">🔄 重置角色</button>
   <div class="phone-screen">
 
-    <!-- 场景1 -->
+    <!-- 场景1：元宇宙地图（主入口） -->
     <div class="scene-layer" id="scene1"
-         style="background-image:url('scene1.png')">
+         style="background-image:url('元宇宙地图.png')">
       <div class="scene-overlay" data-scene="1">
-        <div class="scene-title">珍品区</div>
-        <!-- 起点（绝对定位由 JS 设定） -->
-        <!-- 四个商场点位（绝对定位由 JS 设定） -->
-        <!-- 移动光点 -->
+        <div class="scene-title">元宇宙地图</div>
+        <!-- 起点 + 热区点位由 JS 渲染 -->
       </div>
     </div>
 
     <!-- 场景2 -->
     <div class="scene-layer hidden" id="scene2"
-         style="background-image:url('scene2.png')">
+         style="background-image:url('scene1.png')">
       <div class="scene-overlay" data-scene="2">
-        <div class="scene-title">典藏区</div>
+        <div class="scene-title">食品区</div>
       </div>
     </div>
 
@@ -713,6 +727,14 @@
          style="background-image:url('scene3.png')">
       <div class="scene-overlay" data-scene="3">
         <div class="scene-title">影视区</div>
+      </div>
+    </div>
+
+    <!-- 场景4 -->
+    <div class="scene-layer hidden" id="scene4"
+         style="background-image:url('scene2.png')">
+      <div class="scene-overlay" data-scene="4">
+        <div class="scene-title">文旅区</div>
       </div>
     </div>
 
@@ -759,6 +781,16 @@
 // ═══════════════════════════════════════════════════════
 const SCENES = {
   1: {
+    name: '元宇宙地图',
+    origin: { left: 50, top: 80 },
+    spots: [
+      { left: 30, top: 70, label: '食品区', toScene: 2 },
+      { left: 80, top: 20, label: '文旅区', toScene: 4 },
+      { left: 25, top: 20, label: '影视区', toScene: 3 },
+    ],
+    arrows: []
+  },
+  2: {
     name: '食品区',
     origin: { left: 50, top: 80 },
     spots: [
@@ -768,22 +800,7 @@ const SCENES = {
       { left: 80, top: 60, label: '贵州茅台' },
     ],
     arrows: [
-      { to: 2, x: 42, y: 8, rot: -45, cls: 'top-arrow' },
-      { to: 3, x: 58, y: 8, rot: 45,  cls: 'top-arrow' }
-    ]
-  },
-  2: {
-    name: '文旅区',
-    origin: { left: 50, top: 80 },
-    spots: [
-      { left: 20, top: 40, label: '武侯祠' },
-      { left: 30, top: 70, label: '贵州村超' },
-      { left: 50, top: 50, label: '杜甫草堂博物馆'},
-      { left: 75, top: 40, label: '王者荣耀' },
-      { left: 80, top: 70, label: '故宫博物院' },
-    ],
-    arrows: [
-      { to: 3, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
+      { to: 4, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
       { to: 1, x: 50, y: 92, rot: 180, cls: 'bot-arrow' }
     ]
   },
@@ -799,6 +816,21 @@ const SCENES = {
     ],
     arrows: [
       { to: 2, x: 50, y: 8, rot: -90, cls: 'top-arrow' },
+      { to: 1, x: 50, y: 92, rot: 180, cls: 'bot-arrow' }
+    ]
+  },
+  4: {
+    name: '文旅区',
+    origin: { left: 50, top: 80 },
+    spots: [
+      { left: 20, top: 40, label: '武侯祠' },
+      { left: 30, top: 70, label: '贵州村超' },
+      { left: 50, top: 50, label: '杜甫草堂博物馆'},
+      { left: 75, top: 40, label: '王者荣耀' },
+      { left: 80, top: 70, label: '故宫博物院' },
+    ],
+    arrows: [
+      { to: 2, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
       { to: 1, x: 50, y: 92, rot: 180, cls: 'bot-arrow' }
     ]
   },
@@ -955,7 +987,7 @@ function confirmRole() {
   document.getElementById('roleModalOverlay').classList.add('hidden');
   document.getElementById('resetRoleBtn').style.display = 'block';
   // 显示场景1，隐藏其余
-  [1,2,3].forEach(function(id){
+  [1,2,3,4].forEach(function(id){
     var el = document.getElementById('scene' + id);
     if (id === 1) {
       el.style.display = 'block';
@@ -968,8 +1000,7 @@ function confirmRole() {
     }
   });
   // 渲染场景
-  [1,2,3].forEach(function(id){ renderScene(id); });
-  updateNavButtons(1);
+  [1,2,3,4].forEach(function(id){ renderScene(id); });
   // 显示用户信息
   updateSceneUI();
 }
@@ -1017,49 +1048,43 @@ function renderScene(sceneId) {
     spot.style.top  = s.top + '%';
     spot.style.transform = 'translate(-50%,-50%)';
     spot.innerHTML = `<div class="label">${s.label}</div>`;
-    spot.addEventListener('click', () => moveTo(sceneId, i));
+    spot.addEventListener('click', () => {
+      if (s.toScene) {
+        // 直接切换场景（地图热区）
+        var origin = document.getElementById('scene' + sceneId).querySelector('.origin');
+        if (origin && window._moveTimer) clearTimeout(window._moveTimer);
+        if (origin) {
+          origin.style.left = s.left + '%';
+          origin.style.top = (s.top - 16) + '%';
+        }
+        window._moveTimer = setTimeout(function(){ switchScene(s.toScene); }, 1200);
+      } else {
+        moveTo(sceneId, i);
+      }
+    });
     overlay.appendChild(spot);
   });
 
-  // ── 导航按钮 + 场景列表弹窗 ──
+  // ── 主地图左上角"返回标准商城"按钮（仅场景1） ──
+  if (sceneId === 1) {
+    const backBtn = document.createElement('div');
+    backBtn.className = 'mall-back-btn';
+    backBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>标准商城';
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'user-index.html';
+    });
+    overlay.appendChild(backBtn);
+  }
+
+  // ── 右下角导航按钮：非主地图场景点击回到主地图 ──
   const navBtn = document.createElement('div');
   navBtn.className = 'nav-btn';
-  navBtn.innerHTML = `<img src="daohang.png" alt="导航">`;
+  navBtn.title = '回到主地图';
+  navBtn.innerHTML = `<img src="daohang.png" alt="回主地图">`;
+  navBtn.addEventListener('click', () => {
+    if (sceneId !== 1) switchScene(1);
+  });
   overlay.appendChild(navBtn);
-
-  const navPopup = document.createElement('div');
-  navPopup.className = 'nav-popup';
-  navPopup.innerHTML = '<div class="popup-content"></div>';
-  const popupContent = navPopup.querySelector('.popup-content');
-  [1, 2, 3].forEach(id => {
-    const item = document.createElement('div');
-    item.className = 'popup-item' + (id === sceneId ? ' active' : '');
-    item.textContent = SCENES[id].name;
-    item.dataset.scene = id;
-    item.addEventListener('click', () => {
-      navPopup.classList.remove('show');
-      switchScene(id);
-    });
-    popupContent.appendChild(item);
-  });
-  // 分割线 + 数字资产平台入口
-  const divider = document.createElement('div');
-  divider.style.cssText = 'height:1px;background:rgba(255,255,255,.08);margin:4px 12px;';
-  popupContent.appendChild(divider);
-  const platformItem = document.createElement('div');
-  platformItem.className = 'popup-item';
-  platformItem.textContent = '💎 传统商城模式';
-  platformItem.addEventListener('click', () => {
-    navPopup.classList.remove('show');
-    window.location.href = 'user-index.html';
-  });
-  popupContent.appendChild(platformItem);
-  overlay.appendChild(navPopup);
-
-  navBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    navPopup.classList.toggle('show');
-  });
 
   // ── 下一场景按钮（箭头图片） ──
   data.arrows.forEach(function(ar){
@@ -1121,7 +1146,7 @@ function switchScene(targetId) {
   currentScene = targetId;
 
   // 只显示目标场景，其他全部隐藏
-  [1,2,3].forEach(function(id){
+  [1,2,3,4].forEach(function(id){
     var el = document.getElementById('scene' + id);
     if (id === targetId) {
       el.style.display = 'block';
@@ -1136,23 +1161,13 @@ function switchScene(targetId) {
 
   // 渲染目标场景
   renderScene(targetId);
-  updateNavButtons(targetId);
-}
-
-function updateNavButtons(activeId) {
-  document.querySelectorAll('.scene-overlay').forEach(ov => {
-    const items = ov.querySelectorAll('.nav-popup .popup-item');
-    items.forEach(item => {
-      item.classList.toggle('active', parseInt(item.dataset.scene) === activeId);
-    });
-  });
 }
 
 // ═══════════════════════════════════════════════════════
 // 初始渲染（仅已有角色时；无角色由 confirmRole 触发）
 // ═══════════════════════════════════════════════════════
 if (userRole) {
-  [1,2,3].forEach(function(id){
+  [1,2,3,4].forEach(function(id){
     var el = document.getElementById('scene' + id);
     if (id === 1) {
       el.style.display = 'block';
@@ -1164,18 +1179,8 @@ if (userRole) {
       el.classList.add('hidden');
     }
   });
-  [1, 2, 3].forEach(function(id){ renderScene(id); });
-  updateNavButtons(1);
+  [1, 2, 3, 4].forEach(function(id){ renderScene(id); });
 }
-
-// 点击非导航区域关闭所有导航弹窗
-document.addEventListener('click', (e) => {
-  document.querySelectorAll('.nav-popup.show').forEach(p => {
-    if (!e.target.closest('.nav-popup') && !e.target.closest('.nav-btn')) {
-      p.classList.remove('show');
-    }
-  });
-});
 
 // ═══════════════════════════════════════════════════════
 // 在线用户模拟
