@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -8,15 +8,12 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
 
-    /* ── 顶部导航 ── */
     .header { background: linear-gradient(135deg, #D70C1F, #F12B3D); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
     .header-title { font-size: 18px; font-weight: 600; }
     .header-user { font-size: 14px; }
 
-    /* ── 主布局 ── */
     .main-container { display: flex; min-height: calc(100vh - 60px); }
 
-    /* ── 左侧菜单 ── */
     .sidebar { width: 200px; background: #fff; border-right: 1px solid #e8e8e8; padding: 16px 0; }
     .sidebar-group-title { padding: 8px 24px; font-size: 12px; color: #999; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .sidebar-item { padding: 10px 24px 10px 48px; font-size: 14px; color: #666; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -24,7 +21,6 @@
     .sidebar-item.active { background: rgba(215, 12, 31, 0.1); color: #D70C1F; font-weight: 600; }
     .sidebar-item svg { width: 14px; height: 14px; }
 
-    /* ── 右侧内容区 ── */
     .content { flex: 1; padding: 24px; overflow-y: auto; }
     .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .content-title { font-size: 18px; font-weight: 600; color: #1a1a2e; }
@@ -33,61 +29,69 @@
     .btn-primary:hover { background: #c60a1b; }
     .btn-default { background: #fff; color: #666; border: 1px solid #ddd; }
     .btn-default:hover { background: #f5f5f5; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .btn-danger-sm { background: #fff5f5; color: #D70C1F; border: 1px solid #ffcccc; padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+    .btn-danger-sm:hover { background: #ffeaea; }
 
-    /* ── 卡片样式 ── */
     .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a1a2e; }
 
-    /* ── 表单样式 ── */
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; }
     .form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s; }
     .form-input:focus { border-color: #D70C1F; }
     .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; min-height: 80px; resize: vertical; }
 
-    /* ── 图片上传区域 ── */
-    .upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    /* 图片上传区 */
+    .upload-area { border: 2px dashed #ddd; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; }
     .upload-area:hover { border-color: #D70C1F; background: rgba(215, 12, 31, 0.02); }
     .upload-icon { width: 48px; height: 48px; margin: 0 auto 12px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .upload-icon svg { width: 24px; height: 24px; color: #999; }
-    .upload-text { font-size: 14px; color: #666; }
+    .upload-text { font-size: 13px; color: #666; }
     .upload-hint { font-size: 12px; color: #999; margin-top: 4px; }
-    #uploadInput { display: none; }
+    #sceneImgUpload { display: none; }
+    #editImgUpload { display: none; }
 
-    /* ── 场景列表 ── */
-    .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    /* 图片列表管理 */
+    .image-list { margin-top: 10px; }
+    .image-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; }
+    .image-item img { width: 80px; height: 50px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+    .image-item .img-info { flex: 1; min-width: 0; }
+    .image-item .img-name-input { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
+    .image-item .img-name-input:focus { border-color: #D70C1F; }
+
+    /* 场景列表 */
+    .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
     .scene-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; position: relative; }
     .scene-card:hover { transform: translateY(-4px); }
-    .scene-card.is-start { border: 2px solid #D70C1F; }
-    .scene-start-badge { position: absolute; top: 8px; left: 8px; background: #D70C1F; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; z-index: 10; }
     .scene-cover { width: 100%; height: 120px; object-fit: cover; }
+    .scene-img-count { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.5); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; z-index: 10; }
     .scene-info { padding: 12px; }
     .scene-name { font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+    .scene-images { margin: 6px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+    .scene-images img { width: 40px; height: 28px; object-fit: cover; border-radius: 3px; border: 1px solid #eee; }
+    .scene-img-label { font-size: 10px; color: #999; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
     .scene-hotspots { font-size: 12px; color: #999; }
     .scene-actions { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
     .scene-btn { flex: 1; min-width: 0; padding: 4px 6px; font-size: 10px; border-radius: 4px; border: none; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .scene-btn.edit { background: #f5f5f5; color: #666; }
     .scene-btn.delete { background: #fff5f5; color: #D70C1F; }
-    .scene-btn.set-start { background: #e8f5e9; color: #4caf50; flex: 1.2; }
-
-    /* ── 模态框 ── */
+    /* 模态框 */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-overlay.show { display: flex; }
-    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
     .modal-title { font-size: 16px; font-weight: 600; }
-    .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .modal-close svg { width: 14px; height: 14px; color: #666; }
+    .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #666; }
+    .modal-close:hover { background: #e8e8e8; }
     .modal-body { padding: 20px; }
     .modal-footer { padding: 16px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 12px; }
 
-    /* ── 空状态 ── */
     .empty-state { padding: 60px 0; text-align: center; }
     .empty-icon { width: 64px; height: 64px; margin: 0 auto 16px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .empty-icon svg { width: 32px; height: 32px; color: #ccc; }
     .empty-text { font-size: 14px; color: #999; }
 
-    /* ── 提示信息 ── */
     .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 2000; animation: slideIn 0.3s ease; }
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
@@ -95,16 +99,13 @@
   </style>
 </head>
 <body>
-  <!-- 顶部导航 -->
   <div class="header">
     <div class="header-title">元宇宙商城 - 后台管理</div>
     <div class="header-user">管理员</div>
   </div>
 
-  <!-- 主布局 -->
   <div class="main-container">
-    <!-- 左侧菜单 -->
-        <div class="sidebar">
+    <div class="sidebar">
       <div class="sidebar-group-title">元宇宙管理</div>
       <div class="sidebar-item active" onclick="navigateTo('scene-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>场景管理</div>
       <div class="sidebar-item" onclick="navigateTo('hotspot-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>热区标注</div>
@@ -124,7 +125,6 @@
       <div class="sidebar-item" onclick="navigateTo('wallet-admin.html')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>钱包管理</div>
     </div>
 
-    <!-- 右侧内容区 -->
     <div class="content">
       <div class="content-header">
         <div class="content-title">场景管理</div>
@@ -133,9 +133,7 @@
 
       <div class="card">
         <div class="card-title">场景列表</div>
-        <div class="scene-list" id="sceneList">
-          <!-- 场景卡片将通过JS渲染 -->
-        </div>
+        <div class="scene-list" id="sceneList"></div>
         <div class="empty-state" id="emptyScenes" style="display: none;">
           <div class="empty-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -150,10 +148,8 @@
   <div class="modal-overlay" id="uploadModal">
     <div class="modal-box">
       <div class="modal-header">
-        <div class="modal-title">上传场景图片</div>
-        <div class="modal-close" onclick="closeUploadModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </div>
+        <div class="modal-title">上传场景</div>
+        <div class="modal-close" onclick="closeUploadModal()">✕</div>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -161,20 +157,20 @@
           <input class="form-input" id="sceneNameInput" placeholder="输入场景名称">
         </div>
         <div class="form-group">
-          <label class="form-label">场景图片</label>
-          <div class="upload-area" id="uploadArea" onclick="document.getElementById('uploadInput').click()">
+          <label class="form-label">场景描述</label>
+          <textarea class="form-textarea" id="sceneDescInput" placeholder="输入场景描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">场景图片（支持多张，每张需命名方便后续跳转设置）</label>
+          <div class="upload-area" onclick="document.getElementById('sceneImgUpload').click()">
             <div class="upload-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
-            <div class="upload-text">点击或拖拽上传图片</div>
-            <div class="upload-hint">支持 JPG、PNG 格式，建议尺寸：1920x1080</div>
-            <input type="file" id="uploadInput" accept="image/*" onchange="handleFileUpload()">
+            <div class="upload-text">点击添加图片</div>
+            <div class="upload-hint">可多次点击添加多张，每张可单独命名</div>
+            <input type="file" id="sceneImgUpload" accept="image/*" onchange="addNewImage()">
           </div>
-          <img id="previewImage" src="" alt="预览" style="display: none; max-width: 100%; margin-top: 12px; border-radius: 8px;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">场景描述</label>
-          <textarea class="form-textarea" id="sceneDescInput" placeholder="输入场景描述"></textarea>
+          <div class="image-list" id="newImageList"></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -189,9 +185,7 @@
     <div class="modal-box">
       <div class="modal-header">
         <div class="modal-title">编辑场景</div>
-        <div class="modal-close" onclick="closeEditSceneModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </div>
+        <div class="modal-close" onclick="closeEditSceneModal()">✕</div>
       </div>
       <div class="modal-body">
         <input type="hidden" id="editSceneId">
@@ -200,20 +194,19 @@
           <input class="form-input" id="editSceneNameInput" placeholder="输入场景名称">
         </div>
         <div class="form-group">
-          <label class="form-label">场景图片（可选）</label>
-          <div class="upload-area" id="editUploadArea" onclick="document.getElementById('editUploadInput').click()">
+          <label class="form-label">场景描述</label>
+          <textarea class="form-textarea" id="editSceneDescInput" placeholder="输入场景描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">场景图片管理（可增删，每张需命名）</label>
+          <div class="image-list" id="editImageList"></div>
+          <div class="upload-area" onclick="document.getElementById('editImgUpload').click()" style="margin-top:10px">
             <div class="upload-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
-            <div class="upload-text">点击上传新图片（保持原图片请跳过）</div>
-            <div class="upload-hint">支持 JPG、PNG 格式，建议尺寸：1920x1080</div>
-            <input type="file" id="editUploadInput" accept="image/*" onchange="handleEditFileUpload()">
+            <div class="upload-text">+ 添加更多图片</div>
+            <input type="file" id="editImgUpload" accept="image/*" onchange="addEditImage()">
           </div>
-          <img id="editPreviewImage" src="" alt="预览" style="display: none; max-width: 100%; margin-top: 12px; border-radius: 8px;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">场景描述</label>
-          <textarea class="form-textarea" id="editSceneDescInput" placeholder="输入场景描述"></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -224,197 +217,210 @@
   </div>
 
   <script>
-    // 场景数据
-    let scenes = [
-      { id: 'scene1', name: '食品区', desc: '食品区场景', image: '../scene1.png', hotspots: [], isStart: true },
-      { id: 'scene2', name: '文旅区', desc: '文旅区场景', image: '../scene2.png', hotspots: [], isStart: false },
-      { id: 'scene3', name: '影视区', desc: '影视区场景', image: '../scene3.png', hotspots: [], isStart: false }
+    // ── 场景数据 ──
+    var scenes = [
+      { id: 'scene1', name: '食品区', desc: '食品区场景',
+        images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1.png' }],
+        hotspots: [] },
+      { id: 'scene2', name: '文旅区', desc: '文旅区场景',
+        images: [{ imgId: 'img_1', name: '文旅区主图', src: '../scene2.png' }],
+        hotspots: [] },
+      { id: 'scene3', name: '影视区', desc: '影视区场景',
+        images: [{ imgId: 'img_1', name: '影视区主图', src: '../scene3.png' }],
+        hotspots: [] }
     ];
 
-    // 导航
-    function navigateTo(url) {
-      window.location.href = url;
-    }
+    var newImages = [];       // 新建场景时的临时图片列表
+    var editImages = [];      // 编辑场景时的临时图片列表
 
-    // 渲染场景列表
+    // ── 导航 ──
+    function navigateTo(url) { window.location.href = url; }
+
+    // ── 渲染场景列表 ──
     function renderSceneList() {
-      const container = document.getElementById('sceneList');
-      const emptyState = document.getElementById('emptyScenes');
-      
+      var container = document.getElementById('sceneList');
+      var emptyState = document.getElementById('emptyScenes');
       if (scenes.length === 0) {
         container.innerHTML = '';
         emptyState.style.display = 'block';
         return;
       }
-      
       emptyState.style.display = 'none';
-      container.innerHTML = scenes.map(scene => `
-        <div class="scene-card ${scene.isStart ? 'is-start' : ''}">
-          ${scene.isStart ? '<div class="scene-start-badge">起始场景</div>' : ''}
-          <img class="scene-cover" src="${scene.image}" alt="${scene.name}">
-          <div class="scene-info">
-            <div class="scene-name">${scene.name}</div>
-            <div class="scene-hotspots">${scene.hotspots.length} 个热区</div>
-            <div class="scene-actions">
-              <button class="scene-btn edit" onclick="editScene('${scene.id}')">编辑</button>
-              <button class="scene-btn set-start" onclick="setStartScene('${scene.id}')">设为起始</button>
-              <button class="scene-btn delete" onclick="deleteScene('${scene.id}')">删除</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      container.innerHTML = scenes.map(function(scene){
+        var cover = (scene.images && scene.images.length > 0) ? scene.images[0].src : '';
+        var imgCount = (scene.images && scene.images.length > 1) ? scene.images.length : 0;
+        var thumbnails = (scene.images || []).slice(0, 5).map(function(img){
+          return '<img src="' + img.src + '" title="' + htmlEscape(img.name) + '">';
+        }).join('');
+        return '<div class="scene-card">' +
+          (imgCount > 0 ? '<div class="scene-img-count">' + imgCount + '张</div>' : '') +
+          '<img class="scene-cover" src="' + cover + '" alt="' + htmlEscape(scene.name) + '">' +
+          '<div class="scene-info">' +
+          '<div class="scene-name">' + htmlEscape(scene.name) + '</div>' +
+          '<div class="scene-images">' + thumbnails + '</div>' +
+          '<div class="scene-hotspots">' + (scene.hotspots || []).length + ' 个热区 | ' + (scene.images || []).length + ' 张图</div>' +
+          '<div class="scene-actions">' +
+          '<button class="scene-btn edit" onclick="editScene(\'' + scene.id + '\')">编辑</button>' +
+          '<button class="scene-btn delete" onclick="deleteScene(\'' + scene.id + '\')">删除</button>' +
+          '</div></div></div>';
+      }).join('');
     }
 
-    // 设置起始场景
-    function setStartScene(sceneId) {
-      // 取消其他场景的起始标记
-      scenes.forEach(scene => {
-        scene.isStart = false;
-      });
-      // 设置当前场景为起始
-      const scene = scenes.find(s => s.id === sceneId);
-      if (scene) {
-        scene.isStart = true;
-      }
-      renderSceneList();
-      showToast('已设置起始场景', 'success');
-    }
-
-    // 打开上传弹窗
+    // ── 新建场景弹窗 ──
     function openUploadModal() {
       document.getElementById('sceneNameInput').value = '';
       document.getElementById('sceneDescInput').value = '';
-      document.getElementById('previewImage').src = '';
-      document.getElementById('previewImage').style.display = 'none';
-      document.getElementById('uploadInput').value = '';
+      newImages = [];
+      renderNewImageList();
+      document.getElementById('sceneImgUpload').value = '';
       document.getElementById('uploadModal').classList.add('show');
     }
 
-    // 关闭上传弹窗
     function closeUploadModal() {
       document.getElementById('uploadModal').classList.remove('show');
     }
 
-    // 处理文件上传
-    function handleFileUpload() {
-      const file = document.getElementById('uploadInput').files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('previewImage').src = e.target.result;
-          document.getElementById('previewImage').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
+    function addNewImage() {
+      var file = document.getElementById('sceneImgUpload').files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var defaultName = file.name.replace(/\.[^.]+$/, '');
+        newImages.push({ imgId: 'img_' + Date.now(), name: defaultName, src: e.target.result });
+        renderNewImageList();
+      };
+      reader.readAsDataURL(file);
+      document.getElementById('sceneImgUpload').value = '';
     }
 
-    // 保存场景
+    function removeNewImage(idx) {
+      newImages.splice(idx, 1);
+      renderNewImageList();
+    }
+
+    function renderNewImageList() {
+      var container = document.getElementById('newImageList');
+      if (newImages.length === 0) { container.innerHTML = ''; return; }
+      container.innerHTML = newImages.map(function(img, i){
+        return '<div class="image-item">' +
+          '<img src="' + img.src + '">' +
+          '<div class="img-info">' +
+          '<input class="img-name-input" value="' + htmlEscape(img.name) + '" onchange="newImages[' + i + '].name=this.value" placeholder="图片名称">' +
+          '</div>' +
+          '<button class="btn-danger-sm" onclick="removeNewImage(' + i + ')">删除</button>' +
+          '</div>';
+      }).join('');
+    }
+
     function saveScene() {
-      const name = document.getElementById('sceneNameInput').value.trim();
-      const desc = document.getElementById('sceneDescInput').value.trim();
-      const image = document.getElementById('previewImage').src;
-
-      if (!name) {
-        showToast('请输入场景名称', 'error');
-        return;
-      }
-
-      if (!image) {
-        showToast('请上传场景图片', 'error');
-        return;
-      }
+      var name = document.getElementById('sceneNameInput').value.trim();
+      var desc = document.getElementById('sceneDescInput').value.trim();
+      if (!name) { showToast('请输入场景名称', 'error'); return; }
+      if (newImages.length === 0) { showToast('请至少上传一张图片', 'error'); return; }
 
       scenes.push({
         id: 'scene' + Date.now(),
-        name,
+        name: name,
         desc: desc || '暂无描述',
-        image,
+        images: newImages.slice(),
         hotspots: []
       });
-
       showToast('场景上传成功', 'success');
       closeUploadModal();
       renderSceneList();
     }
 
-    // 编辑场景
+    // ── 编辑场景弹窗 ──
     function editScene(id) {
-      const scene = scenes.find(s => s.id === id);
-      if (scene) {
-        document.getElementById('editSceneId').value = id;
-        document.getElementById('editSceneNameInput').value = scene.name;
-        document.getElementById('editSceneDescInput').value = scene.desc;
-        document.getElementById('editPreviewImage').src = scene.image;
-        document.getElementById('editPreviewImage').style.display = 'block';
-        document.getElementById('editUploadInput').value = '';
-        document.getElementById('editSceneModal').classList.add('show');
-      }
+      var scene = scenes.find(function(s){ return s.id === id; });
+      if (!scene) return;
+      document.getElementById('editSceneId').value = id;
+      document.getElementById('editSceneNameInput').value = scene.name;
+      document.getElementById('editSceneDescInput').value = scene.desc;
+      editImages = (scene.images || []).map(function(img){ return Object.assign({}, img); });
+      renderEditImageList();
+      document.getElementById('editImgUpload').value = '';
+      document.getElementById('editSceneModal').classList.add('show');
     }
 
-    // 关闭编辑弹窗
     function closeEditSceneModal() {
       document.getElementById('editSceneModal').classList.remove('show');
     }
 
-    // 处理编辑文件上传
-    function handleEditFileUpload() {
-      const file = document.getElementById('editUploadInput').files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('editPreviewImage').src = e.target.result;
-          document.getElementById('editPreviewImage').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
+    function addEditImage() {
+      var file = document.getElementById('editImgUpload').files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var defaultName = file.name.replace(/\.[^.]+$/, '');
+        editImages.push({ imgId: 'img_' + Date.now(), name: defaultName, src: e.target.result });
+        renderEditImageList();
+      };
+      reader.readAsDataURL(file);
+      document.getElementById('editImgUpload').value = '';
     }
 
-    // 保存编辑场景
-    function saveEditScene() {
-      const id = document.getElementById('editSceneId').value;
-      const name = document.getElementById('editSceneNameInput').value.trim();
-      const desc = document.getElementById('editSceneDescInput').value.trim();
-      const image = document.getElementById('editPreviewImage').src;
+    function removeEditImage(idx) {
+      editImages.splice(idx, 1);
+      renderEditImageList();
+    }
 
-      if (!name) {
-        showToast('请输入场景名称', 'error');
+    function renderEditImageList() {
+      var container = document.getElementById('editImageList');
+      if (editImages.length === 0) {
+        container.innerHTML = '<div style="color:#999;font-size:13px;padding:10px">暂无图片</div>';
         return;
       }
+      container.innerHTML = editImages.map(function(img, i){
+        return '<div class="image-item">' +
+          '<img src="' + img.src + '">' +
+          '<div class="img-info">' +
+          '<input class="img-name-input" value="' + htmlEscape(img.name) + '" onchange="editImages[' + i + '].name=this.value" placeholder="图片名称">' +
+          '</div>' +
+          '<button class="btn-danger-sm" onclick="removeEditImage(' + i + ')">删除</button>' +
+          '</div>';
+      }).join('');
+    }
 
-      const scene = scenes.find(s => s.id === id);
+    function saveEditScene() {
+      var id = document.getElementById('editSceneId').value;
+      var name = document.getElementById('editSceneNameInput').value.trim();
+      var desc = document.getElementById('editSceneDescInput').value.trim();
+      if (!name) { showToast('请输入场景名称', 'error'); return; }
+      if (editImages.length === 0) { showToast('请至少保留一张图片', 'error'); return; }
+
+      var scene = scenes.find(function(s){ return s.id === id; });
       if (scene) {
         scene.name = name;
         scene.desc = desc || '暂无描述';
-        scene.image = image;
+        scene.images = editImages.slice();
       }
-
       showToast('场景修改成功', 'success');
       closeEditSceneModal();
       renderSceneList();
     }
 
-    // 删除场景
+    // ── 删除场景 ──
     function deleteScene(id) {
-      if (confirm('确定要删除这个场景吗？')) {
-        scenes = scenes.filter(s => s.id !== id);
-        showToast('场景删除成功', 'success');
-        renderSceneList();
-      }
+      if (!confirm('确定要删除这个场景吗？')) return;
+      scenes = scenes.filter(function(s){ return s.id !== id; });
+      showToast('场景删除成功', 'success');
+      renderSceneList();
     }
 
-    // 显示提示
+    function htmlEscape(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     function showToast(message, type) {
-      const toast = document.createElement('div');
+      var toast = document.createElement('div');
       toast.className = 'toast ' + type;
       toast.textContent = message;
       document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 2000);
+      setTimeout(function(){ toast.remove(); }, 2000);
     }
 
-    // 页面加载完成后渲染场景列表
     document.addEventListener('DOMContentLoaded', renderSceneList);
   </script>
 </body>
