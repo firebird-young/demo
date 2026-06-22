@@ -141,6 +141,38 @@
     .stat-num{font-weight:600;color:#333}
     .stat-label{font-size:10px;color:#999;margin-left:2px}
 
+    /* 多选奖励 */
+    .reward-check-list{display:flex;flex-direction:column;gap:10px}
+    .reward-row{border:1px solid #eee;border-radius:8px;padding:10px 12px;background:#fff;transition:border .2s}
+    .reward-row.active{border-color:#667eea;background:#f8f9ff}
+    .reward-row-header{display:flex;align-items:center;gap:8px}
+    .reward-row-header label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:500;color:#555}
+    .reward-row-header input[type=checkbox]{accent-color:#667eea;width:15px;height:15px}
+    .reward-row-body{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #eee}
+    .reward-row.active .reward-row-body{display:block}
+    .reward-row-body .form-row{margin-bottom:0}
+    .reward-claim-stat{font-size:11px;color:#667eea;margin-left:8px}
+
+    /* 奖励卡片上传 */
+    .rcard-upload{display:inline-flex;align-items:center;gap:6px;margin-top:6px}
+    .rcard-btn{padding:4px 10px;font-size:11px;border:1px dashed #ccc;border-radius:4px;background:#fff;cursor:pointer;color:#999;white-space:nowrap}
+    .rcard-btn:hover{border-color:#667eea;color:#667eea}
+    .rcard-btn.has-img{border-style:solid;border-color:#20bf6b;color:#20bf6b}
+    .rcard-preview{width:36px;height:36px;border-radius:4px;object-fit:cover;display:none;border:1px solid #eee}
+    .rcard-preview.show{display:block}
+    .rcard-del{font-size:11px;color:#D70C1F;cursor:pointer;display:none}
+    .rcard-del.show{display:inline}
+
+    /* 奖励逻辑切换（或/且） */
+    .logic-toggle{display:flex;gap:0;margin-top:10px}
+    .logic-btn{flex:1;padding:8px 12px;font-size:12px;border:1px solid #ddd;background:#fff;cursor:pointer;text-align:center;transition:all .2s}
+    .logic-btn:first-child{border-radius:6px 0 0 6px}
+    .logic-btn:last-child{border-radius:0 6px 6px 0}
+    .logic-btn.active{background:#667eea;color:#fff;border-color:#667eea}
+    .logic-btn:hover:not(.active){background:#f5f5f5}
+    .logic-field{display:none;margin-top:10px}
+    .logic-field.show{display:block}
+
     .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;font-size:14px;padding:14px 28px;border-radius:8px;z-index:2000;pointer-events:none;opacity:0;transition:opacity .3s}
     .toast.show{opacity:1}
   </style>
@@ -179,10 +211,8 @@
         <th style="width:30px">#</th>
         <th>任务名称</th>
         <th>触发动作</th>
-        <th>完成次数</th>
-        <th>奖励内容</th>
-        <th>领取总量</th>
-        <th>领取人数</th>
+        <th>每人每天可完成</th>
+        <th>奖励内容（领取统计）</th>
         <th>状态</th>
         <th style="width:180px">操作</th>
       </tr></thead>
@@ -267,29 +297,81 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">完成次数上限 *</label>
-          <input class="form-input" id="taskMaxCount" type="number" min="1" max="99" value="5" placeholder="例如：5（表示 0/5）">
-        </div>
-        <div class="form-group">
-          <label class="form-label">奖励类型</label>
-          <select class="form-select" id="taskRewardType" onchange="onRewardTypeChange()">
-            <option value="points">💰 茅台积分</option>
-            <option value="priority">⭐ 新品优先权</option>
-            <option value="coupon">🎫 优惠券</option>
-            <option value="other">🎁 其他</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">每人每天完成次数 *</label>
+        <input class="form-input" id="taskMaxCount" type="number" min="1" max="99" value="5" placeholder="例如：5（表示每人每天 0/5）">
       </div>
-      <div class="form-row" id="rewardValueRow">
-        <div class="form-group">
-          <label class="form-label" id="rewardValueLabel">奖励数值</label>
-          <input class="form-input" id="taskRewardValue" type="number" min="1" value="10" placeholder="请输入奖励数值">
+      <div class="form-group">
+        <label class="form-label">奖励类型 *（可多选）</label>
+        <div class="reward-check-list" id="rewardCheckList">
+          <div class="reward-row active" data-type="points">
+            <div class="reward-row-header">
+              <label><input type="checkbox" checked onchange="onRewardCheck(this)">💰 茅台积分</label>
+            </div>
+            <div class="reward-row-body">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">数值</label><input class="form-input" type="number" min="1" value="10" placeholder="例如：10" data-field="value" data-rt="points"></div>
+                <div class="form-group"><label class="form-label">展示描述</label><input class="form-input" placeholder="例如：茅台积分 +10" data-field="desc" data-rt="points"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">领取总次数上限（0=不限）</label><input class="form-input" type="number" min="0" value="0" placeholder="0表示不限" data-field="maxTotal" data-rt="points"></div>
+                <div class="form-group"><label class="form-label">奖励卡片</label><div class="rcard-upload"><input type="file" accept="image/*" onchange="uploadRewardCard(this)" data-rt="points" style="display:none"><button class="rcard-btn" onclick="this.previousElementSibling.click();return false">📷 上传卡片</button><img class="rcard-preview" data-rt="points" src=""><span class="rcard-del" data-rt="points" onclick="clearRewardCard(this)">✕ 移除</span><input type="hidden" data-field="cardImg" data-rt="points" value=""></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="reward-row" data-type="priority">
+            <div class="reward-row-header">
+              <label><input type="checkbox" onchange="onRewardCheck(this)">⭐ 新品优先权</label>
+            </div>
+            <div class="reward-row-body">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">数值（可选）</label><input class="form-input" type="number" min="1" value="1" placeholder="可不填" data-field="value" data-rt="priority"></div>
+                <div class="form-group"><label class="form-label">展示描述</label><input class="form-input" placeholder="例如：新品优先购买权" data-field="desc" data-rt="priority"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">领取总次数上限（0=不限）</label><input class="form-input" type="number" min="0" value="0" placeholder="0表示不限" data-field="maxTotal" data-rt="priority"></div>
+                <div class="form-group"><label class="form-label">奖励卡片</label><div class="rcard-upload"><input type="file" accept="image/*" onchange="uploadRewardCard(this)" data-rt="priority" style="display:none"><button class="rcard-btn" onclick="this.previousElementSibling.click();return false">📷 上传卡片</button><img class="rcard-preview" data-rt="priority" src=""><span class="rcard-del" data-rt="priority" onclick="clearRewardCard(this)">✕ 移除</span><input type="hidden" data-field="cardImg" data-rt="priority" value=""></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="reward-row" data-type="coupon">
+            <div class="reward-row-header">
+              <label><input type="checkbox" onchange="onRewardCheck(this)">🎫 优惠券</label>
+            </div>
+            <div class="reward-row-body">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">数值</label><input class="form-input" type="number" min="1" value="1" placeholder="例如：1" data-field="value" data-rt="coupon"></div>
+                <div class="form-group"><label class="form-label">展示描述</label><input class="form-input" placeholder="例如：满100减20优惠券" data-field="desc" data-rt="coupon"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">领取总次数上限（0=不限）</label><input class="form-input" type="number" min="0" value="0" placeholder="0表示不限" data-field="maxTotal" data-rt="coupon"></div>
+                <div class="form-group"><label class="form-label">奖励卡片</label><div class="rcard-upload"><input type="file" accept="image/*" onchange="uploadRewardCard(this)" data-rt="coupon" style="display:none"><button class="rcard-btn" onclick="this.previousElementSibling.click();return false">📷 上传卡片</button><img class="rcard-preview" data-rt="coupon" src=""><span class="rcard-del" data-rt="coupon" onclick="clearRewardCard(this)">✕ 移除</span><input type="hidden" data-field="cardImg" data-rt="coupon" value=""></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="reward-row" data-type="other">
+            <div class="reward-row-header">
+              <label><input type="checkbox" onchange="onRewardCheck(this)">🎁 其他</label>
+            </div>
+            <div class="reward-row-body">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">数值（可选）</label><input class="form-input" type="number" min="1" value="1" placeholder="可不填" data-field="value" data-rt="other"></div>
+                <div class="form-group"><label class="form-label">展示描述</label><input class="form-input" placeholder="例如：神秘礼物一份" data-field="desc" data-rt="other"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">领取总次数上限（0=不限）</label><input class="form-input" type="number" min="0" value="0" placeholder="0表示不限" data-field="maxTotal" data-rt="other"></div>
+                <div class="form-group"><label class="form-label">奖励卡片</label><div class="rcard-upload"><input type="file" accept="image/*" onchange="uploadRewardCard(this)" data-rt="other" style="display:none"><button class="rcard-btn" onclick="this.previousElementSibling.click();return false">📷 上传卡片</button><img class="rcard-preview" data-rt="other" src=""><span class="rcard-del" data-rt="other" onclick="clearRewardCard(this)">✕ 移除</span><input type="hidden" data-field="cardImg" data-rt="other" value=""></div></div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">奖励描述（展示给用户）</label>
-          <input class="form-input" id="taskRewardDesc" placeholder="例如：茅台积分 +10">
+        <div class="logic-field show" id="logicField">
+          <label class="form-label">领取逻辑（多奖励时生效）</label>
+          <div class="logic-toggle">
+            <div class="logic-btn active" onclick="switchLogic('and')" id="logicBtnAnd">✅ 全部获得（且）</div>
+            <div class="logic-btn" onclick="switchLogic('or')" id="logicBtnOr">🎲 随机一种（或）</div>
+          </div>
+          <div style="font-size:11px;color:#999;margin-top:4px" id="logicHint">用户完成任务后，同时获得所有勾选的奖励</div>
         </div>
       </div>
     </div>
@@ -311,11 +393,27 @@
   function loadTasks() {
     var saved = localStorage.getItem(STORAGE_KEY);
     if (saved) { try { tasks = JSON.parse(saved); } catch(e) { tasks = []; } }
-    // 为旧数据补全统计字段
+    // 数据迁移 & 补全
+    var typeNames = { points: '茅台积分', priority: '新品优先权', coupon: '优惠券', other: '神秘奖励' };
     tasks.forEach(function(t){
       if (typeof t.totalClaims === 'undefined') t.totalClaims = 0;
       if (typeof t.totalClaimers === 'undefined') t.totalClaimers = 0;
       if (typeof t.hitProbability === 'undefined') t.hitProbability = 0;
+      if (typeof t.rewardLogic === 'undefined') t.rewardLogic = 'and';
+      // 旧单奖励迁移为多奖励数组
+      if (!t.rewards || !t.rewards.length) {
+        var oldType = t.rewardType || 'points';
+        var oldVal = t.rewardValue || 10;
+        var oldDesc = t.rewardDesc || (typeNames[oldType] + (oldVal > 0 ? ' +' + oldVal : ''));
+        t.rewards = [{ type: oldType, value: oldVal, desc: oldDesc, claimCount: 0, claimerCount: 0 }];
+      } else {
+        // 补全每个奖励的 claimerCount 和 maxTotal
+        t.rewards.forEach(function(r){
+          if (typeof r.claimerCount === 'undefined') r.claimerCount = 0;
+          if (typeof r.maxTotal === 'undefined') r.maxTotal = 0;
+          if (typeof r.cardImg === 'undefined') r.cardImg = '';
+        });
+      }
     });
     renderTaskList();
     renderPreview();
@@ -332,10 +430,13 @@
     var meta = { tasks: [], maxCounts: {} };
     tasks.forEach(function(t, i){
       var key = 't' + (i + 1);
+      var rewardDescs = (t.rewards || []).map(function(r){ return r.desc; }).join(' + ');
       meta.tasks.push({
         key: key, name: t.name,
         trigger: t.trigger, triggerValue: t.triggerValue,
-        maxCount: t.maxCount, rewardDesc: t.rewardDesc,
+        maxCount: t.maxCount, rewardDesc: rewardDescs,
+        rewards: t.rewards || [],
+        rewardLogic: t.rewardLogic || 'and',
         hotspotIds: t.hotspotIds || [],
         projectIds: t.projectIds || [],
         hitProbability: t.hitProbability || 0
@@ -361,18 +462,42 @@
       product_browse: '<span class="trigger-label"><span class="trigger-dot browse"></span>详情浏览</span>',
       hotspot_click: '<span class="trigger-label"><span class="trigger-dot click"></span>点击项目</span>'
     };
-    var triggerIcons = {stay_duration:'⏱️',lottery_draw:'🏺',product_browse:'📄',hotspot_click:'👆'};
+    var rewardIcons = { points: '💰', priority: '⭐', coupon: '🎫', other: '🎁' };
+    var rewardTypeNames = { points: '茅台积分', priority: '新品优先权', coupon: '优惠券', other: '神秘奖励' };
     tbody.innerHTML = tasks.map(function(t, i){
       var statusClass = t.status === 'active' ? 'active' : 'inactive';
       var statusText = t.status === 'active' ? '生效中' : '已停用';
+      // 逻辑标记
+      var logicLabel = '';
+      if (t.rewards && t.rewards.length >= 2) {
+        logicLabel = ' <span style="font-size:10px;color:#999">(' + (t.rewardLogic === 'or' ? '随机一种' : '全部获得') + ')</span>';
+      }
+      // 构建奖励列：类型名 + 数量 + 领取统计（次/人）+ 总限
+      var rewardCells = '';
+      if (t.rewards && t.rewards.length) {
+        rewardCells = t.rewards.map(function(r){
+          var icon = rewardIcons[r.type] || '🎁';
+          var typeName = rewardTypeNames[r.type] || r.type;
+          var valStr = r.value > 0 ? ' ×' + r.value : '';
+          var limitStr = ' <span style="font-size:10px;color:#e6a23c">总限' + (r.maxTotal > 0 ? r.maxTotal + '次' : '不限') + '</span>';
+          return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;font-size:12px;white-space:nowrap">' +
+            '<span style="flex-shrink:0">' + icon + ' ' + htmlEscape(typeName) + '</span>' +
+            '<span style="color:#667eea;font-weight:600">' + htmlEscape(valStr) + limitStr + '</span>' +
+            '<span style="color:#999">|</span>' +
+            '<span style="color:#667eea;font-weight:600">' + (r.claimCount || 0) + '次</span>' +
+            '<span style="color:#999">/</span>' +
+            '<span style="color:#e6a23c;font-weight:600">' + (r.claimerCount || 0) + '人</span>' +
+          '</div>';
+        }).join('');
+      } else {
+        rewardCells = '—';
+      }
       return '<tr>' +
         '<td>' + (i + 1) + '</td>' +
         '<td><strong>' + htmlEscape(t.name) + '</strong></td>' +
         '<td>' + (triggerLabels[t.trigger] || t.trigger) + '</td>' +
-        '<td>0/' + t.maxCount + '</td>' +
-        '<td>' + htmlEscape(t.rewardDesc || '—') + '</td>' +
-        '<td><span class="stat-num">' + (t.totalClaims || 0) + '</span><span class="stat-label">次</span></td>' +
-        '<td><span class="stat-num">' + (t.totalClaimers || 0) + '</span><span class="stat-label">人</span></td>' +
+        '<td>' + t.maxCount + '次/天</td>' +
+        '<td style="line-height:1.8">' + rewardCells + logicLabel + '</td>' +
         '<td><span class="status-tag ' + statusClass + '">' + statusText + '</span></td>' +
         '<td style="white-space:nowrap">' +
           '<button class="btn btn-default btn-sm" onclick="editTask(\'' + t.id + '\')">编辑</button> ' +
@@ -394,11 +519,12 @@
     var iconColors = {stay_duration:'rgba(255,200,50,.2)',lottery_draw:'rgba(100,180,255,.2)',product_browse:'rgba(255,130,130,.2)',hotspot_click:'rgba(100,230,150,.2)'};
     var triggerIcons = {stay_duration:'⏱️',lottery_draw:'🏺',product_browse:'📄',hotspot_click:'👆'};
     card.innerHTML = activeTasks.slice(0, 5).map(function(t){
+      var rewardStr = '🎁 ' + (t.rewards || []).map(function(r){ return r.desc; }).join(' + ');
       return '<div class="pc-item">' +
         '<div class="pc-icon" style="background:' + (iconColors[t.trigger] || 'rgba(255,255,255,.1)') + '">' + (triggerIcons[t.trigger] || '📋') + '</div>' +
         '<div class="pc-name">' + htmlEscape(t.name) + '</div>' +
-        '<div class="pc-num">0/' + t.maxCount + '</div>' +
-        '<div class="pc-reward">🎁 ' + htmlEscape(t.rewardDesc || '—') + '</div>' +
+        '<div class="pc-num">' + t.maxCount + '次/天</div>' +
+        '<div class="pc-reward">' + htmlEscape(rewardStr) + '</div>' +
       '</div>';
     }).join('');
   }
@@ -566,13 +692,22 @@
     document.getElementById('taskTrigger').value = '';
     document.getElementById('taskTriggerValue').value = '';
     document.getElementById('taskMaxCount').value = '5';
-    document.getElementById('taskRewardType').value = 'points';
-    document.getElementById('taskRewardValue').value = '10';
-    document.getElementById('taskRewardDesc').value = '';
     document.getElementById('taskHitProb').value = '40';
     document.getElementById('triggerValueGroup').style.display = 'none';
     document.getElementById('lotteryGroup').style.display = 'none';
     document.getElementById('projectGroup').style.display = 'none';
+    // 默认只勾选茅台积分
+    resetRewardForm();
+    switchLogic('and');
+    var pointsRow = document.querySelector('#rewardCheckList .reward-row[data-type="points"]');
+    if (pointsRow) {
+      pointsRow.querySelector('input[type=checkbox]').checked = true;
+      pointsRow.classList.add('active');
+      var vInp = pointsRow.querySelector('input[data-field=value]');
+      var dInp = pointsRow.querySelector('input[data-field=desc]');
+      if (vInp) vInp.value = '10';
+      if (dInp) dInp.value = '';
+    }
     updateSelectedText();
     document.getElementById('taskModal').classList.add('show');
   }
@@ -611,18 +746,121 @@
     }
   }
 
-  function onRewardTypeChange() {
-    var type = document.getElementById('taskRewardType').value;
-    var label = document.getElementById('rewardValueLabel');
-    if (type === 'priority') {
-      label.textContent = '奖励数值（可不填）';
-      document.getElementById('taskRewardValue').value = '';
-    } else {
-      label.textContent = '奖励数值';
-      if (!document.getElementById('taskRewardValue').value) {
-        document.getElementById('taskRewardValue').value = '10';
+  function onRewardCheck(cb) {
+    var row = cb.closest('.reward-row');
+    row.classList.toggle('active', cb.checked);
+    // 计数勾选数量，>=2 时显示逻辑选择
+    var checked = document.querySelectorAll('#rewardCheckList input[type=checkbox]:checked').length;
+    document.getElementById('logicField').classList.toggle('show', checked >= 2);
+  }
+
+  function switchLogic(logic) {
+    document.getElementById('logicBtnAnd').classList.toggle('active', logic === 'and');
+    document.getElementById('logicBtnOr').classList.toggle('active', logic === 'or');
+    document.getElementById('logicHint').textContent = logic === 'and'
+      ? '用户完成任务后，同时获得所有勾选的奖励'
+      : '用户完成任务后，随机获得其中一种奖励';
+  }
+
+  // 上传奖励卡片
+  function uploadRewardCard(input) {
+    var rt = input.dataset.rt;
+    var f = input.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var row = input.closest('.reward-row');
+      var hidden = row.querySelector('input[data-field=cardImg]');
+      var btn = row.querySelector('.rcard-btn');
+      var preview = row.querySelector('.rcard-preview');
+      var del = row.querySelector('.rcard-del');
+      if (hidden) hidden.value = e.target.result;
+      if (preview) { preview.src = e.target.result; preview.classList.add('show'); }
+      if (btn) { btn.textContent = '✓ 已上传'; btn.classList.add('has-img'); }
+      if (del) del.classList.add('show');
+    };
+    reader.readAsDataURL(f);
+    input.value = '';
+  }
+
+  // 移除奖励卡片
+  function clearRewardCard(el) {
+    var rt = el.dataset.rt;
+    var row = el.closest('.reward-row');
+    var hidden = row.querySelector('input[data-field=cardImg]');
+    var btn = row.querySelector('.rcard-btn');
+    var preview = row.querySelector('.rcard-preview');
+    if (hidden) hidden.value = '';
+    if (preview) { preview.src = ''; preview.classList.remove('show'); }
+    if (btn) { btn.textContent = '📷 上传卡片'; btn.classList.remove('has-img'); }
+    el.classList.remove('show');
+  }
+
+  // 重置所有奖励表单为空
+  function resetRewardForm() {
+    document.querySelectorAll('#rewardCheckList .reward-row').forEach(function(row){
+      var cb = row.querySelector('input[type=checkbox]');
+      cb.checked = false;
+      row.classList.remove('active');
+    });
+    document.querySelectorAll('#rewardCheckList input[type=number]').forEach(function(inp){ inp.value = ''; });
+    document.querySelectorAll('#rewardCheckList input[data-field=desc]').forEach(function(inp){ inp.value = ''; });
+    document.querySelectorAll('#rewardCheckList input[data-field=maxTotal]').forEach(function(inp){ inp.value = '0'; });
+    document.querySelectorAll('#rewardCheckList input[data-field=cardImg]').forEach(function(inp){ inp.value = ''; });
+    document.querySelectorAll('#rewardCheckList .rcard-preview').forEach(function(img){ img.src = ''; img.classList.remove('show'); });
+    document.querySelectorAll('#rewardCheckList .rcard-btn').forEach(function(b){ b.textContent = '📷 上传卡片'; b.classList.remove('has-img'); });
+    document.querySelectorAll('#rewardCheckList .rcard-del').forEach(function(d){ d.classList.remove('show'); });
+    switchLogic('and');
+    document.getElementById('logicField').classList.remove('show');
+  }
+
+  // 根据 rewards 数组填充奖励表单
+  function populateRewardForm(rewards, rewardLogic) {
+    resetRewardForm();
+    if (!rewards || !rewards.length) return;
+    rewards.forEach(function(r){
+      var row = document.querySelector('#rewardCheckList .reward-row[data-type="' + r.type + '"]');
+      if (!row) return;
+      row.querySelector('input[type=checkbox]').checked = true;
+      row.classList.add('active');
+      var valInp = row.querySelector('input[data-field=value]');
+      var descInp = row.querySelector('input[data-field=desc]');
+      var maxInp = row.querySelector('input[data-field=maxTotal]');
+      var cardInp = row.querySelector('input[data-field=cardImg]');
+      var preview = row.querySelector('.rcard-preview');
+      var btn = row.querySelector('.rcard-btn');
+      var del = row.querySelector('.rcard-del');
+      if (valInp) valInp.value = r.value || '';
+      if (descInp) descInp.value = r.desc || '';
+      if (maxInp) maxInp.value = (typeof r.maxTotal !== 'undefined') ? r.maxTotal : 0;
+      if (cardInp && r.cardImg) {
+        cardInp.value = r.cardImg;
+        if (preview) { preview.src = r.cardImg; preview.classList.add('show'); }
+        if (btn) { btn.textContent = '✓ 已上传'; btn.classList.add('has-img'); }
+        if (del) del.classList.add('show');
       }
-    }
+    });
+    // 显示逻辑选择
+    var logic = rewardLogic || 'and';
+    switchLogic(logic);
+    var checked = rewards.length;
+    document.getElementById('logicField').classList.toggle('show', checked >= 2);
+  }
+
+  // 从表单收集已选的奖励
+  function collectRewards() {
+    var result = [];
+    document.querySelectorAll('#rewardCheckList .reward-row').forEach(function(row){
+      var cb = row.querySelector('input[type=checkbox]');
+      if (!cb.checked) return;
+      var type = row.dataset.type;
+      var val = parseInt(row.querySelector('input[data-field=value]').value) || 1;
+      var desc = row.querySelector('input[data-field=desc]').value.trim();
+      var maxTotal = parseInt(row.querySelector('input[data-field=maxTotal]').value) || 0;
+      var cardImg = row.querySelector('input[data-field=cardImg]').value || '';
+      result.push({ type: type, value: val, desc: desc, maxTotal: maxTotal, cardImg: cardImg, claimCount: 0, claimerCount: 0 });
+    });
+    return result;
   }
 
   // ======== 编辑任务 ========
@@ -637,13 +875,27 @@
     document.getElementById('taskTrigger').value = t.trigger;
     document.getElementById('taskTriggerValue').value = t.triggerValue || '';
     document.getElementById('taskMaxCount').value = t.maxCount;
-    document.getElementById('taskRewardType').value = t.rewardType || 'points';
-    document.getElementById('taskRewardValue').value = t.rewardValue || '';
-    document.getElementById('taskRewardDesc').value = t.rewardDesc || '';
     document.getElementById('taskHitProb').value = t.hitProbability || 40;
+    // 填充奖励
+    if (t.rewards && t.rewards.length) {
+      populateRewardForm(t.rewards, t.rewardLogic);
+    } else {
+      // 兼容旧数据：单奖励 → 多奖励
+      resetRewardForm();
+      switchLogic('and');
+      var oldType = t.rewardType || 'points';
+      var row = document.querySelector('#rewardCheckList .reward-row[data-type="' + oldType + '"]');
+      if (row) {
+        row.querySelector('input[type=checkbox]').checked = true;
+        row.classList.add('active');
+        var vInp = row.querySelector('input[data-field=value]');
+        var dInp = row.querySelector('input[data-field=desc]');
+        if (vInp) vInp.value = t.rewardValue || '';
+        if (dInp) dInp.value = t.rewardDesc || '';
+      }
+    }
     updateSelectedText();
     onTriggerChange();
-    onRewardTypeChange();
     document.getElementById('taskModal').classList.add('show');
   }
 
@@ -653,27 +905,36 @@
     var trigger = document.getElementById('taskTrigger').value;
     var triggerValue = parseInt(document.getElementById('taskTriggerValue').value) || 0;
     var maxCount = parseInt(document.getElementById('taskMaxCount').value) || 5;
-    var rewardType = document.getElementById('taskRewardType').value;
-    var rewardValue = parseInt(document.getElementById('taskRewardValue').value) || 0;
-    var rewardDesc = document.getElementById('taskRewardDesc').value.trim();
     var hitProb = parseInt(document.getElementById('taskHitProb').value) || 40;
+    var rewards = collectRewards();
+    var rewardLogic = document.getElementById('logicBtnAnd').classList.contains('active') ? 'and' : 'or';
 
     if (!name) { toast('请输入任务名称'); return; }
     if (!trigger) { toast('请选择触发动作'); return; }
-    if (maxCount < 1 || maxCount > 99) { toast('完成次数需在 1~99 之间'); return; }
+    if (maxCount < 1 || maxCount > 99) { toast('每人每天完成次数需在 1~99 之间'); return; }
     if (trigger === 'lottery_draw' && selectedHotspotNums.length === 0) {
       toast('请至少选择一个热区'); return;
     }
     if (trigger === 'hotspot_click' && selectedProjectIds.length === 0) {
       toast('请至少选择一个项目'); return;
     }
+    if (rewards.length === 0) { toast('请至少选择一种奖励类型'); return; }
 
-    if (!rewardDesc) {
-      var rewardMap = { points: '茅台积分', priority: '新品优先权', coupon: '优惠券', other: '神秘奖励' };
-      rewardDesc = rewardMap[rewardType] + (rewardValue > 0 ? ' +' + rewardValue : '');
-    }
+    // 自动补全描述
+    var typeNames = { points: '茅台积分', priority: '新品优先权', coupon: '优惠券', other: '神秘奖励' };
+    rewards.forEach(function(r){
+      if (!r.desc) r.desc = typeNames[r.type] + (r.value > 0 ? ' +' + r.value : '');
+    });
 
     var existing = editingTaskId ? tasks.find(function(x){ return x.id === editingTaskId; }) : null;
+
+    // 保留已有奖励的 claimCount
+    if (existing && existing.rewards) {
+      rewards.forEach(function(r){
+        var old = existing.rewards.find(function(or){ return or.type === r.type; });
+        if (old) r.claimCount = old.claimCount || 0;
+      });
+    }
 
     var taskData = {
       id: editingTaskId || 'task_' + Date.now(),
@@ -681,9 +942,8 @@
       trigger: trigger,
       triggerValue: triggerValue,
       maxCount: maxCount,
-      rewardType: rewardType,
-      rewardValue: rewardValue,
-      rewardDesc: rewardDesc,
+      rewards: rewards,
+      rewardLogic: rewards.length >= 2 ? rewardLogic : 'and',
       hotspotIds: trigger === 'lottery_draw' ? selectedHotspotNums.slice() : [],
       projectIds: trigger === 'hotspot_click' ? selectedProjectIds.slice() : [],
       hitProbability: trigger === 'lottery_draw' ? hitProb : 0,
@@ -728,6 +988,10 @@
     if (!t) return;
     t.totalClaims = 0;
     t.totalClaimers = 0;
+    // 重置每种奖励的领取统计
+    if (t.rewards) {
+      t.rewards.forEach(function(r){ r.claimCount = 0; r.claimerCount = 0; });
+    }
     saveTasks();
     toast('领取统计已重置');
   }
