@@ -54,11 +54,58 @@
     pointer-events: none;
   }
 
+  /* ── 主地图可拖拽 ── */
+  .map-pan {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .map-pan img {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 130%; height: 130%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+    pointer-events: none;
+  }
+  .map-pan img.dragging {
+    transition: none;
+  }
+  .map-pan img.bounce-in {
+    transition: transform .8s cubic-bezier(.17,.67,.39,.97);
+  }
+
+  /* 拖拽提示 */
+  .drag-hint {
+    position: absolute;
+    left: 50%; top: 45%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-shadow: 0 2px 16px rgba(0,0,0,.8);
+    letter-spacing: 2px;
+    pointer-events: none;
+    opacity: 0;
+    animation: dragHintAnim 2.8s ease-out;
+    white-space: nowrap;
+  }
+  @keyframes dragHintAnim {
+    0% { opacity: 0; transform: translate(-50%, -50%) translateY(10px); }
+    15% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+    70% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+    100% { opacity: 0; transform: translate(-50%, -50%) translateY(-16px); }
+  }
+
   /* ── 信息覆盖层 ── */
   .scene-overlay {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    z-index: 2;
   }
   .scene-overlay > * { pointer-events: auto; }
 
@@ -706,8 +753,10 @@
   <div class="phone-screen">
 
     <!-- 场景1：元宇宙地图（主入口） -->
-    <div class="scene-layer" id="scene1"
-         style="background-image:url('元宇宙地图.png')">
+    <div class="scene-layer" id="scene1">
+      <div class="map-pan" id="mapPan">
+        <img id="mapPanImg" src="元宇宙地图.png" alt="元宇宙地图">
+      </div>
       <div class="scene-overlay" data-scene="1">
         <div class="scene-title">元宇宙地图</div>
         <!-- 起点 + 热区点位由 JS 渲染 -->
@@ -957,6 +1006,7 @@ function openEditUser() {
 function resetRole() {
   localStorage.removeItem('metaMallRole');
   localStorage.removeItem('metaMallNick');
+  localStorage.removeItem('metaMapExplored');
   userRole = null;
   isEditingRole = false;
   document.getElementById('resetRoleBtn').style.display = 'none';
@@ -1003,6 +1053,7 @@ function confirmRole() {
   [1,2,3,4].forEach(function(id){ renderScene(id); });
   // 显示用户信息
   updateSceneUI();
+  initMapDrag();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1141,9 +1192,125 @@ function moveTo(sceneId, spotIdx) {
 // ═══════════════════════════════════════════════════════
 // 切换场景
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 主地图拖拽 + 首次回弹动画
+// ═══════════════════════════════════════════════════════
+let mapDrag = { x: 0, y: 0, startX: 0, startY: 0, px: 0, py: 0, active: false };
+
+function initMapDrag() {
+  var pan = document.getElementById('mapPan');
+  var img = document.getElementById('mapPanImg');
+  if (!pan || !img) return;
+
+  // 从 metaMapData 加载地图图片（仅 base64 时生效，避免 admin 端的相对路径错误）
+  var saved = localStorage.getItem('metaMapData');
+  if (saved) {
+    try {
+      var data = JSON.parse(saved);
+      if (data.image && data.image.indexOf('data:') === 0) img.src = data.image;
+    } catch(e) {}
+  }
+
+  // 计算拖拽边界（图片边缘距容器边框不超过 10px）
+  function getMaxDrag() {
+    var w = pan.clientWidth, h = pan.clientHeight;
+    var scale = 1.3;
+    return { mx: Math.max(0, w * (scale - 1) / 2 - 10), my: Math.max(0, h * (scale - 1) / 2 - 10) };
+  }
+
+  function clampDrag(x, y) {
+    var lim = getMaxDrag();
+    mapDrag.x = Math.max(-lim.mx, Math.min(lim.mx, x));
+    mapDrag.y = Math.max(-lim.my, Math.min(lim.my, y));
+  }
+
+  function applyTransform() {
+    img.style.transform = 'translate(calc(-50% + ' + mapDrag.x + 'px), calc(-50% + ' + mapDrag.y + 'px))';
+  }
+
+  // 鼠标拖拽
+  pan.addEventListener('mousedown', function(e) {
+    if (currentScene !== 1) return;
+    mapDrag.active = true;
+    mapDrag.startX = e.clientX;
+    mapDrag.startY = e.clientY;
+    mapDrag.px = mapDrag.x;
+    mapDrag.py = mapDrag.y;
+    img.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!mapDrag.active) return;
+    var dx = e.clientX - mapDrag.startX;
+    var dy = e.clientY - mapDrag.startY;
+    clampDrag(mapDrag.px + dx, mapDrag.py + dy);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', function() {
+    if (!mapDrag.active) return;
+    mapDrag.active = false;
+    img.classList.remove('dragging');
+  });
+
+  // 触屏拖拽
+  pan.addEventListener('touchstart', function(e) {
+    if (currentScene !== 1 || e.touches.length !== 1) return;
+    mapDrag.active = true;
+    mapDrag.startX = e.touches[0].clientX;
+    mapDrag.startY = e.touches[0].clientY;
+    mapDrag.px = mapDrag.x;
+    mapDrag.py = mapDrag.y;
+    img.classList.add('dragging');
+  }, { passive: false });
+  window.addEventListener('touchmove', function(e) {
+    if (!mapDrag.active || e.touches.length !== 1) return;
+    var dx = e.touches[0].clientX - mapDrag.startX;
+    var dy = e.touches[0].clientY - mapDrag.startY;
+    clampDrag(mapDrag.px + dx, mapDrag.py + dy);
+    applyTransform();
+  }, { passive: false });
+  window.addEventListener('touchend', function() {
+    if (!mapDrag.active) return;
+    mapDrag.active = false;
+    img.classList.remove('dragging');
+  });
+
+  // 首次进入：弹入动画+提示（仅新建/重置角色时出现）
+  setTimeout(function() {
+    if (currentScene !== 1) return;
+    var explored = localStorage.getItem('metaMapExplored');
+    if (explored) return; // 已有角色，跳过整个动画
+
+    img.style.transition = 'transform .5s cubic-bezier(.22,.61,.36,1)';
+    img.style.transform = 'translate(calc(-50% + 100px), -50%)';
+
+    // 显示拖拽提示
+    var hint = document.createElement('div');
+    hint.className = 'drag-hint';
+    hint.textContent = '👆 拖动探索地图';
+    pan.appendChild(hint);
+    setTimeout(function(){ hint.remove(); }, 3000);
+    localStorage.setItem('metaMapExplored', '1');
+
+    setTimeout(function() {
+      img.style.transition = 'transform .7s cubic-bezier(.17,.67,.39,.97)';
+      img.style.transform = 'translate(-50%, -50%)';
+      setTimeout(function() {
+        img.style.transition = 'transform .6s cubic-bezier(.25,.46,.45,.94)';
+      }, 700);
+    }, 500);
+  }, 600);
+}
+
 function switchScene(targetId) {
   if (targetId === currentScene) return;
   currentScene = targetId;
+
+  // 回到主地图时重置拖拽位置
+  if (targetId === 1) {
+    mapDrag.x = 0; mapDrag.y = 0;
+    var img = document.getElementById('mapPanImg');
+    if (img) img.style.transform = 'translate(-50%, -50%)';
+  }
 
   // 只显示目标场景，其他全部隐藏
   [1,2,3,4].forEach(function(id){
@@ -1180,6 +1347,7 @@ if (userRole) {
     }
   });
   [1, 2, 3, 4].forEach(function(id){ renderScene(id); });
+  initMapDrag();
 }
 
 // ═══════════════════════════════════════════════════════
