@@ -382,10 +382,38 @@
   </div>
 </div>
 
+<!-- ===== 启用时间设置弹窗 ===== -->
+<div class="modal-overlay" id="activeModal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">设置生效时间段</div>
+      <div class="modal-close" onclick="closeActiveModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">生效开始时间 *</label>
+          <input class="form-input" type="datetime-local" id="activeFrom">
+        </div>
+        <div class="form-group">
+          <label class="form-label">生效结束时间 *</label>
+          <input class="form-input" type="datetime-local" id="activeUntil">
+        </div>
+      </div>
+      <div style="font-size:11px;color:#999;margin-top:4px">任务在此时间段内对用户可见并可参与，到期自动停用</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeActiveModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmActive()">确认启用</button>
+    </div>
+  </div>
+</div>
+
 <script>
   var STORAGE_KEY = 'merchantTaskCenter';
   var tasks = [];
   var editingTaskId = null;
+  var activatingTaskId = null;     // 正在设置启用时间的任务ID
   var selectedHotspotNums = [];   // 当前弹窗中选中的热区编号
   var selectedProjectIds = [];    // 当前弹窗中选中的项目ID
 
@@ -400,6 +428,8 @@
       if (typeof t.totalClaimers === 'undefined') t.totalClaimers = 0;
       if (typeof t.hitProbability === 'undefined') t.hitProbability = 0;
       if (typeof t.rewardLogic === 'undefined') t.rewardLogic = 'and';
+      if (typeof t.activeFrom === 'undefined') t.activeFrom = '';
+      if (typeof t.activeUntil === 'undefined') t.activeUntil = '';
       // 旧单奖励迁移为多奖励数组
       if (!t.rewards || !t.rewards.length) {
         var oldType = t.rewardType || 'points';
@@ -437,6 +467,8 @@
         maxCount: t.maxCount, rewardDesc: rewardDescs,
         rewards: t.rewards || [],
         rewardLogic: t.rewardLogic || 'and',
+        activeFrom: t.activeFrom || '',
+        activeUntil: t.activeUntil || '',
         hotspotIds: t.hotspotIds || [],
         projectIds: t.projectIds || [],
         hitProbability: t.hitProbability || 0
@@ -467,6 +499,12 @@
     tbody.innerHTML = tasks.map(function(t, i){
       var statusClass = t.status === 'active' ? 'active' : 'inactive';
       var statusText = t.status === 'active' ? '生效中' : '已停用';
+      // 时间范围
+      var timeInfo = '';
+      if (t.activeFrom && t.activeUntil) {
+        var fmt = function(iso){ if(!iso) return ''; var d=new Date(iso); return (d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+('0'+d.getMinutes()).slice(-2); };
+        timeInfo = '<div style="font-size:10px;color:#999;margin-top:2px">' + fmt(t.activeFrom) + ' ~ ' + fmt(t.activeUntil) + '</div>';
+      }
       // 逻辑标记
       var logicLabel = '';
       if (t.rewards && t.rewards.length >= 2) {
@@ -498,7 +536,7 @@
         '<td>' + (triggerLabels[t.trigger] || t.trigger) + '</td>' +
         '<td>' + t.maxCount + '次/天</td>' +
         '<td style="line-height:1.8">' + rewardCells + logicLabel + '</td>' +
-        '<td><span class="status-tag ' + statusClass + '">' + statusText + '</span></td>' +
+        '<td><span class="status-tag ' + statusClass + '">' + statusText + '</span>' + timeInfo + '</td>' +
         '<td style="white-space:nowrap">' +
           '<button class="btn btn-default btn-sm" onclick="editTask(\'' + t.id + '\')">编辑</button> ' +
           '<button class="btn btn-sm ' + (t.status === 'active' ? 'btn-default' : 'btn-success') + '" onclick="toggleTask(\'' + t.id + '\')">' + (t.status === 'active' ? '停用' : '启用') + '</button> ' +
@@ -947,7 +985,9 @@
       hotspotIds: trigger === 'lottery_draw' ? selectedHotspotNums.slice() : [],
       projectIds: trigger === 'hotspot_click' ? selectedProjectIds.slice() : [],
       hitProbability: trigger === 'lottery_draw' ? hitProb : 0,
-      status: existing ? existing.status : 'active',
+      status: existing ? existing.status : 'inactive',
+      activeFrom: existing ? existing.activeFrom || '' : '',
+      activeUntil: existing ? existing.activeUntil || '' : '',
       totalClaims: existing ? existing.totalClaims || 0 : 0,
       totalClaimers: existing ? existing.totalClaimers || 0 : 0,
       updatedAt: new Date().toISOString()
@@ -977,9 +1017,51 @@
   function toggleTask(id) {
     var t = tasks.find(function(x){ return x.id === id; });
     if (!t) return;
-    t.status = t.status === 'active' ? 'inactive' : 'active';
+    if (t.status === 'active') {
+      // 停用
+      t.status = 'inactive';
+      saveTasks();
+      toast('任务已停用');
+    } else {
+      // 启动：弹出时间设置
+      activatingTaskId = id;
+      // 预填已有时间或默认今天起
+      if (t.activeFrom) document.getElementById('activeFrom').value = toDatetimeLocal(t.activeFrom);
+      else document.getElementById('activeFrom').value = toDatetimeLocal(new Date());
+      if (t.activeUntil) document.getElementById('activeUntil').value = toDatetimeLocal(t.activeUntil);
+      else document.getElementById('activeUntil').value = '';
+      document.getElementById('activeModal').classList.add('show');
+    }
+  }
+
+  function toDatetimeLocal(d) {
+    var date = new Date(d);
+    var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) +
+      'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  function confirmActive() {
+    var fromVal = document.getElementById('activeFrom').value;
+    var untilVal = document.getElementById('activeUntil').value;
+    if (!fromVal) { toast('请选择生效开始时间'); return; }
+    if (!untilVal) { toast('请选择生效结束时间'); return; }
+    if (new Date(untilVal) <= new Date(fromVal)) { toast('结束时间必须大于开始时间'); return; }
+
+    var t = tasks.find(function(x){ return x.id === activatingTaskId; });
+    if (!t) return;
+    t.activeFrom = new Date(fromVal).toISOString();
+    t.activeUntil = new Date(untilVal).toISOString();
+    t.status = 'active';
+    activatingTaskId = null;
     saveTasks();
-    toast(t.status === 'active' ? '任务已启用' : '任务已停用');
+    closeActiveModal();
+    toast('任务已启用，生效时间：' + fromVal + ' ~ ' + untilVal);
+  }
+
+  function closeActiveModal() {
+    document.getElementById('activeModal').classList.remove('show');
+    activatingTaskId = null;
   }
 
   function resetTaskStats(id) {
