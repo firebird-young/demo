@@ -1302,11 +1302,6 @@ function initMapDrag() {
     mapDrag.active = false;
     var ci = getCurrentImg();
     if (ci) ci.classList.remove('dragging');
-    // 场景2-4松手自动复位，消除黑边
-    if (currentScene !== 1) {
-      mapDrag.x = 0; mapDrag.y = 0;
-      applyDragTransform();
-    }
   });
   window.addEventListener('touchmove', function(e) {
     if (!mapDrag.active || e.touches.length !== 1) return;
@@ -1320,10 +1315,6 @@ function initMapDrag() {
     mapDrag.active = false;
     var ci = getCurrentImg();
     if (ci) ci.classList.remove('dragging');
-    if (currentScene !== 1) {
-      mapDrag.x = 0; mapDrag.y = 0;
-      applyDragTransform();
-    }
   });
 
   // 场景1 首次进入弹入动画
