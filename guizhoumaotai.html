@@ -47,9 +47,23 @@
   }
   .scene-arrow:hover{transform:translateY(-50%) scale(1.1);background:rgba(0,0,0,.6)}
   .scene-arrow:active{transform:translateY(-50%) scale(.9)}
-  .scene-arrow img{width:20px;height:auto;display:block}
+  .scene-arrow img{width:20px;height:auto;display:block;transform:rotate(90deg)}
   .scene-arrow.rev{right:auto;left:8px}
-  .scene-arrow.rev img{transform:rotate(180deg)}
+  .scene-arrow.rev img{transform:rotate(90deg)}
+
+  /* 顶部返回箭头 */
+  .back-arrow{
+    position:absolute;left:8px;top:12px;
+    z-index:55;cursor:pointer;
+    width:34px;height:34px;border-radius:50%;
+    background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(255,255,255,.15);
+    filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));
+    transition:transform .2s;
+  }
+  .back-arrow:hover{transform:scale(1.1);background:rgba(0,0,0,.6)}
+  .back-arrow img{width:16px;height:auto;transform:rotate(-90deg);display:block}
 
   /* ── 覆盖层 ── */
   .overlay{position:absolute;inset:0;z-index:1;pointer-events:none}
@@ -413,6 +427,10 @@
         <span class="task-badge" id="taskBadge" style="display:none">0</span>
       </div>
 
+      <!-- 顶部返回箭头 -->
+      <div class="back-arrow" id="backArrow" onclick="goBackFromScene()">
+        <img src="arrow.png" alt="返回">
+      </div>
       <!-- 场景切换箭头 -->
       <div class="scene-arrow" id="sceneArrow" onclick="switchScene(currentScene===1?2:1)">
         <img src="arrow.png" alt="切换场景">
@@ -507,8 +525,7 @@
 </div>
 
 <!-- 重置停留奖励按钮（手机框外） -->
-<div class="reset-dwell-btn" onclick="resetDwellReward()">🔄 重置停留时长奖励</div>
-<div class="dwell-count" id="dwellCountLabel">已领取：0/2</div>
+<div class="dwell-count" id="dwellCountLabel" style="display:none">每日可领 1 次</div>
 
 </div><!-- /phone-wrap -->
 
@@ -568,6 +585,15 @@
     } else {
       arrow.classList.remove('rev');
       arrow.title = '切换到场景2';
+    }
+  }
+
+  function goBackFromScene(){
+    if (currentScene === 2) {
+      switchScene(1);
+    } else {
+      // 返回食品区地图
+      window.location.href = 'mall.html#2';
     }
   }
 
@@ -634,7 +660,7 @@
 
   // ── 停留奖励 ──
   var dwellCount = 0;
-  var dwellMax = 2;
+  var dwellMax = 1;
   var dwellTimer = null;
   var dwellRetryTimer = null;
 
@@ -661,13 +687,9 @@
     if (hit) {
       dwellCount++;
       updateDwellLabel();
-      incrTask('t1'); // 任务1：停留奖励进度+1
+      incrTask('t1');
       document.getElementById('dwellRewardMask').classList.add('show');
       if (lotteryActive) closeLottery();
-      // 未达上限则继续计时
-      if (dwellCount < dwellMax) {
-        startDwellTimer();
-      }
     }
   }
 

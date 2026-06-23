@@ -1074,6 +1074,10 @@ function confirmRole() {
   // 显示用户信息
   updateSceneUI();
   initMapDrag();
+  var h = window.location.hash;
+  if (h === '#2' || h === '#3' || h === '#4') {
+    setTimeout(function(){ switchScene(parseInt(h.slice(1))); }, 100);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1368,6 +1372,11 @@ if (userRole) {
   });
   [1, 2, 3, 4].forEach(function(id){ renderScene(id); });
   initMapDrag();
+  // URL hash 指定初始场景
+  var h = window.location.hash;
+  if (h === '#2' || h === '#3' || h === '#4') {
+    setTimeout(function(){ switchScene(parseInt(h.slice(1))); }, 100);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
