@@ -233,6 +233,16 @@
               <option value="">不跳转</option>
             </select>
           </div>
+          <div class="form-group">
+            <label class="form-label">装饰图片（非必填）</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="btn btn-default btn-sm" onclick="document.getElementById('jumpDecoImgInput').click();return false" id="jumpDecoBtn">📷 上传图片</button>
+              <img id="jumpDecoPreview" src="" style="width:48px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #eee;display:none">
+              <span id="jumpDecoClear" style="display:none;font-size:12px;color:#D70C1F;cursor:pointer" onclick="clearJumpDecoImg()">✕ 移除</span>
+              <input type="file" id="jumpDecoImgInput" accept="image/*" onchange="uploadJumpDecoImg()" style="display:none">
+              <input type="hidden" id="hotspotJumpImg" value="">
+            </div>
+          </div>
         </div>
         <div class="deco-field" id="decoField">
           <div class="form-group">
@@ -320,7 +330,12 @@
         box.className = 'hotspot-box' + (isDeco ? ' deco' : '') + (isStart ? ' start' : '');
         box.style.left = h.x + '%'; box.style.top = h.y + '%';
         box.style.width = (h.w || 8) + '%'; box.style.height = (h.h || 10) + '%';
-        if (isDeco && h.decoImg) {
+        if (h.jumpImg) {
+          // 跳转热区有图片时显示图片
+          box.style.border = '1px dashed #20bf6b';
+          box.style.background = 'none';
+          box.innerHTML = '<img src="' + h.jumpImg + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none" title="' + (h.name || '跳转') + '">';
+        } else if (isDeco && h.decoImg) {
           box.innerHTML = '<img src="' + h.decoImg + '" alt="' + (h.name || '装饰') + '" title="' + (h.name || '装饰') + '">';
         } else if (isStart) {
           box.innerHTML = '<div class="hotspot-box-label">🚶 ' + (h.name || '起始位置') + '</div>';
@@ -371,6 +386,8 @@
       document.getElementById('hotspotEditName').value = '';
       document.getElementById('hotspotTarget').value = '';
       document.getElementById('hotspotDecoImg').value = '';
+      document.getElementById('hotspotJumpImg').value = '';
+      clearJumpDecoImg();
       // 重置装饰预览
       document.getElementById('decoPreview').src = '';
       document.getElementById('decoPreview').style.display = 'none';
@@ -395,6 +412,28 @@
       document.getElementById('typeBtnStart').classList.toggle('active', type === 'start');
       document.getElementById('jumpField').classList.toggle('show', type === 'jump');
       document.getElementById('decoField').classList.toggle('show', type === 'deco');
+    }
+
+    // 跳转热区装饰图片上传
+    function uploadJumpDecoImg() {
+      var f = document.getElementById('jumpDecoImgInput').files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) {
+        document.getElementById('hotspotJumpImg').value = e.target.result;
+        document.getElementById('jumpDecoPreview').src = e.target.result;
+        document.getElementById('jumpDecoPreview').style.display = 'block';
+        document.getElementById('jumpDecoBtn').textContent = '✓ 已上传';
+        document.getElementById('jumpDecoClear').style.display = 'inline';
+      };
+      r.readAsDataURL(f);
+      document.getElementById('jumpDecoImgInput').value = '';
+    }
+    function clearJumpDecoImg() {
+      document.getElementById('hotspotJumpImg').value = '';
+      document.getElementById('jumpDecoPreview').style.display = 'none';
+      document.getElementById('jumpDecoBtn').textContent = '📷 上传图片';
+      document.getElementById('jumpDecoClear').style.display = 'none';
     }
 
     // 上传装饰图片
@@ -443,6 +482,15 @@
         if (h.toScene && h.toImg) {
           document.getElementById('hotspotTarget').value = h.toScene + '|' + h.toImg;
         }
+        // 跳转图片
+        clearJumpDecoImg();
+        document.getElementById('hotspotJumpImg').value = h.jumpImg || '';
+        if (h.jumpImg) {
+          document.getElementById('jumpDecoPreview').src = h.jumpImg;
+          document.getElementById('jumpDecoPreview').style.display = 'block';
+          document.getElementById('jumpDecoBtn').textContent = '✓ 已上传';
+          document.getElementById('jumpDecoClear').style.display = 'inline';
+        }
       } else if (type === 'deco') {
         document.getElementById('hotspotDecoImg').value = h.decoImg || '';
         var preview = document.getElementById('decoPreview');
@@ -479,12 +527,13 @@
         : document.getElementById('typeBtnDeco').classList.contains('active') ? 'deco' : 'start';
       if (!name) { showToast('请输入热区名称', 'error'); return; }
 
-      var toScene = '', toImg = '', decoImg = '';
+      var toScene = '', toImg = '', decoImg = '', jumpImg = '';
       if (type === 'jump') {
         var toVal = document.getElementById('hotspotTarget').value;
         var toParts = toVal ? toVal.split('|') : [];
         toScene = toParts[0] || '';
         toImg = toParts[1] || '';
+        jumpImg = document.getElementById('hotspotJumpImg').value;
       } else if (type === 'deco') {
         decoImg = document.getElementById('hotspotDecoImg').value;
         if (!decoImg) { showToast('请上传装饰图片', 'error'); return; }
@@ -492,7 +541,7 @@
 
       if (editId) {
         var h = mapData.hotspots.find(function(x) { return x.id === editId; });
-        if (h) { h.name = name; h.type = type; h.toScene = toScene; h.toImg = toImg; h.decoImg = decoImg; }
+        if (h) { h.name = name; h.type = type; h.toScene = toScene; h.toImg = toImg; h.decoImg = decoImg; h.jumpImg = jumpImg; }
         showToast('热区已更新', 'success');
       } else {
         mapData.hotspots.push({
@@ -501,7 +550,7 @@
           y: Math.round(parseFloat(modal.dataset.tempY) * 10) / 10,
           w: Math.round(parseFloat(modal.dataset.tempW) * 10) / 10,
           h: Math.round(parseFloat(modal.dataset.tempH) * 10) / 10,
-          toScene: toScene, toImg: toImg, decoImg: decoImg
+          toScene: toScene, toImg: toImg, decoImg: decoImg, jumpImg: jumpImg
         });
         showToast('热区已添加', 'success');
       }
