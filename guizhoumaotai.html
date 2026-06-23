@@ -401,33 +401,41 @@
         <span style="color:rgba(255,255,255,.4);font-size:10px;margin-left:2px">▾</span>
       </div>
       <div class="backpack-panel" id="backpackPanel" onclick="event.stopPropagation()">
+        <div style="color:#fff;font-size:14px;font-weight:700;margin-bottom:8px;text-align:center">🎒 我的背包</div>
         <div class="bp-section">
-          <div class="bp-section-title">💰 资产</div>
+          <div class="bp-section-title">💎 数字资产</div>
           <div class="bp-row">
-            <div class="bp-icon" style="background:rgba(212,165,71,.15)">💰</div>
+            <div class="bp-icon" style="background:rgba(102,126,234,.15)">🖼️</div>
+            <div class="bp-info"><div class="bp-name">数字藏品</div></div>
+            <div class="bp-num" id="bpCollectibles">5件</div>
+          </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">💰 积分资产</div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(212,165,71,.15)">⭐</div>
             <div class="bp-info"><div class="bp-name">茅台积分</div></div>
             <div class="bp-num" id="bpPoints">1,280</div>
           </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">🎫 营销券码</div>
           <div class="bp-row">
-            <div class="bp-icon" style="background:rgba(102,126,234,.15)">🎫</div>
+            <div class="bp-icon" style="background:rgba(72,199,142,.15)">🎟️</div>
             <div class="bp-info"><div class="bp-name">茅台优惠券</div></div>
             <div class="bp-num" id="bpCoupons">3张</div>
           </div>
           <div class="bp-row">
-            <div class="bp-icon" style="background:rgba(240,173,78,.15)">⭐</div>
+            <div class="bp-icon" style="background:rgba(240,173,78,.15)">🔰</div>
             <div class="bp-info"><div class="bp-name">新品优先权</div></div>
             <div class="bp-num" id="bpPriority">2次</div>
           </div>
         </div>
         <div class="bp-section">
-          <div class="bp-section-title">🎭 IP皮肤</div>
+          <div class="bp-section-title">🎭 数字权益</div>
           <div class="bp-skin-list" id="bpSkinList">
-            <div class="bp-skin-item owned"><img src="李白待机.gif" alt="李白"></div>
-            <div class="bp-skin-item owned"><img src="诸葛亮待机.gif" alt="诸葛亮"></div>
-            <div class="bp-skin-item"><img src="都江堰待机.gif" alt="都江堰"></div>
-            <div class="bp-skin-item"><img src="娲皇宫待机.gif" alt="娲皇宫"></div>
-            <div class="bp-skin-item"><img src="安仁古镇待机.gif" alt="安仁古镇"></div>
-            <div class="bp-skin-item"><img src="李白纪念馆待机.gif" alt="李白纪念馆"></div>
+            <div class="bp-skin-item" onclick="applySkin('茅台酿酒师.png')"><img src="茅台酿酒师.png" alt="茅台酿酒师"><div style="color:#fff;font-size:9px;text-align:center;margin-top:3px">茅台酿酒师</div></div>
+            <div class="bp-skin-item" onclick="applySkin('茅台巴拿马限定款.png')"><img src="茅台巴拿马限定款.png" alt="茅台巴拿马限定款"><div style="color:#fff;font-size:9px;text-align:center;margin-top:3px">巴拿马限定款</div></div>
           </div>
         </div>
       </div>
@@ -919,6 +927,25 @@
       panel.classList.remove('show');
     }
   });
+  function applySkin(skinSrc){
+    // 替换当前场景人物形象
+    document.querySelectorAll('.origin-dot, .char-img').forEach(function(el){
+      el.style.backgroundImage = el.tagName === 'IMG' ? '' : 'url(' + skinSrc + ')';
+      if (el.tagName === 'IMG') el.src = skinSrc;
+    });
+    document.getElementById('uAvatar').src = skinSrc;
+    // 标记已选皮肤
+    document.querySelectorAll('.bp-skin-item').forEach(function(s){ s.classList.remove('owned'); });
+    var items = document.querySelectorAll('.bp-skin-item');
+    items.forEach(function(item){
+      var img = item.querySelector('img');
+      if (img && img.src.indexOf(skinSrc) >= 0) item.classList.add('owned');
+    });
+    document.getElementById('backpackPanel').classList.remove('show');
+    // 加载 gif 作为 animate 背景
+    var skinImg = new Image();
+    skinImg.src = skinSrc;
+  }
 
   // ── 从 mall 带入角色 ──
   (function initUser(){

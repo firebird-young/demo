@@ -80,7 +80,7 @@
   /* 右上角用户信息 */
   .user-info-btn{
     position:absolute;top:10px;right:60px;z-index:50;
-    display:none;align-items:center;gap:6px;
+    display:flex;align-items:center;gap:6px;
     padding:4px 10px 4px 4px;
     border:1px solid rgba(255,255,255,.15);
     border-radius:18px;background:rgba(0,0,0,.4);
@@ -88,6 +88,29 @@
   }
   .user-info-btn .u-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover}
   .user-info-btn .u-name{color:#fff;font-size:12px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 背包下拉面板 */
+  .backpack-panel{
+    position:absolute;top:46px;right:0;z-index:60;pointer-events:auto;
+    width:240px;max-height:320px;overflow-y:auto;
+    background:rgba(20,20,50,.95);backdrop-filter:blur(12px);
+    border-radius:12px;padding:10px;
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+    display:none;flex-direction:column;gap:8px;
+  }
+  .backpack-panel.show{display:flex}
+  .bp-section-title{color:rgba(255,255,255,.5);font-size:10px;font-weight:600;margin-bottom:4px;letter-spacing:1px}
+  .bp-row{display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:3px}
+  .bp-row:last-child{margin-bottom:0}
+  .bp-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .bp-info{flex:1;min-width:0}
+  .bp-name{color:#fff;font-size:11px;font-weight:500}
+  .bp-num{color:rgba(255,255,255,.4);font-size:10px}
+  .bp-skin-list{display:flex;gap:6px;flex-wrap:wrap}
+  .bp-skin-item{width:50px;border-radius:8px;border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:border .2s}
+  .bp-skin-item:hover{border-color:#667eea}
+  .bp-skin-item img{width:100%;height:50px;object-fit:cover;border-radius:7px;display:block}
 
   /* 角色昵称 */
   .origin-name{
@@ -290,6 +313,52 @@
         </div>
       </div>
 
+      <!-- 右上角用户信息 + 背包（屏幕层，所有场景可见） -->
+      <div class="user-info-btn" id="userInfoBtn" onclick="toggleBackpack()">
+        <img class="u-avatar" id="uAvatar" src="李白待机.gif" alt="">
+        <span class="u-name" id="uName">游客</span>
+        <span style="color:rgba(255,255,255,.4);font-size:10px">▾</span>
+      </div>
+      <div class="backpack-panel" id="backpackPanel" onclick="event.stopPropagation()">
+        <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:4px;text-align:center">🎒 我的背包</div>
+        <div class="bp-section">
+          <div class="bp-section-title">💎 数字资产</div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(102,126,234,.15)">🖼️</div>
+            <div class="bp-info"><div class="bp-name">数字藏品</div></div>
+            <div class="bp-num">5件</div>
+          </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">💰 积分资产</div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(212,165,71,.15)">⭐</div>
+            <div class="bp-info"><div class="bp-name">茅台积分</div></div>
+            <div class="bp-num">1,280</div>
+          </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">🎫 营销券码</div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(72,199,142,.15)">🎟️</div>
+            <div class="bp-info"><div class="bp-name">茅台优惠券</div></div>
+            <div class="bp-num">3张</div>
+          </div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(240,173,78,.15)">🔰</div>
+            <div class="bp-info"><div class="bp-name">新品优先权</div></div>
+            <div class="bp-num">2次</div>
+          </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">🎭 数字权益</div>
+          <div class="bp-skin-list">
+            <div class="bp-skin-item" onclick="applySkin('茅台酿酒师.png')"><img src="茅台酿酒师.png" alt="茅台酿酒师"><div style="color:#fff;font-size:8px;text-align:center;margin-top:2px">茅台酿酒师</div></div>
+            <div class="bp-skin-item" onclick="applySkin('茅台巴拿马限定款.png')"><img src="茅台巴拿马限定款.png" alt="茅台巴拿马限定款"><div style="color:#fff;font-size:8px;text-align:center;margin-top:2px">巴拿马限定</div></div>
+          </div>
+        </div>
+      </div>
+
       <div class="particle-layer" id="particleLayer"></div>
     </div>
   </div>
@@ -456,18 +525,36 @@
     var avatar = '李白待机.gif', nick = '';
     if (saved) {
       try { var r = JSON.parse(saved); avatar = r.avatar; nick = r.name; } catch(e){}
-      document.getElementById('user-info-btn') && (document.getElementById('user-info-btn').style.display = 'flex');
     }
     document.querySelectorAll('.char-img').forEach(function(c){ c.src = avatar; });
     if (nick) {
       document.getElementById('originName').textContent = nick;
       document.getElementById('originName').style.display = '';
     }
+    document.getElementById('uAvatar').src = avatar;
+    document.getElementById('uName').textContent = nick || '游客';
   })();
 
   // 返回时触发停留奖励重新计算
   var productRewardRead = sessionStorage.getItem('metaProductRewardFlag');
   if (productRewardRead) { sessionStorage.removeItem('metaProductRewardFlag'); incrTask('t5'); }
+
+  // 背包面板
+  function toggleBackpack(){
+    document.getElementById('backpackPanel').classList.toggle('show');
+  }
+  document.addEventListener('click', function(e){
+    var panel = document.getElementById('backpackPanel');
+    var btn = document.getElementById('userInfoBtn');
+    if (panel && btn && panel.classList.contains('show') && !btn.contains(e.target) && !panel.contains(e.target)) {
+      panel.classList.remove('show');
+    }
+  });
+  function applySkin(skinSrc){
+    document.querySelectorAll('.char-img').forEach(function(el){ el.src = skinSrc; });
+    document.getElementById('uAvatar').src = skinSrc;
+    document.getElementById('backpackPanel').classList.remove('show');
+  }
 </script>
 </body>
 </html>
