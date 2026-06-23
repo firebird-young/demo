@@ -211,7 +211,7 @@
         <th style="width:30px">#</th>
         <th>任务名称</th>
         <th>触发动作</th>
-        <th>每人每天可完成</th>
+        <th>每人每天最多获奖</th>
         <th>奖励内容（领取统计）</th>
         <th>状态</th>
         <th style="width:180px">操作</th>
@@ -277,10 +277,17 @@
           </div>
           <div style="font-size:11px;color:#999;margin-top:4px">已选热区：<strong id="selectedHotspotsText">无</strong></div>
         </div>
-        <div class="form-group">
-          <label class="form-label">命中概率（%）*</label>
-          <input class="form-input" id="taskHitProb" type="number" min="1" max="100" value="40" placeholder="用户每次抽奖命中奖励的概率">
-          <div style="font-size:11px;color:#999;margin-top:3px">用户点击抽奖热区后，有该概率获得奖励</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">命中概率（%）*</label>
+            <input class="form-input" id="taskHitProb" type="number" min="1" max="100" value="40" placeholder="用户每次抽奖命中奖励的概率">
+            <div style="font-size:11px;color:#999;margin-top:3px">用户点击抽奖热区后，有该概率获得奖励</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">每个热区最多点击次数</label>
+            <input class="form-input" id="taskHotspotMaxClick" type="number" min="1" max="99" value="5" placeholder="每个热区可抽奖点击次数上限">
+            <div style="font-size:11px;color:#999;margin-top:3px">到达次数后该热区不可再点击</div>
+          </div>
         </div>
       </div>
 
@@ -298,8 +305,8 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">每人每天完成次数 *</label>
-        <input class="form-input" id="taskMaxCount" type="number" min="1" max="99" value="5" placeholder="例如：5（表示每人每天 0/5）">
+        <label class="form-label">每人每天最多获奖次数 *</label>
+        <input class="form-input" id="taskMaxCount" type="number" min="1" max="99" value="5" placeholder="例如：5（表示每人每天最多获奖 5 次）">
       </div>
       <div class="form-group">
         <label class="form-label">奖励类型 *（可多选）</label>
@@ -471,7 +478,8 @@
         activeUntil: t.activeUntil || '',
         hotspotIds: t.hotspotIds || [],
         projectIds: t.projectIds || [],
-        hitProbability: t.hitProbability || 0
+        hitProbability: t.hitProbability || 0,
+        hotspotMaxClick: t.hotspotMaxClick || 5
       });
       meta.maxCounts[key] = t.maxCount;
     });
@@ -731,6 +739,7 @@
     document.getElementById('taskTriggerValue').value = '';
     document.getElementById('taskMaxCount').value = '5';
     document.getElementById('taskHitProb').value = '40';
+    document.getElementById('taskHotspotMaxClick').value = '5';
     document.getElementById('triggerValueGroup').style.display = 'none';
     document.getElementById('lotteryGroup').style.display = 'none';
     document.getElementById('projectGroup').style.display = 'none';
@@ -914,6 +923,7 @@
     document.getElementById('taskTriggerValue').value = t.triggerValue || '';
     document.getElementById('taskMaxCount').value = t.maxCount;
     document.getElementById('taskHitProb').value = t.hitProbability || 40;
+    document.getElementById('taskHotspotMaxClick').value = t.hotspotMaxClick || 5;
     // 填充奖励
     if (t.rewards && t.rewards.length) {
       populateRewardForm(t.rewards, t.rewardLogic);
@@ -944,12 +954,13 @@
     var triggerValue = parseInt(document.getElementById('taskTriggerValue').value) || 0;
     var maxCount = parseInt(document.getElementById('taskMaxCount').value) || 5;
     var hitProb = parseInt(document.getElementById('taskHitProb').value) || 40;
+    var hotspotMaxClick = parseInt(document.getElementById('taskHotspotMaxClick').value) || 5;
     var rewards = collectRewards();
     var rewardLogic = document.getElementById('logicBtnAnd').classList.contains('active') ? 'and' : 'or';
 
     if (!name) { toast('请输入任务名称'); return; }
     if (!trigger) { toast('请选择触发动作'); return; }
-    if (maxCount < 1 || maxCount > 99) { toast('每人每天完成次数需在 1~99 之间'); return; }
+    if (maxCount < 1 || maxCount > 99) { toast('每人每天最多获奖次数需在 1~99 之间'); return; }
     if (trigger === 'lottery_draw' && selectedHotspotNums.length === 0) {
       toast('请至少选择一个热区'); return;
     }
@@ -985,6 +996,7 @@
       hotspotIds: trigger === 'lottery_draw' ? selectedHotspotNums.slice() : [],
       projectIds: trigger === 'hotspot_click' ? selectedProjectIds.slice() : [],
       hitProbability: trigger === 'lottery_draw' ? hitProb : 0,
+      hotspotMaxClick: trigger === 'lottery_draw' ? hotspotMaxClick : 0,
       status: existing ? existing.status : 'inactive',
       activeFrom: existing ? existing.activeFrom || '' : '',
       activeUntil: existing ? existing.activeUntil || '' : '',
