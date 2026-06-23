@@ -237,6 +237,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="hotspotEditId">
+      <input type="hidden" id="hotspotDecoImg" value="">
       <div class="form-group">
         <label class="form-label">关联类型</label>
         <select class="form-select" id="hotspotEditType" onchange="onTargetTypeChange()">
@@ -253,6 +254,15 @@
       <div class="form-group">
         <label class="form-label">热区名称</label>
         <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">装饰图片（非必填）</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-default btn-sm" onclick="document.getElementById('hsDecoImgInput').click();return false" id="hsDecoBtn">📷 上传图片</button>
+          <img id="hsDecoPreview" src="" style="width:48px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #eee;display:none">
+          <span id="hsDecoClear" style="display:none;font-size:12px;color:#D70C1F;cursor:pointer" onclick="clearHsDecoImg()">✕ 移除</span>
+          <input type="file" id="hsDecoImgInput" accept="image/*" onchange="uploadHsDecoImg()" style="display:none">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -548,7 +558,16 @@ function renderStep2Editor() {
     box.style.left = h.x + '%'; box.style.top = h.y + '%';
     box.style.width = (h.width || 80) + 'px'; box.style.height = (h.height || 60) + 'px';
     box.dataset.hotspotId = h.id;
-    box.innerHTML = '<div class="hotspot-box-label">' + (h.name || '热区') + '</div>';
+    if (h.decoImg) {
+      box.style.border = '1px dashed #667eea';
+      box.style.background = 'none';
+      box.style.display = 'flex';
+      box.style.alignItems = 'center';
+      box.style.justifyContent = 'center';
+      box.innerHTML = '<img src="' + h.decoImg + '" style="width:100%;height:100%;object-fit:contain;pointer-events:none" title="' + (h.name || '装饰') + '">';
+    } else {
+      box.innerHTML = '<div class="hotspot-box-label">' + (h.name || '热区') + '</div>';
+    }
     box.onclick = function(ev) { ev.stopPropagation(); editHotspot(h.id); };
     editor.appendChild(box);
   });
@@ -608,6 +627,7 @@ function finishDrawing() {
   document.getElementById('targetGroup').style.display = 'none';
   document.getElementById('hotspotEditTarget').innerHTML = '';
   document.getElementById('hotspotEditName').value = '';
+  clearHsDecoImg();
   document.getElementById('hotspotModalTitle').textContent = '创建热区';
   document.querySelector('#hotspotEditModal [onclick="deleteHotspotFromModal()"]').style.display = 'none';
   document.getElementById('redrawHotspotBtn').style.display = '';
@@ -617,6 +637,28 @@ function finishDrawing() {
   modal.classList.add('show');
 }
 function cancelDrawing() { isDrawing = false; if (drawingBox) { drawingBox.remove(); drawingBox = null; } }
+
+// 装饰图片上传
+function uploadHsDecoImg() {
+  var f = document.getElementById('hsDecoImgInput').files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    document.getElementById('hotspotDecoImg').value = e.target.result;
+    document.getElementById('hsDecoPreview').src = e.target.result;
+    document.getElementById('hsDecoPreview').style.display = 'block';
+    document.getElementById('hsDecoBtn').textContent = '✓ 已上传';
+    document.getElementById('hsDecoClear').style.display = 'inline';
+  };
+  r.readAsDataURL(f);
+  document.getElementById('hsDecoImgInput').value = '';
+}
+function clearHsDecoImg() {
+  document.getElementById('hotspotDecoImg').value = '';
+  document.getElementById('hsDecoPreview').style.display = 'none';
+  document.getElementById('hsDecoBtn').textContent = '📷 上传图片';
+  document.getElementById('hsDecoClear').style.display = 'none';
+}
 function handleTouchStart(e) { e.preventDefault(); startDrawing(e); }
 function handleTouchMove(e) { e.preventDefault(); drawHotspot(e); }
 
@@ -636,7 +678,7 @@ function onTargetTypeChange() {
     (m.spaceItems || []).forEach(function(si){ sel.innerHTML += '<option value="' + si.id + '">' + si.name + '</option>'; });
   } else if (type === 'element') {
     group.style.display = 'block';
-    sel.innerHTML = '<option value="start_position">人物起始位置</option>';
+    sel.innerHTML = '<option value="start_position">人物起始位置</option><option value="deco_element">🎨 装饰元素</option>';
   } else {
     group.style.display = 'none';
     sel.innerHTML = '';
@@ -650,6 +692,8 @@ function onTargetSelectChange() {
   var ni = document.getElementById('hotspotEditName');
   if (type === 'element' && targetVal === 'start_position') {
     ni.value = '人物起始位置';
+  } else if (type === 'element' && targetVal === 'deco_element') {
+    ni.value = '装饰元素';
   } else if (type === 'project' && targetVal) {
     var m = cm();
     if (m) { var si = (m.spaceItems || []).find(function(s){ return s.id === targetVal; }); if (si) ni.value = si.name; }
@@ -666,9 +710,19 @@ function editHotspot(hotspotId) {
   document.querySelector('#hotspotEditModal [onclick="deleteHotspotFromModal()"]').style.display = '';
   document.getElementById('redrawHotspotBtn').style.display = 'none';
 
+  // 装饰图片
+  clearHsDecoImg();
+  document.getElementById('hotspotDecoImg').value = h.decoImg || '';
+  if (h.decoImg) {
+    document.getElementById('hsDecoPreview').src = h.decoImg;
+    document.getElementById('hsDecoPreview').style.display = 'block';
+    document.getElementById('hsDecoBtn').textContent = '✓ 已上传';
+    document.getElementById('hsDecoClear').style.display = 'inline';
+  }
+
   // 根据已有 targetId 回填二级联动
   var tid = h.targetId || '';
-  if (tid === 'start_position') {
+  if (tid === 'start_position' || tid === 'deco_element') {
     document.getElementById('hotspotEditType').value = 'element';
     onTargetTypeChange();
     document.getElementById('hotspotEditTarget').value = tid;
@@ -691,6 +745,7 @@ function saveHotspot() {
   var targetVal = document.getElementById('hotspotEditTarget').value;
   var targetId = type ? targetVal : '';
   const name = document.getElementById('hotspotEditName').value.trim();
+  var decoImg = document.getElementById('hotspotDecoImg').value;
   if (!name) { showToast('请输入热区名称', 'error'); return; }
 
   // 获取当前选中图片的ID
@@ -700,7 +755,7 @@ function saveHotspot() {
 
   if (editId) {
     const h = m.spaceHotspots.find(h => h.id === editId);
-    if (h) { h.targetId = targetId; h.name = name; }
+    if (h) { h.targetId = targetId; h.name = name; h.decoImg = decoImg; }
     showToast('热区已更新', 'success');
   } else {
     m.spaceHotspots.push({
@@ -709,7 +764,7 @@ function saveHotspot() {
       y: Math.round(parseFloat(modal.dataset.tempY) * 10) / 10,
       width: Math.round(parseFloat(modal.dataset.tempWidth)),
       height: Math.round(parseFloat(modal.dataset.tempHeight)),
-      targetId, name, imageId
+      targetId, name, imageId, decoImg
     });
     showToast('热区已添加', 'success');
   }
@@ -747,10 +802,12 @@ function renderHotspotList() {
   e.style.display = 'none';
   c.innerHTML = currentHotspots.map(h => {
     let tn = '未关联';
-    if (h.targetId === 'start_position') tn = '人物起始位置';
+    if (h.targetId === 'start_position') tn = '👤 人物起始位置';
+    else if (h.targetId === 'deco_element') tn = '🎨 装饰元素';
     else { const si = (m.spaceItems || []).find(s => s.id === h.targetId); if (si) tn = si.name; }
+    var imgTag = h.decoImg ? ' 📷' : '';
     return `<div class="hotspot-item">
-      <div class="hi-info"><div class="hi-name">${h.name||'未命名'}</div><div class="hi-target">${tn}</div><div class="hi-pos">${Math.round(h.x)}%,${Math.round(h.y)}% · ${h.width||80}×${h.height||60}</div></div>
+      <div class="hi-info"><div class="hi-name">${h.name||'未命名'}${imgTag}</div><div class="hi-target">${tn}</div><div class="hi-pos">${Math.round(h.x)}%,${Math.round(h.y)}% · ${h.width||80}×${h.height||60}</div></div>
       <div class="hi-actions"><button class="hi-btn edit" onclick="editHotspot('${h.id}')">编辑</button><button class="hi-btn delete" onclick="deleteHotspotItem('${h.id}')">删除</button></div>
     </div>`;
   }).join('');
