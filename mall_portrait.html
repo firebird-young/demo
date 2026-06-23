@@ -226,6 +226,22 @@
     color: #fff;
   }
 
+  .landscape-btn {
+    position: absolute;
+    top: -30px; left: 0;
+    z-index: 50;
+    padding: 3px 10px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    background: rgba(0,0,0,.4);
+    color: rgba(255,255,255,.5);
+    font-size: 11px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background .2s, color .2s;
+  }
+  .landscape-btn:hover { background: rgba(0,0,0,.6); color: #fff; }
+
   /* ── 起点 ── */
   .origin {
     position: absolute;
@@ -491,6 +507,7 @@
 
 <div class="phone" id="phone">
   <button class="reset-role-btn" id="resetRoleBtn" style="display:none" onclick="resetRole()">🔄 重置角色</button>
+  <button class="landscape-btn" onclick="window.location.href='mall.html'">📱 横屏模式</button>
   <div class="phone-screen">
 
     <!-- 场景1：元宇宙地图 -->
@@ -847,7 +864,7 @@ function moveTo(sceneId, spotIdx) {
   var cx = (spot.x || spot.left || 0), cy = (spot.y || spot.top || 0);
   origin.style.left = cx + '%'; origin.style.top = (cy - 5) + '%';
   window._moveTimer = setTimeout(() => {
-    if (spot.label === '贵州茅台') { window.location.href = 'guizhoumaotai.html'; }
+    if (spot.label === '贵州茅台') { window.location.href = 'guizhoumaotai_portrait.html'; }
   }, 1700);
 }
 
