@@ -710,30 +710,50 @@
   @media (max-height: 500px) {
     .phone { height: calc(100vh - 40px); width: calc((100vh - 40px) * 2); }
   }
-  /* ── 手机端 ── */
+  /* ── 手机竖屏：宽度填满，高度按 2:1 比例居中 ── */
   @media (max-width: 768px) and (orientation: portrait) {
-    body { overflow: auto; background: #000; }
-    .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
+    body { background: #000; align-items: flex-start; }
+    .phone { width: 100vw; height: calc(100vw * .5); border-radius: 0; padding: 0; box-shadow: none; margin-top: calc((100vh - 100vw * .5) / 2); }
     .phone-screen { border-radius: 0; }
-    .scene-title { font-size: 13px; top: 8px; left: 10px; padding: 3px 10px; }
-    .mall-spot .label { font-size: 11px; padding: 3px 10px; }
-    .next-scene-btn img { width: 32px; }
-    .nav-btn img { width: 36px; }
-    .origin { width: 48px; height: 48px; }
-    .origin-ring { inset: -6px; }
-    .reset-role-btn { top: 6px; right: 6px; padding: 3px 8px; font-size: 10px; }
-    .user-info-btn { top: 6px; right: 80px; }
-    .origin-name { font-size: 10px; }
-  }
-  @media (max-width: 768px) and (orientation: landscape) {
-    body { background: #000; }
-    .phone { width: 100vw; height: 100vh; border-radius: 0; padding: 0; box-shadow: none; animation: none; }
-    .phone-screen { border-radius: 0; }
-    .reset-role-btn { top: 4px; right: 4px; padding: 2px 8px; font-size: 10px; }
+    .scene-title { font-size: 12px; top: 6px; left: 8px; padding: 2px 8px; }
+    .mall-spot .label { font-size: 10px; padding: 2px 8px; }
+    .next-scene-btn img { width: 28px; }
+    .nav-btn img { width: 32px; }
+    .origin { width: 40px; height: 40px; }
+    .origin-ring { inset: -5px; }
+    .origin-name { font-size: 9px; padding: 1px 6px; }
+    .reset-role-btn { top: 4px; right: 4px; padding: 2px 6px; font-size: 10px; }
     .user-info-btn { top: 4px; right: 70px; padding: 2px 8px 2px 2px; }
-    .user-info-btn .u-avatar { width: 22px; height: 22px; }
-    .user-info-btn .u-name { font-size: 11px; }
-    .origin-name { font-size: 10px; }
+    .user-info-btn .u-avatar { width: 20px; height: 20px; }
+    .user-info-btn .u-name { font-size: 10px; }
+    .mall-back-btn { top: 6px; font-size: 10px; padding: 3px 8px; }
+    .drag-hint { font-size: 14px; }
+    .online-panel { right: 4px; bottom: 4px; width: 50px; }
+    .role-modal { width: 94vw; max-height: 80vh; padding: 14px; }
+    .role-modal-title { font-size: 16px; }
+    .role-modal-sub { font-size: 11px; }
+    .role-grid { gap: 8px; }
+    .role-card { border-radius: 10px; }
+    .role-section-title { font-size: 10px; }
+    .role-name-input { height: 30px; font-size: 12px; }
+    .role-name-group { margin-bottom: 6px; }
+    .role-confirm-btn { height: 32px; font-size: 13px; }
+  }
+  /* ── 手机横屏：高度填满，宽度按 2:1 比例 ── */
+  @media (max-width: 900px) and (orientation: landscape) {
+    body { background: #000; }
+    .phone { height: 100vh; width: calc(100vh * 2); border-radius: 0; padding: 0; box-shadow: none; }
+    .phone-screen { border-radius: 0; }
+    .scene-title { font-size: 11px; top: 4px; left: 6px; padding: 2px 8px; }
+    .reset-role-btn { top: 2px; right: 2px; padding: 1px 6px; font-size: 9px; }
+    .user-info-btn { top: 2px; right: 56px; padding: 1px 6px; }
+    .user-info-btn .u-avatar { width: 18px; height: 18px; }
+    .user-info-btn .u-name { font-size: 10px; }
+    .origin { width: 36px; height: 36px; }
+    .origin-ring { inset: -4px; }
+    .origin-name { font-size: 9px; }
+    .nav-btn img { width: 26px; }
+    .mall-back-btn { font-size: 9px; padding: 2px 6px; }
     .role-modal { padding: 8px 10px 6px; width: 94%; max-width: 260px; }
     .role-modal-title { font-size: 13px; }
     .role-modal-sub { font-size: 9px; margin-bottom: 4px; }
