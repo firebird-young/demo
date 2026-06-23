@@ -71,8 +71,8 @@
     .hotspot-box{position:absolute;border:2px dashed #20bf6b;background:rgba(32,191,107,.1);cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center}
     .hotspot-box:hover{border-style:solid;background:rgba(32,191,107,.18)}
     .hotspot-box.drawing{border-style:solid;border-color:#26de81;background:rgba(38,222,129,.2)}
-    .hotspot-box .num{font-size:18px;font-weight:800;color:#20bf6b;pointer-events:none}
-    .hotspot-box .hs-overlay{position:absolute;inset:0;pointer-events:none;background-size:contain;background-position:center;background-repeat:no-repeat}
+    .hotspot-box .num{font-size:18px;font-weight:800;color:#20bf6b;pointer-events:none;position:relative;z-index:3;text-shadow:0 0 6px rgba(0,0,0,.6)}
+    .hotspot-box .hs-overlay{position:absolute;inset:0;pointer-events:none;background-size:contain;background-position:center;background-repeat:no-repeat;z-index:2}
 
     .upload-card-box{cursor:pointer;border:2px dashed #ddd;border-radius:10px;padding:20px;text-align:center;color:#999;font-size:12px;transition:border .2s;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:80px;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
     .upload-card-box:hover{border-color:#667eea;color:#667eea}
@@ -355,18 +355,38 @@
 
   function uploadHotspotImg(num) {
     var input = document.createElement('input');
-    input.type = 'file'; input.accept = 'image/*';
+    input.type = 'file'; input.accept = 'image/gif,image/png,image/jpeg,image/webp';
+    input.style.display = 'none';
+    document.body.appendChild(input);
     input.onchange = function(){
       var file = input.files[0];
-      if (!file) return;
+      if (!file) { document.body.removeChild(input); return; }
       var reader = new FileReader();
       reader.onload = function(e){
         var list = hotspotsMap[currentImageId];
         var h = list.find(function(x){ return x.num === num; });
-        if (h) h.imgSrc = e.target.result;
-        persistHotspotData();
-        renderHotspots();
-        toast('元素图片已上传');
+        if (h) {
+          h.imgSrc = e.target.result;
+          persistHotspotData();
+          // 直接更新对应热区 DOM，避免全量重建导致的绘制延迟
+          var boxes = document.getElementById('hotspotEditor').querySelectorAll('.hotspot-box');
+          boxes.forEach(function(box){
+            var n = box.querySelector('.num');
+            if (n && parseInt(n.textContent) === num) {
+              var overlay = box.querySelector('.hs-overlay');
+              if (overlay) overlay.style.backgroundImage = 'url(' + e.target.result + ')';
+              else {
+                overlay = document.createElement('div');
+                overlay.className = 'hs-overlay';
+                box.appendChild(overlay);
+              }
+              box.style.height = (h.h || 12) + '%';
+            }
+          });
+          renderHotspotList();
+          toast('元素图片已上传');
+        }
+        document.body.removeChild(input);
       };
       reader.readAsDataURL(file);
     };
