@@ -260,27 +260,26 @@
     position: absolute;
     cursor: pointer;
     z-index: 8;
-    transition: transform .25s ease;
-    /* 位置在 JS 中设定 */
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 8px;
+    background: rgba(255,255,255,.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border .25s, background .25s, transform .25s;
   }
-  .mall-spot:hover .label {
-    background: rgba(70,180,255,.7);
-    transform: translateX(-50%) scale(1.08);
-    box-shadow: 0 0 20px rgba(0,180,255,.5);
+  .mall-spot:hover {
+    border-color: rgba(70,180,255,.7);
+    background: rgba(70,180,255,.12);
+    box-shadow: 0 0 16px rgba(0,180,255,.3);
   }
   .mall-spot .label {
     white-space: nowrap;
     color: #fff;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     text-shadow: 0 1px 6px rgba(0,0,0,.8);
-    background: rgba(0,0,0,.55);
-    padding: 4px 14px;
-    border-radius: 20px;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,.15);
-    transition: transform .25s, background .25s, box-shadow .25s;
-    letter-spacing: .5px;
+    pointer-events: none;
   }
 
   /* ── 起点可移动 ── */
@@ -856,9 +855,9 @@ const SCENES = {
     name: '元宇宙地图',
     origin: { left: 50, top: 80 },
     spots: [
-      { left: 30, top: 70, label: '食品区', toScene: 2 },
-      { left: 80, top: 20, label: '文旅区', toScene: 4 },
-      { left: 25, top: 20, label: '影视区', toScene: 3 },
+      { x: 30, y: 70, w: 15, h: 16, label: '食品区', toScene: 2 },
+      { x: 72, y: 10, w: 15, h: 16, label: '文旅区', toScene: 4 },
+      { x: 15, y: 10, w: 15, h: 16, label: '影视区', toScene: 3 },
     ],
     arrows: []
   },
@@ -866,10 +865,10 @@ const SCENES = {
     name: '食品区',
     origin: { left: 50, top: 80 },
     spots: [
-      { left: 25, top: 40, label: '妙可蓝多' },
-      { left: 30, top: 80, label: '黄老五食品' },
-      { left: 60, top: 50, label: '五粮液' },
-      { left: 80, top: 60, label: '贵州茅台' },
+      { x: 10, y: 30, w: 12, h: 14, label: '妙可蓝多' },
+      { x: 20, y: 80, w: 12, h: 14, label: '黄老五食品' },
+      { x: 52, y: 40, w: 12, h: 14, label: '五粮液' },
+      { x: 85, y: 55, w: 12, h: 14, label: '贵州茅台' },
     ],
     arrows: [
       { to: 4, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
@@ -880,11 +879,11 @@ const SCENES = {
     name: '影视区',
     origin: { left: 50, top: 80 },
     spots: [
-      { left: 20, top: 35, label: '魔童哪吒' },
-      { left: 50, top: 35, label: '鬼吹灯' },
-      { left: 80, top: 40, label: '甄嬛传' },
-      { left: 20, top: 70, label: '三体' },
-      { left: 70, top: 70, label: '庆余年' },
+      { x: 12, y: 25, w: 12, h: 14, label: '魔童哪吒' },
+      { x: 45, y: 30, w: 12, h: 14, label: '鬼吹灯' },
+      { x: 80, y: 28, w: 12, h: 14, label: '甄嬛传' },
+      { x: 12, y: 70, w: 12, h: 14, label: '三体' },
+      { x: 75, y: 80, w: 12, h: 14, label: '庆余年' },
     ],
     arrows: [
       { to: 4, x: 50, y: 8, rot: -90, cls: 'top-arrow' },
@@ -895,11 +894,11 @@ const SCENES = {
     name: '文旅区',
     origin: { left: 50, top: 80 },
     spots: [
-      { left: 20, top: 40, label: '武侯祠' },
-      { left: 30, top: 70, label: '贵州村超' },
-      { left: 50, top: 50, label: '杜甫草堂博物馆'},
-      { left: 75, top: 40, label: '王者荣耀' },
-      { left: 80, top: 70, label: '故宫博物院' },
+      { x: 10, y: 28, w: 12, h: 14, label: '武侯祠' },
+      { x: 20, y: 65, w: 12, h: 14, label: '贵州村超' },
+      { x: 42, y: 38, w: 14, h: 14, label: '杜甫草堂博物馆'},
+      { x: 75, y: 28, w: 12, h: 14, label: '王者荣耀' },
+      { x: 75, y: 70, w: 12, h: 14, label: '故宫博物院' },
     ],
     arrows: [
       { to: 3, x: 50, y: 8, rot: 90,  cls: 'top-arrow' },
@@ -1117,25 +1116,22 @@ function renderScene(sceneId) {
   `;
   overlay.appendChild(origin);
 
-  // ── 商场点位 ──
+  // ── 商场点位（区域热区） ──
   data.spots.forEach((s, i) => {
     const spot = document.createElement('div');
     spot.className = 'mall-spot';
     spot.dataset.idx = i;
-    spot.style.left = s.left + '%';
-    spot.style.top  = s.top + '%';
-    spot.style.transform = 'translate(calc(-50% + var(--map-dx,0px)), calc(-50% + var(--map-dy,0px)))';
+    spot.style.left = (s.x || s.left || 0) + '%';
+    spot.style.top  = (s.y || s.top || 0) + '%';
+    spot.style.width = (s.w || 10) + '%';
+    spot.style.height = (s.h || 12) + '%';
+    spot.style.transform = 'translate(var(--map-dx,0px), var(--map-dy,0px))';
     spot.innerHTML = `<div class="label">${s.label}</div>`;
     spot.addEventListener('click', () => {
       if (s.toScene) {
-        // 直接切换场景（地图热区）
         var origin = document.getElementById('scene' + sceneId).querySelector('.origin');
         if (origin && window._moveTimer) clearTimeout(window._moveTimer);
-        if (origin) {
-          origin.style.left = s.left + '%';
-          origin.style.top = (s.top - 16) + '%';
-        }
-        window._moveTimer = setTimeout(function(){ switchScene(s.toScene); }, 1200);
+        window._moveTimer = setTimeout(function(){ switchScene(s.toScene); }, 200);
       } else {
         moveTo(sceneId, i);
       }
@@ -1204,9 +1200,10 @@ function moveTo(sceneId, spotIdx) {
 
   if (window._moveTimer) clearTimeout(window._moveTimer);
 
-  // 人物悬停在点位上方，不遮挡点击区域
-  origin.style.left = spot.left + '%';
-  origin.style.top  = (spot.top - 16) + '%';
+  // 人物移动到热区中心
+  var cx = (spot.x || spot.left || 0), cy = (spot.y || spot.top || 0);
+  origin.style.left = cx + '%';
+  origin.style.top  = (cy - 5) + '%';
 
   // 1.6s 过渡结束后跳转到对应商户空间
   window._moveTimer = setTimeout(() => {
