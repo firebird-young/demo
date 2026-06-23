@@ -109,8 +109,34 @@
     border-radius:18px;background:rgba(0,0,0,.4);
     backdrop-filter:blur(6px);
   }
+  .user-info-btn{cursor:pointer}
   .user-info-btn .u-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
   .user-info-btn .u-name{color:#fff;font-size:12px;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* 背包下拉面板 */
+  .backpack-panel{
+    position:absolute;top:46px;right:0;z-index:60;pointer-events:auto;
+    width:260px;max-height:300px;overflow-y:auto;
+    background:rgba(20,20,50,.95);backdrop-filter:blur(12px);
+    border-radius:12px;padding:12px;
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+    display:none;flex-direction:column;gap:10px;
+  }
+  .backpack-panel.show{display:flex}
+  .bp-section{}
+  .bp-section-title{color:rgba(255,255,255,.5);font-size:10px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+  .bp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:4px}
+  .bp-row:last-child{margin-bottom:0}
+  .bp-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .bp-info{flex:1;min-width:0}
+  .bp-name{color:#fff;font-size:12px;font-weight:500}
+  .bp-num{color:rgba(255,255,255,.4);font-size:10px}
+  .bp-skin-list{display:flex;gap:6px;flex-wrap:wrap}
+  .bp-skin-item{width:40px;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:border .2s}
+  .bp-skin-item:hover{border-color:#667eea}
+  .bp-skin-item img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+  .bp-skin-item.owned{border-color:rgba(102,126,234,.5)}
 
   /* ── 起点 ── */
   .origin{
@@ -368,10 +394,42 @@
       <!-- 场景名称 -->
       <div class="scene-title"><img src="贵州茅台.jpg" class="title-logo"> 贵州茅台 · 元宇宙空间</div>
 
-      <!-- 右上角用户信息 -->
-      <div class="user-info-btn" id="userInfoBtn">
+      <!-- 右上角用户信息 + 背包下拉 -->
+      <div class="user-info-btn" id="userInfoBtn" onclick="toggleBackpack()">
         <img class="u-avatar" id="uAvatar" src="李白待机.gif" alt="">
         <span class="u-name" id="uName">游客</span>
+        <span style="color:rgba(255,255,255,.4);font-size:10px;margin-left:2px">▾</span>
+      </div>
+      <div class="backpack-panel" id="backpackPanel" onclick="event.stopPropagation()">
+        <div class="bp-section">
+          <div class="bp-section-title">💰 资产</div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(212,165,71,.15)">💰</div>
+            <div class="bp-info"><div class="bp-name">茅台积分</div></div>
+            <div class="bp-num" id="bpPoints">1,280</div>
+          </div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(102,126,234,.15)">🎫</div>
+            <div class="bp-info"><div class="bp-name">茅台优惠券</div></div>
+            <div class="bp-num" id="bpCoupons">3张</div>
+          </div>
+          <div class="bp-row">
+            <div class="bp-icon" style="background:rgba(240,173,78,.15)">⭐</div>
+            <div class="bp-info"><div class="bp-name">新品优先权</div></div>
+            <div class="bp-num" id="bpPriority">2次</div>
+          </div>
+        </div>
+        <div class="bp-section">
+          <div class="bp-section-title">🎭 IP皮肤</div>
+          <div class="bp-skin-list" id="bpSkinList">
+            <div class="bp-skin-item owned"><img src="李白待机.gif" alt="李白"></div>
+            <div class="bp-skin-item owned"><img src="诸葛亮待机.gif" alt="诸葛亮"></div>
+            <div class="bp-skin-item"><img src="都江堰待机.gif" alt="都江堰"></div>
+            <div class="bp-skin-item"><img src="娲皇宫待机.gif" alt="娲皇宫"></div>
+            <div class="bp-skin-item"><img src="安仁古镇待机.gif" alt="安仁古镇"></div>
+            <div class="bp-skin-item"><img src="李白纪念馆待机.gif" alt="李白纪念馆"></div>
+          </div>
+        </div>
       </div>
 
       <!-- 起点 -->
@@ -849,6 +907,18 @@
 
   loadTasks();
   checkProductReward();
+
+  // 背包面板
+  function toggleBackpack(){
+    document.getElementById('backpackPanel').classList.toggle('show');
+  }
+  document.addEventListener('click', function(e){
+    var panel = document.getElementById('backpackPanel');
+    var btn = document.getElementById('userInfoBtn');
+    if (panel && btn && panel.classList.contains('show') && !btn.contains(e.target) && !panel.contains(e.target)) {
+      panel.classList.remove('show');
+    }
+  });
 
   // ── 从 mall 带入角色 ──
   (function initUser(){
