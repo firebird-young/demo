@@ -891,22 +891,35 @@ function initMapDrag() {
     } catch(e) {}
   }
   // 应用缩放
+  // 竖屏图片宽高比差异大，用实际自然尺寸计算可拖范围
   var img1 = document.querySelector('#scene1 .map-pan img');
+  var sceneScale = (mapScale || 130) / 100;
   if (img1) {
     img1.style.width = mapScale + '%';
     img1.style.height = mapScale + '%';
-    img1.style.objectFit = 'cover';
+    img1.style.objectFit = 'contain';
   }
-  var scale1 = mapScale / 100;
 
   function clampDrag(x, y) {
     var s = document.getElementById('scene'+currentScene);
     var pan = s ? s.querySelector('.map-pan') : null;
+    var ci = s ? s.querySelector('.map-pan img') : null;
     if (!pan) return;
     var w = pan.clientWidth, h = pan.clientHeight;
     var isSub = s.classList.contains('scene-sub');
-    var scl = isSub ? 1.2 : scale1;
-    var mx = w * (scl - 1) / 2, my = h * (scl - 1) / 2;
+    if (isSub) {
+      var scl = 1.2;
+      var mx = w * (scl - 1) / 2, my = h * (scl - 1) / 2;
+    } else if (ci && ci.naturalWidth) {
+      // contain：完整显示不裁切，拖拽按实际渲染尺寸
+      var ew = w * sceneScale, eh = h * sceneScale;
+      var cs = Math.min(ew / ci.naturalWidth, eh / ci.naturalHeight);
+      var renderW = ci.naturalWidth * cs, renderH = ci.naturalHeight * cs;
+      var mx = Math.max(0, (renderW - w) / 2);
+      var my = Math.max(0, (renderH - h) / 2);
+    } else {
+      var mx = w * (sceneScale - 1) / 2, my = h * (sceneScale - 1) / 2;
+    }
     mapDrag.x = Math.max(-mx, Math.min(mx, x));
     mapDrag.y = Math.max(-my, Math.min(my, y));
   }

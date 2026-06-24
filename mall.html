@@ -1263,8 +1263,7 @@ function initMapDrag() {
     var w = pan.clientWidth, h = pan.clientHeight;
     var isSub = s.classList.contains('scene-sub');
     var scale = isSub ? 1.2 : scene1Scale;
-    var dragScale = isSub ? 1.2 : Math.max(scene1Scale, 1.6);
-    var mx = Math.max(0, w * (dragScale - 1) / 2 - 10), my = Math.max(0, h * (dragScale - 1) / 2 - 10);
+    var mx = Math.max(0, w * (scale - 1) / 2), my = Math.max(0, h * (scale - 1) / 2);
     mapDrag.x = Math.max(-mx, Math.min(mx, x));
     mapDrag.y = Math.max(-my, Math.min(my, y));
   }
