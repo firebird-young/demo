@@ -57,6 +57,9 @@
     .image-item .img-info { flex: 1; min-width: 0; }
     .image-item .img-name-input { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; }
     .image-item .img-name-input:focus { border-color: #D70C1F; }
+    .image-item .img-scale-input { width: 60px; padding: 4px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; outline: none; text-align: center; flex-shrink: 0; }
+    .image-item .img-scale-input:focus { border-color: #D70C1F; }
+    .img-scale-label { font-size: 10px; color: #999; flex-shrink: 0; }
 
     /* 场景列表 */
     .scene-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
@@ -394,7 +397,8 @@
     function renderNewImageList() {
       var el = document.getElementById('newImageList');
       el.innerHTML = newImages.length === 0 ? '' : newImages.map(function(img, i) {
-        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="newImages[' + i + '].name=this.value"></div><button class="btn-danger-sm" onclick="removeNewImage(' + i + ')">删除</button></div>';
+        var s = img.scale || 120;
+        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="newImages[' + i + '].name=this.value"></div><span class="img-scale-label">缩放%</span><input class="img-scale-input" type="number" min="100" max="300" value="' + s + '" onchange="newImages[' + i + '].scale=parseInt(this.value)||120"><button class="btn-danger-sm" onclick="removeNewImage(' + i + ')">删除</button></div>';
       }).join('');
     }
     function saveNewScene() {
@@ -428,7 +432,8 @@
     function renderEditImageList() {
       var el = document.getElementById('editImageList');
       el.innerHTML = editImages.length === 0 ? '<div style="color:#999;font-size:13px;padding:10px">暂无图片</div>' : editImages.map(function(img, i) {
-        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="editImages[' + i + '].name=this.value"></div><button class="btn-danger-sm" onclick="removeEditImage(' + i + ')">删除</button></div>';
+        var s = img.scale || 120;
+        return '<div class="image-item"><img src="' + img.src + '"><div class="img-info"><input class="img-name-input" value="' + img.name + '" onchange="editImages[' + i + '].name=this.value"></div><span class="img-scale-label">缩放%</span><input class="img-scale-input" type="number" min="100" max="300" value="' + s + '" onchange="editImages[' + i + '].scale=parseInt(this.value)||120"><button class="btn-danger-sm" onclick="removeEditImage(' + i + ')">删除</button></div>';
       }).join('');
     }
     function saveEditScene() {

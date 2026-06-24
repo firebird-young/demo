@@ -177,6 +177,19 @@
         </div>
       </div>
 
+      <!-- 地图参数 -->
+      <div class="card">
+        <div class="card-title">地图参数设置</div>
+        <div class="form-row" style="display:flex;gap:16px;align-items:flex-end">
+          <div class="form-group" style="flex:1;margin-bottom:0">
+            <label class="form-label">地图缩放比例（%）</label>
+            <input class="form-input" id="mapScale" type="number" min="100" max="300" value="130" placeholder="默认130">
+            <div style="font-size:11px;color:#999;margin-top:4px">用户端地图默认放大比例，越大拖拽范围越大</div>
+          </div>
+          <button class="btn btn-primary" onclick="saveMapScale()">保存</button>
+        </div>
+      </div>
+
       <!-- 热区列表 -->
       <div class="card">
         <div class="card-title">热区列表</div>
@@ -277,7 +290,7 @@
     ];
 
     var STORAGE = 'adminMapData';
-    var mapData = { image: '../元宇宙地图.png', hotspots: [] };
+    var mapData = { image: '../元宇宙地图.png', hotspots: [], scale: 130 };
     var isDrawing = false, drawStartX = 0, drawStartY = 0, drawingBox = null;
 
     function navigateTo(url) { window.location.href = url; }
@@ -287,6 +300,8 @@
       var saved = localStorage.getItem(STORAGE);
       if (saved) { try { mapData = JSON.parse(saved); } catch(e) {} }
       if (!mapData.hotspots) mapData.hotspots = [];
+      if (!mapData.scale) mapData.scale = 130;
+      document.getElementById('mapScale').value = mapData.scale;
       var img = document.getElementById('mapImage');
       img.src = mapData.image || '';
       img.style.display = mapData.image ? 'block' : 'none';
@@ -312,9 +327,17 @@
 
     function saveMapData() {
       localStorage.setItem(STORAGE, JSON.stringify(mapData));
-      // 同步到用户端
-      var userData = { image: mapData.image, hotspots: mapData.hotspots };
+      // 同步到用户端（包含缩放比例）
+      var userData = { image: mapData.image, hotspots: mapData.hotspots, scale: mapData.scale || 130 };
       localStorage.setItem('metaMapData', JSON.stringify(userData));
+    }
+
+    function saveMapScale() {
+      var scale = parseInt(document.getElementById('mapScale').value) || 130;
+      scale = Math.max(100, Math.min(300, scale));
+      mapData.scale = scale;
+      saveMapData();
+      showToast('缩放比例已保存为 ' + scale + '%', 'success');
     }
 
     // 绘制热区
