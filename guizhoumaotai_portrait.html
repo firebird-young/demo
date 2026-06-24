@@ -432,7 +432,9 @@
       spot.style.display = spot.dataset.scene == targetId ? '' : 'none';
     });
     var arrow = document.getElementById('sceneArrow');
-    arrow.classList.toggle('rev', targetId === 2);
+    var arrow2 = document.getElementById('sceneArrow2');
+    arrow.style.display = targetId === 2 ? 'none' : '';
+    if (arrow2) arrow2.style.display = targetId === 2 ? 'none' : '';
     arrow.title = targetId === 2 ? '返回场景1' : '切换到场景2';
     // 更新角色位置
     var chars = document.querySelectorAll('.char-img');
