@@ -75,6 +75,9 @@
     transition: transform .6s cubic-bezier(.25,.46,.45,.94);
     pointer-events: none;
   }
+  #scene1 .map-pan img {
+    width: 130%; height: 130%;
+  }
   .scene-layer.scene-sub .map-pan img {
     width: 120%; height: 120%;
   }
@@ -586,9 +589,9 @@ const SCENES = {
     name: '元宇宙地图',
     origin: { left: 50, top: 50 },
     spots: [
-      { x: 5, y: 60, w: 20, h: 14, label: '食品区', toScene: 2 },
-      { x: 65, y: 15, w: 20, h: 14, label: '文旅区', toScene: 4 },
-      { x: 5,  y: 15, w: 20, h: 14, label: '影视区', toScene: 3 },
+      { x: 40, y: 55, w: 20, h: 5, label: '食品区', toScene: 2 },
+      { x: 55, y: 25, w: 20, h: 5, label: '文旅区', toScene: 4 },
+      { x: 22,  y: 25, w: 20, h: 5, label: '影视区', toScene: 3 },
     ],
     arrows: []
   },
@@ -892,7 +895,7 @@ function initMapDrag() {
     var w = pan.clientWidth, h = pan.clientHeight;
     var isSub = s.classList.contains('scene-sub');
     var scale = isSub ? 1.2 : 1.3;
-    var mx = Math.max(0, w*(scale-1)/2-10), my = Math.max(0, h*(scale-1)/2-10);
+    var mx = Math.max(0, w*(scale-1)/2), my = Math.max(0, h*(scale-1)/2);
     mapDrag.x = Math.max(-mx, Math.min(mx, x));
     mapDrag.y = Math.max(-my, Math.min(my, y));
   }
