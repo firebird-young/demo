@@ -69,17 +69,12 @@
   .map-pan img {
     position: absolute;
     left: 50%; top: 50%;
-    width: 130%; height: 130%;
     transform: translate(-50%, -50%);
     object-fit: cover;
     transition: transform .6s cubic-bezier(.25,.46,.45,.94);
     pointer-events: none;
   }
-  #scene1 .map-pan img {
-    width: 130%; height: 130%;
-    object-fit: cover;
-  }
-  .scene-layer.scene-sub .map-pan img {
+  .scene-sub .map-pan img {
     width: 120%; height: 120%;
   }
   .map-pan img.dragging {
@@ -897,8 +892,12 @@ function initMapDrag() {
   }
   // 应用缩放
   var img1 = document.querySelector('#scene1 .map-pan img');
-  if (img1) { img1.style.width = mapScale + '%'; img1.style.height = mapScale + '%'; }
-  var scene1Scale = mapScale / 100;
+  if (img1) {
+    img1.style.width = mapScale + '%';
+    img1.style.height = mapScale + '%';
+    img1.style.objectFit = 'cover';
+  }
+  var scale1 = mapScale / 100;
 
   function clampDrag(x, y) {
     var s = document.getElementById('scene'+currentScene);
@@ -906,8 +905,8 @@ function initMapDrag() {
     if (!pan) return;
     var w = pan.clientWidth, h = pan.clientHeight;
     var isSub = s.classList.contains('scene-sub');
-    var scale = isSub ? 1.2 : scene1Scale;
-    var mx = Math.max(0, w*(scale-1)/2), my = Math.max(0, h*(scale-1)/2);
+    var scl = isSub ? 1.2 : scale1;
+    var mx = w * (scl - 1) / 2, my = h * (scl - 1) / 2;
     mapDrag.x = Math.max(-mx, Math.min(mx, x));
     mapDrag.y = Math.max(-my, Math.min(my, y));
   }
