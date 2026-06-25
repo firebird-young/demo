@@ -322,10 +322,10 @@ function init() {
   loadCharacter();
 
   // 加载地图：如果是 base64（旧数据）也能显示，文件名直接加载
-  var mapSrc = config.mapImage || '茅台游戏地图.png';
+  var mapSrc = config.mapImage || 'ChatGPT Image 2026年6月25日 09_21_39.png';
   document.getElementById('mapBg').src = mapSrc;
   document.getElementById('mapBg').onerror = function() {
-    this.src = '茅台游戏地图.png';
+    this.src = 'ChatGPT Image 2026年6月25日 09_21_39.png';
   };
 
   // 渲染格子
