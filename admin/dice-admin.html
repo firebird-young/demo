@@ -224,7 +224,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script>
 var STORAGE = 'diceGameConfig';
-var merchants = JSON.parse(localStorage.getItem('merchants') || '[]');
+var DEFAULT_MERCHANTS = [
+  {account:"m1",name:"贵州茅台"},
+  {account:"m2",name:"五粮液"},
+  {account:"m3",name:"黄老五食品"},
+  {account:"m4",name:"妙可蓝多"},
+  {account:"m5",name:"王者荣耀"},
+  {account:"m6",name:"三体"},
+  {account:"m7",name:"故宫博物院"},
+  {account:"m8",name:"杜甫草堂博物馆"}
+];
+var merchants = JSON.parse(localStorage.getItem('merchants') || JSON.stringify(DEFAULT_MERCHANTS));
 
 // 默认配置
 var config = {
