@@ -55,17 +55,17 @@ body{
 /* 格子 */
 .grid-cell{
   position:absolute;z-index:10;
-  width:32px;height:32px;border-radius:50%;
+  width:44px;height:44px;border-radius:50%;
   transform:translate(-50%,-50%);
   display:flex;align-items:center;justify-content:center;
-  color:#fff;font-size:11px;font-weight:800;
+  color:#fff;font-size:12px;font-weight:800;
   border:2px solid #fff;cursor:default;
   transition:transform .2s,box-shadow .2s;
   text-shadow:0 1px 2px rgba(0,0,0,.5);
 }
 .grid-cell.normal{background:linear-gradient(135deg,#667eea,#5a6fd6)}
-.grid-cell.start{background:linear-gradient(135deg,#20bf6b,#17a55a);width:36px;height:36px;font-size:13px}
-.grid-cell.end{background:linear-gradient(135deg,#D70C1F,#b80a1a);width:36px;height:36px;font-size:13px}
+.grid-cell.start{background:linear-gradient(135deg,#20bf6b,#17a55a);width:50px;height:50px;font-size:14px}
+.grid-cell.end{background:linear-gradient(135deg,#D70C1F,#b80a1a);width:50px;height:50px;font-size:14px}
 .grid-cell.roll_again{background:linear-gradient(135deg,#f0ad4e,#e09a3a);animation:specialPulse 1.5s infinite}
 .grid-cell.lottery{background:linear-gradient(135deg,#ff6b6b,#e05050);animation:specialPulse 1.5s infinite}
 .grid-cell.reward{background:linear-gradient(135deg,#ffcc66,#e6b84f);color:#333;animation:specialPulse 1.5s infinite}
@@ -126,10 +126,11 @@ body{
   background:rgba(0,0,0,.85);color:#fff;padding:16px 24px;border-radius:16px;
   font-size:18px;font-weight:700;pointer-events:none;text-align:center;
   border:1px solid rgba(255,255,255,.2);
-  animation:toastIn .4s ease,toastOut .3s 1.8s ease forwards;
+  animation:toastIn .4s ease;
   display:none;
 }
 .effect-toast.show{display:block}
+.effect-toast.hide{animation:toastOut .3s ease forwards;display:block}
 .effect-toast img{max-width:80px;max-height:60px;margin:6px auto 0;display:block}
 @keyframes toastIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @keyframes toastOut{0%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}}
@@ -208,7 +209,7 @@ body{
 
     <!-- 顶部 -->
     <div class="topbar">
-      <span class="back-btn" onclick="window.location.href='user-index.html'">← 目录</span>
+      <span class="back-btn" onclick="window.location.href='mall_portrait.html'">← 返回</span>
       <span class="score-display" id="scoreDisplay">🏆 <span id="pointsVal">0</span></span>
     </div>
 
@@ -280,6 +281,8 @@ function init() {
     return;
   }
   try { config = JSON.parse(saved); } catch(e) { return; }
+  // 补全商家数据
+  if (!config.merchants) config.merchants = JSON.parse(localStorage.getItem('merchants') || '[]');
   if (!config.grids || config.grids.length === 0) {
     document.getElementById('mapBg').src = '茅台游戏地图.png';
     document.getElementById('stepInfo').textContent = '暂无格子，请商家配置';
@@ -316,12 +319,16 @@ function renderGrids() {
     cell.style.left = g.x + '%';
     cell.style.top = g.y + '%';
 
-    // 用类型配置的图片
-    var tInfo = config.gridTypes ? config.gridTypes[g.type] : null;
-    if (tInfo && tInfo.img && tInfo.img.length > 10) {
+    // 格子图片：优先用自身图，否则用类型图
+    var cellImg = g.gridImg || null;
+    if (!cellImg) {
+      var tInfo = config.gridTypes ? config.gridTypes[g.type] : null;
+      if (tInfo && tInfo.img) cellImg = tInfo.img;
+    }
+    if (cellImg) {
       var img = document.createElement('img');
       img.className = 'cell-img';
-      img.src = tInfo.img;
+      img.src = cellImg;
       img.onerror = function() { this.remove(); };
       cell.appendChild(img);
     }
@@ -483,7 +490,13 @@ function checkCellEffect(idx) {
         }
         var ltNames = { points:'积分', coupon:'优惠券', priority:'新品权' };
         var ltIcons = { points:'⭐', coupon:'🎫', priority:'🔰' };
-        var msg = hitType ? ('🎰 ' + (ltNames[hitType]||hitType) + ' ×' + hitQty) : '😢 未中奖';
+        var merchantStr = '';
+        if (hitType && g.lotteryMerchants && g.lotteryMerchants.length && config.merchants) {
+          var mids = g.lotteryMerchants;
+          var m = config.merchants.find(function(x){ var acc = x.account||x.id||x.name; return mids.indexOf(acc) >= 0; });
+          if (m) merchantStr = ' | ' + (m.name||'');
+        }
+        var msg = hitType ? ('🎰 ' + (ltNames[hitType]||hitType) + ' ×' + hitQty + merchantStr) : '😢 未中奖';
         document.getElementById('lsIcon').textContent = hitType ? (ltIcons[hitType]||'🎉') : '😢';
         document.getElementById('lsText').textContent = msg;
         toast.classList.remove('lottery-roll');
@@ -494,9 +507,13 @@ function checkCellEffect(idx) {
         if (hitType === 'points') { totalPoints += hitQty; updateUI(); }
         setTimeout(function() {
           toast.classList.remove('show', 'lottery-done');
+          toast.classList.add('hide');
+          var fd = toast.querySelector('.lottery-final');
+          if (fd) fd.style.display = '';
           isRolling = false; rollStack = 0;
           document.getElementById('stepInfo').textContent = msg;
         }, 2000);
+        setTimeout(function() { toast.classList.remove('hide'); }, 2500);
       }, 1800);
       break;
 
@@ -504,7 +521,12 @@ function checkCellEffect(idx) {
       var rtype = g.rtype || 'points';
       var rqty = g.quantity || 10;
       var rtNames = { points:'积分', coupon:'优惠券', priority:'新品权' };
-      var rmsg = '💰 必得 ' + (rtNames[rtype]||rtype) + ' ×' + rqty;
+      var merchantName = '';
+      if (g.merchantId && config.merchants) {
+        var m = config.merchants.find(function(x){ var acc = x.account||x.id||x.name; return acc === g.merchantId; });
+        if (m) merchantName = ' | ' + (m.name||'');
+      }
+      var rmsg = '💰 必得 ' + (rtNames[rtype]||rtype) + ' ×' + rqty + merchantName;
       showEffect(rmsg, tInfo.img);
       if (rtype === 'points') { totalPoints += rqty; updateUI(); }
       setTimeout(function() { isRolling = false; rollStack = 0; document.getElementById('stepInfo').textContent = rmsg; }, 2000);
@@ -519,14 +541,17 @@ function checkCellEffect(idx) {
 function showEffect(text, imgSrc) {
   var toast = document.getElementById('effectToast');
   toast.classList.remove('lottery-roll','lottery-done');
+  var finalDiv = toast.querySelector('.lottery-final');
+  if (finalDiv) finalDiv.style.display = 'block';
   document.getElementById('effectText').textContent = text;
   var img = document.getElementById('effectImg');
   if (imgSrc) { img.src = imgSrc; img.style.display = 'block'; }
   else img.style.display = 'none';
-  toast.classList.remove('show');
+  toast.classList.remove('show','hide');
   void toast.offsetWidth;
   toast.classList.add('show');
-  setTimeout(function() { toast.classList.remove('show'); }, 2200);
+  setTimeout(function() { toast.classList.remove('show'); toast.classList.add('hide'); }, 2000);
+  setTimeout(function() { toast.classList.remove('hide'); if (finalDiv) finalDiv.style.display = ''; }, 2500);
 }
 
 // ========== 胜利 ==========

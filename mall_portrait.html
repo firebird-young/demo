@@ -151,6 +151,24 @@
     pointer-events: none;
   }
 
+  /* ── 活动悬浮横条 ── */
+  .event-banner {
+    position: absolute; top: 50px; left: 16px; right: 16px; z-index: 25;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 8px 16px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,107,107,.9), rgba(254,87,161,.9));
+    color: #fff; font-size: 13px; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255,107,107,.4);
+    animation: eventBannerPulse 2s ease-in-out infinite;
+    letter-spacing: 1px;
+  }
+  .event-banner:hover { transform: scale(1.02); }
+  @keyframes eventBannerPulse {
+    0%,100% { box-shadow: 0 4px 16px rgba(255,107,107,.4); }
+    50% { box-shadow: 0 4px 24px rgba(255,107,107,.7); }
+  }
+
   /* ── 弹窗返回/关闭按钮 ── */
   .role-modal-back {
     position: absolute;
@@ -508,6 +526,9 @@
   <button class="reset-role-btn" id="resetRoleBtn" style="display:none" onclick="resetRole()">🔄 重置角色</button>
   <button class="landscape-btn" onclick="window.location.href='mall.html'">📱 横屏模式</button>
   <div class="phone-screen">
+
+    <!-- 活动悬浮横条 -->
+    <a class="event-banner" href="dice_game.html" onclick="event.stopPropagation()">🎲 本期活动：文旅大联盟</a>
 
     <!-- 场景1：元宇宙地图 -->
     <div class="scene-layer" id="scene1">

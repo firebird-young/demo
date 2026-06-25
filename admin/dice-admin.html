@@ -80,7 +80,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </head>
 <body>
 
-<a href="dashboard.html" style="position:fixed;top:10px;left:10px;z-index:99;background:rgba(0,0,0,.5);color:#fff;padding:5px 10px;border-radius:14px;font-size:11px;text-decoration:none">← 返回</a>
+<a href="dashboard-admin.html" style="position:fixed;top:10px;left:10px;z-index:99;background:rgba(0,0,0,.5);color:#fff;padding:5px 10px;border-radius:14px;font-size:11px;text-decoration:none">← 返回</a>
+<a href="../index.html" style="position:fixed;top:10px;right:10px;z-index:99;background:rgba(0,0,0,.5);color:#fff;padding:5px 10px;border-radius:14px;font-size:11px;text-decoration:none">📁 目录</a>
 
 <div class="header">
   <h1>🎲 骰子小游戏配置</h1>
@@ -149,6 +150,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="modal-box">
     <div class="modal-title">✏️ 编辑格子 <span id="editGridNum">#1</span></div>
     <input type="hidden" id="editGridId">
+    <input type="hidden" id="editGridMerchant" value="">
+    <input type="hidden" id="editGridLotteryMerchants" value="">
     <div class="form-group">
       <label class="form-label">格子类型</label>
       <select class="form-select" id="editGridType" onchange="onTypeChange()">
@@ -178,6 +181,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span style="font-size:11px;color:#666">命中率%</span><input type="number" id="lc_priorityProb" min="1" max="100" value="30" style="width:50px;padding:3px;font-size:12px;border:1px solid #ddd;border-radius:4px;text-align:center">
         <span style="font-size:11px;color:#666">最大数</span><input type="number" id="lc_priorityMax" min="1" max="99" value="2" style="width:45px;padding:3px;font-size:12px;border:1px solid #ddd;border-radius:4px;text-align:center">
       </div>
+      <div style="font-size:13px;font-weight:600;margin-top:10px;margin-bottom:4px">🏪 合作商家（多选）</div>
+      <div id="lc_merchantList" style="display:flex;flex-wrap:wrap;gap:6px;max-height:80px;overflow-y:auto"></div>
     </div>
     <div id="rewardConfig" style="display:none">
       <div style="font-size:13px;font-weight:600;margin-bottom:6px">💰 奖励配置</div>
@@ -194,6 +199,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <label class="form-label">数量</label>
           <input class="form-input" type="number" id="rc_qty" min="1" max="99" value="10">
         </div>
+        <div class="form-group" id="merchantGroup" style="display:none">
+          <label class="form-label">合作商家</label>
+          <select class="form-select" id="rc_merchant"></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">格子图片（可选，覆盖类型图）</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-sm btn-default" onclick="document.getElementById('editGridImgInput').click()" id="editGridImgBtn">📷 上传</button>
+        <img id="editGridImgPreview" src="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid #eee;display:none">
+        <span id="editGridImgClear" style="display:none;font-size:12px;color:#D70C1F;cursor:pointer" onclick="clearGridImg()">✕ 移除</span>
+        <input type="file" id="editGridImgInput" accept="image/*" style="display:none" onchange="uploadGridImg()">
+        <input type="hidden" id="editGridImgVal" value="">
       </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
@@ -205,6 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <script>
 var STORAGE = 'diceGameConfig';
+var merchants = JSON.parse(localStorage.getItem('merchants') || '[]');
 
 // 默认配置
 var config = {
@@ -286,10 +306,12 @@ function renderTypeConfig() {
   var html = '';
   keys.forEach(function(k) {
     var t = config.gridTypes[k] || { name: names[k], img: '' };
+    var imgSrc = t.img || '';
+    if (imgSrc && imgSrc.indexOf('data:') !== 0 && imgSrc.indexOf('blob:') !== 0 && imgSrc.indexOf('../') !== 0) imgSrc = '../' + imgSrc;
     html += '<div class="type-row">';
     html += '<div class="tr-name">' + (names[k] || k) + '</div>';
     html += '<div class="tr-upload">';
-    html += '<img class="tr-preview" id="tp_' + k + '" src="' + (t.img || '') + '" style="' + (t.img ? '' : 'display:none') + '" onerror="this.style.display=\'none\'">';
+    html += '<img class="tr-preview" id="tp_' + k + '" src="' + imgSrc + '" style="' + (t.img ? '' : 'display:none') + '" onerror="this.style.display=\'none\'">';
     html += '<button class="btn btn-sm btn-default" onclick="uploadTypeImg(\'' + k + '\')">上传图片</button>';
     html += '<input type="file" id="tf_' + k + '" accept="image/*" onchange="handleTypeImg(\'' + k + '\')" style="display:none">';
     html += '</div>';
@@ -302,16 +324,12 @@ function uploadTypeImg(k) { document.getElementById('tf_' + k).click(); }
 function handleTypeImg(k) {
   var f = document.getElementById('tf_' + k).files[0];
   if (!f) return;
-  var r = new FileReader();
-  r.onload = function(e) {
-    config.gridTypes[k].img = e.target.result;
-    document.getElementById('tp_' + k).src = e.target.result;
-    document.getElementById('tp_' + k).style.display = '';
-    saveAll();
-    refreshEditor();
-    renderGridList();
-  };
-  r.readAsDataURL(f);
+  config.gridTypes[k].img = f.name;
+  document.getElementById('tp_' + k).src = URL.createObjectURL(f);
+  document.getElementById('tp_' + k).style.display = '';
+  saveAll();
+  refreshEditor();
+  renderGridList();
 }
 
 // ========== 编辑器 ==========
@@ -338,14 +356,17 @@ function refreshEditor() {
     dot.title = (config.gridTypes[g.type] ? config.gridTypes[g.type].name : g.type) + ' #' + g.num;
     dot.dataset.gridId = g.id;
 
-    // 用类型配置的图片
+    // 用格子自身图或类型图
     var tInfo = config.gridTypes[g.type];
-    if (tInfo && tInfo.img && tInfo.img.length > 10) {
+    var dotImgSrc = (g.gridImg) ? g.gridImg : (tInfo && tInfo.img) ? tInfo.img : null;
+    if (dotImgSrc) {
       dot.style.background = 'none';
       dot.style.overflow = 'hidden';
       var dotImg = document.createElement('img');
       dotImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%';
-      dotImg.src = tInfo.img;
+      var src = dotImgSrc;
+      if (src.indexOf('data:') !== 0 && src.indexOf('blob:') !== 0 && src.indexOf('../') !== 0) src = '../' + src;
+      dotImg.src = src;
       dotImg.onerror = function() { this.style.display = 'none'; };
       dot.appendChild(dotImg);
     }
@@ -536,7 +557,10 @@ function renderGridList() {
     var typeName = tInfo.name || typeNames[g.type] || g.type;
     var numStr = g.type === 'end' ? '终' : g.num;
     var selected = g.id === selectedGridId ? ' style="background:#fff3cd"' : '';
-    var imgTag = tInfo.img ? '<img src="' + tInfo.img + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px">' : '';
+    var cellImg = g.gridImg || tInfo.img;
+    var imgPath = cellImg;
+    if (imgPath && imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0 && imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath;
+    var imgTag = cellImg ? '<img src="' + imgPath + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px">' : '';
     var sub = '';
     if (g.type === 'lottery' && g.lotteryRewards) {
       var keys = Object.keys(g.lotteryRewards);
@@ -562,6 +586,11 @@ function editGrid(gid) {
   if (!g) return;
   document.getElementById('editGridId').value = g.id;
   document.getElementById('editGridNum').textContent = '#' + (g.type === 'end' ? '终点' : g.num);
+  // 预存商家选择数据
+  window._editLotteryMerchants = g.lotteryMerchants || [];
+  window._editRewardMerchant = g.merchantId || '';
+  document.getElementById('editGridMerchant').value = g.merchantId || '';
+  document.getElementById('editGridLotteryMerchants').value = (g.lotteryMerchants || []).join(',');
   document.getElementById('editGridType').value = g.type;
   // 回填抽奖配置
   var lr = g.lotteryRewards || {};
@@ -574,6 +603,17 @@ function editGrid(gid) {
   // 回填奖励配置
   document.getElementById('rc_type').value = g.rtype || 'points';
   document.getElementById('rc_qty').value = g.quantity || 10;
+  // 回填格子图片
+  clearGridImg();
+  document.getElementById('editGridImgVal').value = g.gridImg || '';
+  if (g.gridImg) {
+    var imgPath = g.gridImg;
+    if (imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0 && imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath;
+    document.getElementById('editGridImgPreview').src = imgPath;
+    document.getElementById('editGridImgPreview').style.display = 'block';
+    document.getElementById('editGridImgBtn').textContent = '✓ 已上传';
+    document.getElementById('editGridImgClear').style.display = 'inline';
+  }
   onTypeChange();
   document.getElementById('editModal').classList.add('show');
 }
@@ -587,8 +627,64 @@ function onTypeChange() {
   var t = document.getElementById('editGridType').value;
   document.getElementById('lotteryConfig').style.display = (t === 'lottery') ? '' : 'none';
   document.getElementById('rewardConfig').style.display = (t === 'reward') ? '' : 'none';
+  document.getElementById('merchantGroup').style.display = (t === 'reward') ? '' : 'none';
+  // 填充商家
+ 	// 保障商家数据用隐藏字段写入，这里只渲染UI
+ 	if (t !== 'reward' && t !== 'lottery') {
+    document.getElementById('editGridMerchant').value = '';
+    document.getElementById('editGridLotteryMerchants').value = '';
+  }
+ 	if (t === 'reward') {
+    var sel = document.getElementById('rc_merchant');
+    var savedMid = (window._editRewardMerchant && window._editRewardMerchant !== 'undefined') ? window._editRewardMerchant : '';
+    var opts = '<option value="">不指定</option>';
+    var found = false;
+    merchants.forEach(function(m){
+      var acc = m.account || m.id || m.name || '';
+      if (!acc) return;
+      if (savedMid && acc === savedMid) found = true;
+      opts += '<option value="'+acc+'">'+(m.name||acc)+'</option>';
+    });
+    if (savedMid && !found) {
+      opts = '<option value="">不指定</option><option value="'+savedMid+'" selected>'+savedMid+' (已保存)</option>' + opts.substring(opts.indexOf('>')+1);
+    }
+    sel.innerHTML = opts;
+    sel.value = found ? savedMid : '';
+    sel.onchange = function() { document.getElementById('editGridMerchant').value = this.value; };
+  }
+   if (t === 'lottery') {
+    var selectedMids = window._editLotteryMerchants || [];
+    var list = document.getElementById('lc_merchantList');
+    // 收集当前列表中所有可能的 key
+    var allKeys = merchants.map(function(m){ return m.account || m.id || m.name || ''; });
+    // 过滤掉 selectedMids 中的无效值
+    var validMids = selectedMids.filter(function(mid){ return mid && mid !== 'undefined'; });
+    var html = merchants.map(function(m){
+      var acc = m.account || m.id || m.name || '';
+      if (!acc) return '';
+      return '<label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px">' +
+        '<input type="checkbox" value="'+acc+'" '+(validMids.indexOf(acc)>=0?'checked':'')+'>'+(m.name||acc)+'</label>';
+    }).join('');
+    // 追加已保存但不在当前列表中的
+    validMids.forEach(function(mid){
+      if (allKeys.indexOf(mid) < 0) {
+        html += '<label style="font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px">' +
+          '<input type="checkbox" value="'+mid+'" checked>'+mid+' (已保存)</label>';
+      }
+    });
+    list.innerHTML = html;
+    // 复选框变化时同步
+    var cbs = list.querySelectorAll('input[type=checkbox]');
+    for (var ci=0; ci<cbs.length; ci++) {
+      cbs[ci].onchange = function(){
+        var all = list.querySelectorAll('input[type=checkbox]:checked');
+        var vals = [];
+        for (var j=0; j<all.length; j++) vals.push(all[j].value);
+        document.getElementById('editGridLotteryMerchants').value = vals.join(',');
+      };
+    }
+ 	}
   toggleLotterySub();
-  // 类型预览
   var tInfo = config.gridTypes[t] || {};
   var img = document.getElementById('gtypeImg');
   var name = document.getElementById('gtypeName');
@@ -597,25 +693,54 @@ function onTypeChange() {
   name.textContent = tInfo.name || t;
 }
 
+function uploadGridImg() {
+  var f = document.getElementById('editGridImgInput').files[0];
+  if (!f) return;
+  document.getElementById('editGridImgVal').value = f.name;
+  document.getElementById('editGridImgPreview').src = URL.createObjectURL(f);
+  document.getElementById('editGridImgPreview').style.display = 'block';
+  document.getElementById('editGridImgBtn').textContent = '✓ 已上传';
+  document.getElementById('editGridImgClear').style.display = 'inline';
+}
+function clearGridImg() {
+  document.getElementById('editGridImgVal').value = '';
+  document.getElementById('editGridImgPreview').src = '';
+  document.getElementById('editGridImgPreview').style.display = 'none';
+  document.getElementById('editGridImgBtn').textContent = '📷 上传';
+  document.getElementById('editGridImgClear').style.display = 'none';
+}
+
 function saveGridEdit() {
   try {
     var gid = document.getElementById('editGridId').value;
     var g = config.grids.find(function(g) { return g.id === gid; });
     if (!g) { toast('格子不存在'); return; }
     g.type = document.getElementById('editGridType').value;
+    g.gridImg = document.getElementById('editGridImgVal').value || '';
     if (g.type === 'lottery') {
       var lr = {};
       if (document.getElementById('lc_points').checked) lr.points = { prob: parseInt(document.getElementById('lc_pointsProb').value)||40, max: parseInt(document.getElementById('lc_pointsMax').value)||10 };
       if (document.getElementById('lc_coupon').checked) lr.coupon = { prob: parseInt(document.getElementById('lc_couponProb').value)||30, max: parseInt(document.getElementById('lc_couponMax').value)||3 };
       if (document.getElementById('lc_priority').checked) lr.priority = { prob: parseInt(document.getElementById('lc_priorityProb').value)||30, max: parseInt(document.getElementById('lc_priorityMax').value)||2 };
       g.lotteryRewards = lr;
-      delete g.rtype; delete g.quantity;
+      // 从隐藏字段读取，同时兼容复选框直接读取
+      var hiddenVal = document.getElementById('editGridLotteryMerchants').value;
+      if (hiddenVal) {
+        g.lotteryMerchants = hiddenVal.split(',');
+      } else {
+        var mids = [];
+        document.querySelectorAll('#lc_merchantList input[type=checkbox]:checked').forEach(function(cb){ mids.push(cb.value); });
+        g.lotteryMerchants = mids;
+      }
+      delete g.rtype; delete g.quantity; delete g.merchantId;
     } else if (g.type === 'reward') {
       g.rtype = document.getElementById('rc_type').value;
       g.quantity = parseInt(document.getElementById('rc_qty').value) || 10;
+      var mSel = document.getElementById('rc_merchant');
+      g.merchantId = mSel ? mSel.value : '';
       delete g.lotteryRewards;
     } else {
-      delete g.lotteryRewards; delete g.rtype; delete g.quantity;
+      delete g.lotteryRewards; delete g.rtype; delete g.quantity; delete g.merchantId;
     }
     saveAll();
     closeEditModal();
@@ -653,11 +778,12 @@ function saveAll() {
       mapImage: cfg.mapImage || '',
       gridTypes: cfg.gridTypes,
       grids: (cfg.grids || []).map(function(g) {
-        var item = { num: g.num, x: g.x, y: g.y, type: g.type };
-        if (g.type === 'lottery') item.lotteryRewards = g.lotteryRewards;
-        if (g.type === 'reward') { item.rtype = g.rtype; item.quantity = g.quantity; }
+        var item = { num: g.num, x: g.x, y: g.y, type: g.type, gridImg: g.gridImg || '' };
+        if (g.type === 'lottery') { item.lotteryRewards = g.lotteryRewards; item.lotteryMerchants = g.lotteryMerchants || []; }
+        if (g.type === 'reward') { item.rtype = g.rtype; item.quantity = g.quantity; item.merchantId = g.merchantId || ''; }
         return item;
-      })
+      }),
+      merchants: merchants
     };
     localStorage.setItem('diceGameUser', JSON.stringify(userData));
     renderGridList();
