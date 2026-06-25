@@ -663,14 +663,13 @@ let currentScene = 1;
 // ═══════════════════════════════════════════════════════
 // 角色选择
 // ═══════════════════════════════════════════════════════
-const ROLE_AVATARS = [
-  { src: '李白待机.gif', gender: 'male', name: '李白' },
-  { src: '诸葛亮待机.gif', gender: 'male', name: '诸葛亮' },
-  { src: '都江堰待机.gif', gender: 'male', name: '都江堰' },
-  { src: '娲皇宫待机.gif', gender: 'female', name: '娲皇宫' },
-  { src: '安仁古镇待机.gif', gender: 'female', name: '安仁古镇' },
-  { src: '李白纪念馆待机.gif', gender: 'female', name: '李白纪念馆' }
+const ROLE_DEFAULTS = [
+  { id:1, name:'李白', gender:'male', src:'李白待机.gif', sprite:'李白待机.gif', spriteFrames:1, spriteDir:'horizontal' },
+  { id:2, name:'娲皇宫', gender:'female', src:'娲皇宫待机.gif', sprite:'娲皇宫待机.gif', spriteFrames:1, spriteDir:'horizontal' }
 ];
+// 优先读后台数据，否则用默认
+var roleRaw = JSON.parse(localStorage.getItem('metaMallRoles') || 'null');
+var ROLE_AVATARS = (roleRaw && roleRaw.length) ? roleRaw.map(function(r){ var a = r.avatar||r.sprite||r.img||''; var s = r.sprite||r.img||''; if (a.indexOf('data:')!==0&&a.indexOf('../')===0) a = a.slice(3); if (s.indexOf('data:')!==0&&s.indexOf('../')===0) s = s.slice(3); return { id:r.id, src:a, gender:r.gender, name:r.name, sprite:s, spriteFrames:r.spriteFrames||1, spriteDir:r.spriteDir||'horizontal', spriteCoords:r.spriteCoords||null }; }) : ROLE_DEFAULTS;
 const males = ROLE_AVATARS.filter(function(r){ return r.gender === 'male'; });
 const females = ROLE_AVATARS.filter(function(r){ return r.gender === 'female'; });
 let selectedAvatar = '';
@@ -772,7 +771,9 @@ function updateSceneUI() {
 function confirmRole() {
   var name = document.getElementById('roleNameInput').value.trim();
   if (!selectedAvatar || !name) return;
-  userRole = { avatar: selectedAvatar, name: name };
+  // 找到对应角色获取雪碧图数据
+  var foundRole = ROLE_AVATARS.find(function(r){ return r.src === selectedAvatar; });
+  userRole = { avatar: selectedAvatar, name: name, sprite: (foundRole&&foundRole.sprite)||'', spriteFrames: (foundRole&&foundRole.spriteFrames)||1, spriteDir: (foundRole&&foundRole.spriteDir)||'horizontal', spriteCoords: (foundRole&&foundRole.spriteCoords)||null };
   localStorage.setItem('metaMallRole', JSON.stringify(userRole));
   localStorage.setItem('metaMallNick', name);
   isEditingRole = false;

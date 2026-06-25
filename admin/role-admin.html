@@ -167,8 +167,9 @@
               <th style="width:70px">角色图片</th>
               <th>名称</th>
               <th>性别</th>
+              <th>雪碧图</th>
               <th>选择人数</th>
-              <th style="width:100px">操作</th>
+              <th style="width:80px">操作</th>
             </tr>
           </thead>
           <tbody id="roleTableBody">
@@ -199,12 +200,42 @@
             <option value="female">女</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">角色图片</label>
-          <div class="upload-box" id="roleImgBox" onclick="document.getElementById('roleImgInput').click()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="form-row" style="display:flex;gap:16px">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">头像缩略图</label>
+            <div class="upload-box" id="avatarBox" onclick="document.getElementById('avatarInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <input type="file" id="avatarInput" accept="image/*" onchange="handleImgUpload(this,'avatar')" style="display:none">
           </div>
-          <input type="file" id="roleImgInput" accept="image/*" onchange="handleImgUpload(this)">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">雪碧图</label>
+            <div class="upload-box" id="spriteBox" onclick="document.getElementById('spriteInput').click()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <input type="file" id="spriteInput" accept="image/*" onchange="handleImgUpload(this,'sprite')" style="display:none">
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:16px">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">帧数</label>
+            <input class="form-input" type="number" id="spriteFrames" min="1" max="64" value="8" placeholder="雪碧图总帧数">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">排列方向</label>
+            <select class="form-select" id="spriteDir">
+              <option value="horizontal">水平排列</option>
+              <option value="vertical">垂直排列</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">坐标文件（可选，JSON格式）<span style="font-weight:400;color:#999;font-size:11px"> — 定义每帧 x,y,w,h，均匀分割则无需上传</span></label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn btn-default btn-sm" onclick="document.getElementById('coordsInput').click()" id="coordsBtn">📄 上传</button>
+            <span id="coordsInfo" style="font-size:12px;color:#999"></span>
+            <input type="file" id="coordsInput" accept=".json" onchange="handleCoordsUpload(this)" style="display:none">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -217,17 +248,26 @@
   <div class="toast" id="toast" style="display:none"></div>
 
 <script>
+  var STORAGE_KEY = 'metaMallRoles';
   var roles = [
-    { id: 1, name: '李白', gender: 'male', img: '../李白待机.gif', selectedCount: 128 },
-    { id: 2, name: '诸葛亮', gender: 'male', img: '../诸葛亮待机.gif', selectedCount: 96 },
-    { id: 3, name: '都江堰', gender: 'male', img: '../都江堰待机.gif', selectedCount: 73 },
-    { id: 4, name: '娲皇宫', gender: 'female', img: '../娲皇宫待机.gif', selectedCount: 105 },
-    { id: 5, name: '安仁古镇', gender: 'female', img: '../安仁古镇待机.gif', selectedCount: 88 },
-    { id: 6, name: '李白纪念馆', gender: 'female', img: '../李白纪念馆待机.gif', selectedCount: 61 }
+    { id: 1, name: '李白', gender: 'male', avatar: '../李白.png', sprite: '../李白雪碧图.png', spriteFrames: 8, spriteDir: 'horizontal', selectedCount: 0 },
+    { id: 2, name: '娲皇宫', gender: 'female', avatar: '../娲皇宫待机.gif', sprite: '../娲皇宫待机.gif', spriteFrames: 1, spriteDir: 'horizontal', selectedCount: 0 }
   ];
-  var nextId = 7;
-  var imgData = '';
+  var nextId = 3;
+  var avatarData = '';
+  var spriteData = '';
+  var coordsData = '';
   var editingId = null;
+
+  // 从 localStorage 加载
+  var saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try { var arr = JSON.parse(saved); if (arr && arr.length) { roles = arr; nextId = Math.max.apply(null, roles.map(function(r){ return r.id; })) + 1; } } catch(e) {}
+  }
+
+  function saveToStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(roles));
+  }
 
   function navigateTo(url) { window.location.href = url; }
 
@@ -243,9 +283,10 @@
       empty.style.display = 'none';
       tbody.innerHTML = filtered.map(function(r){
         return '<tr>' +
-          '<td><img class="role-avatar" src="' + r.img + '" alt="' + r.name + '"></td>' +
+          '<td><img class="role-avatar" src="' + r.avatar + '" alt="' + r.name + '"></td>' +
           '<td>' + r.name + '</td>' +
           '<td>' + (r.gender === 'male' ? '👨 男' : '👩 女') + '</td>' +
+          '<td><span style="font-size:11px;color:#999">' + r.spriteFrames + '帧 ' + (r.spriteDir==='vertical'?'垂直':'水平') + '</span></td>' +
           '<td>' + r.selectedCount + ' 人</td>' +
           '<td><button class="btn btn-edit" onclick="editRole(' + r.id + ')">修改</button></td>' +
           '</tr>';
@@ -266,43 +307,86 @@
     var role = roles.find(function(r){ return r.id === id; });
     if (!role) return;
     editingId = id;
-    imgData = role.img;
+    avatarData = role.avatar;
+    spriteData = role.sprite;
+    coordsData = role.spriteCoords || '';
+    document.getElementById('coordsInfo').textContent = coordsData ? '已加载 ' + (Array.isArray(coordsData) ? coordsData.length : (typeof coordsData === 'string' ? JSON.parse(coordsData).frames.length : '')) + ' 帧坐标' : '';
     document.getElementById('modalTitle').textContent = '修改角色';
     document.getElementById('modalConfirmBtn').textContent = '保存修改';
     document.getElementById('roleName').value = role.name;
     document.getElementById('roleGender').value = role.gender;
-    document.getElementById('roleImgBox').style.backgroundImage = 'url(' + role.img + ')';
-    document.getElementById('roleImgBox').innerHTML = '';
-    document.getElementById('roleImgInput').value = '';
+    document.getElementById('spriteFrames').value = role.spriteFrames || 1;
+    document.getElementById('spriteDir').value = role.spriteDir || 'horizontal';
+    setBoxPreview('avatarBox', role.avatar);
+    setBoxPreview('spriteBox', role.sprite);
     document.getElementById('roleModal').classList.add('show');
   }
 
   function openAddModal() {
     editingId = null;
-    imgData = '';
+    avatarData = '';
+    spriteData = '';
+    coordsData = '';
+    document.getElementById('coordsInfo').textContent = '';
     document.getElementById('modalTitle').textContent = '新增角色';
     document.getElementById('modalConfirmBtn').textContent = '确认新增';
     document.getElementById('roleName').value = '';
     document.getElementById('roleGender').value = 'male';
-    document.getElementById('roleImgBox').style.backgroundImage = '';
-    document.getElementById('roleImgBox').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-    document.getElementById('roleImgInput').value = '';
+    document.getElementById('spriteFrames').value = '8';
+    document.getElementById('spriteDir').value = 'horizontal';
+    setBoxPreview('avatarBox', '');
+    setBoxPreview('spriteBox', '');
     document.getElementById('roleModal').classList.add('show');
+  }
+
+  function setBoxPreview(boxId, src) {
+    var box = document.getElementById(boxId);
+    if (src) {
+      box.style.backgroundImage = 'url(' + src + ')';
+      box.style.backgroundSize = 'cover';
+      box.innerHTML = '';
+    } else {
+      box.style.backgroundImage = '';
+      box.style.backgroundSize = '';
+      box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    }
   }
 
   function closeModal() {
     document.getElementById('roleModal').classList.remove('show');
   }
 
-  function handleImgUpload(input) {
+  function handleCoordsUpload(input) {
     var file = input.files[0];
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function(e) {
-      imgData = e.target.result;
-      var box = document.getElementById('roleImgBox');
-      box.style.backgroundImage = 'url(' + imgData + ')';
-      box.innerHTML = '';
+      try {
+        var json = JSON.parse(e.target.result);
+        if (json.frames && Array.isArray(json.frames)) {
+          coordsData = json;
+          document.getElementById('coordsInfo').textContent = '✓ ' + json.frames.length + ' 帧坐标已加载';
+        } else {
+          toast('坐标文件格式错误：需含 {frames:[{x,y,w,h},...]}');
+        }
+      } catch(ex) { toast('JSON 解析失败'); }
+    };
+    reader.readAsText(file);
+  }
+
+  function handleImgUpload(input, type) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var data = e.target.result;
+      if (type === 'avatar') {
+        avatarData = data;
+        setBoxPreview('avatarBox', data);
+      } else {
+        spriteData = data;
+        setBoxPreview('spriteBox', data);
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -310,22 +394,29 @@
   function saveRole() {
     var name = document.getElementById('roleName').value.trim();
     var gender = document.getElementById('roleGender').value;
+    var frames = parseInt(document.getElementById('spriteFrames').value) || 1;
+    var dir = document.getElementById('spriteDir').value;
     if (!name) { toast('请输入角色名称'); return; }
-    if (!imgData) { toast('请上传角色图片'); return; }
+    // 雪碧图模式：至少要有 sprite 图
+    if (!spriteData) { toast('请上传雪碧图'); return; }
 
     if (editingId) {
       var role = roles.find(function(r){ return r.id === editingId; });
       if (role) {
-        role.name = name;
-        role.gender = gender;
-        role.img = imgData;
+        role.name = name; role.gender = gender;
+        if (avatarData) role.avatar = avatarData;
+        role.sprite = spriteData;
+        role.spriteFrames = frames;
+        role.spriteDir = dir;
+        role.spriteCoords = coordsData || '';
       }
       toast('修改成功');
     } else {
-      roles.push({ id: nextId++, name: name, gender: gender, img: imgData, selectedCount: 0 });
+      roles.push({ id: nextId++, name: name, gender: gender, avatar: avatarData || spriteData, sprite: spriteData, spriteFrames: frames, spriteDir: dir, spriteCoords: coordsData || '', selectedCount: 0 });
       toast('新增成功');
     }
     closeModal();
+    saveToStorage();
     renderList();
   }
 

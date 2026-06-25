@@ -288,14 +288,52 @@ var totalPoints = 0;
 var isRolling = false;
 var rollStack = 0;
 
-// 加载 mall 页面选择的角色
+// 加载 mall 页面选择的角色（支持雪碧图动画 + 坐标文件）
 function loadCharacter() {
   var saved = localStorage.getItem('metaMallRole');
-  var avatar = '李白待机.gif';
+  var sprite = '李白待机.gif', frames = 1, dir = 'horizontal', coords = null;
   if (saved) {
-    try { var r = JSON.parse(saved); avatar = r.avatar; } catch(e) {}
+    try { var r = JSON.parse(saved); sprite = r.sprite || r.avatar || '李白待机.gif'; frames = r.spriteFrames || 1; dir = r.spriteDir || 'horizontal'; coords = r.spriteCoords || null; } catch(e) {}
   }
-  document.getElementById('playerImg').src = avatar;
+  var playerImg = document.getElementById('playerImg');
+  playerImg.style.display = 'block';
+  playerImg.style.backgroundImage = '';
+  playerImg.style.animation = '';
+
+  if (coords && coords.frames && coords.frames.length > 0) {
+    // 坐标驱动动画模式
+    playerImg.src = '';
+    playerImg.style.width = '100%'; playerImg.style.height = '100%';
+    playerImg.style.backgroundImage = 'url(' + sprite + ')';
+    playerImg.style.backgroundRepeat = 'no-repeat';
+    playerImg.style.backgroundSize = 'auto';
+    var cf = coords.frames;
+    var step = 0, totalFrames = cf.length;
+    clearInterval(playerImg._spriteTimer);
+    playerImg._spriteTimer = setInterval(function() {
+      var f = cf[step % totalFrames];
+      playerImg.style.backgroundPosition = (-f.x) + 'px ' + (-f.y) + 'px';
+      playerImg.style.width = (f.w || coords.frameWidth || 100) + 'px';
+      playerImg.style.height = (f.h || coords.frameHeight || 100) + 'px';
+      step++;
+    }, totalFrames * 15);
+  } else if (frames > 1) {
+    // 均匀分割雪碧图模式
+    playerImg.src = '';
+    playerImg.style.width = '100%'; playerImg.style.height = '100%';
+    playerImg.style.backgroundImage = 'url(' + sprite + ')';
+    playerImg.style.backgroundRepeat = 'no-repeat';
+    playerImg.style.backgroundSize = dir === 'horizontal' ? (frames * 100) + '% 100%' : '100% ' + (frames * 100) + '%';
+    playerImg.style.animation = 'spriteWalk ' + (frames * 0.15) + 's steps(' + frames + ') infinite';
+    if (!document.getElementById('spriteKeyframes')) {
+      var styleEl = document.createElement('style');
+      styleEl.id = 'spriteKeyframes';
+      styleEl.textContent = '@keyframes spriteWalk{ from{background-position:0 0} to{background-position:' + (dir==='horizontal'?'-100% 0':'0 -100%') + '} }';
+      document.head.appendChild(styleEl);
+    }
+  } else {
+    playerImg.src = sprite;
+  }
 }
 
 // ========== 初始化 ==========
