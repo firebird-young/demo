@@ -599,6 +599,7 @@ const SCENES = {
       { x: 10, y: 20, w: 12, h: 10, label: '黄老五食品' },
       { x: 10, y: 50, w: 12, h: 10, label: '五粮液' },
       { x: 70, y: 70, w: 12, h: 10, label: '贵州茅台' },
+      { x: 45, y: 50, w: 12, h: 10, label: '🎲 骰子游戏' },
     ],
     arrows: [
       { to: 4, x: 50, y: 6, rot: 90,  cls: 'top-arrow' },
@@ -869,6 +870,7 @@ function moveTo(sceneId, spotIdx) {
   origin.style.left = cx + '%'; origin.style.top = (cy - 5) + '%';
   window._moveTimer = setTimeout(() => {
     if (spot.label === '贵州茅台') { window.location.href = 'guizhoumaotai_portrait.html'; }
+    else if (spot.label && spot.label.indexOf('骰子') >= 0) { window.location.href = 'dice_game.html'; }
   }, 1700);
 }
 

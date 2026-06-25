@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>骰子大冒险</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#1a1a2e;
+  display:flex;justify-content:center;align-items:center;
+  min-height:100vh;font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+  overflow:hidden;user-select:none;
+}
+.phone{
+  position:relative;width:430px;height:860px;border-radius:36px;
+  background:#0a0a1a;padding:12px;
+  box-shadow:0 30px 80px rgba(0,0,0,.7),inset 0 0 0 2px #333;
+}
+.screen{
+  position:relative;width:100%;height:100%;border-radius:28px;
+  background:#111;overflow:hidden;
+}
+
+/* 顶部栏 */
+.topbar{
+  position:absolute;top:0;left:0;right:0;z-index:20;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;
+  background:linear-gradient(180deg,rgba(0,0,0,.7),transparent);
+}
+.back-btn{
+  color:#fff;font-size:13px;cursor:pointer;
+  background:rgba(0,0,0,.5);padding:5px 12px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.15);
+}
+.score-display{
+  color:#ffcc66;font-size:14px;font-weight:700;
+  background:rgba(0,0,0,.5);padding:5px 14px;border-radius:14px;
+  border:1px solid rgba(255,204,102,.2);
+}
+.title-area{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:20;
+  color:#fff;font-size:14px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+
+/* 地图 */
+.map-container{
+  position:absolute;inset:0;z-index:1;
+}
+.map-container img{
+  width:100%;height:100%;object-fit:contain;
+}
+
+/* 格子 */
+.grid-cell{
+  position:absolute;z-index:10;
+  width:32px;height:32px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:11px;font-weight:800;
+  border:2px solid #fff;cursor:default;
+  transition:transform .2s,box-shadow .2s;
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
+}
+.grid-cell.normal{background:linear-gradient(135deg,#667eea,#5a6fd6)}
+.grid-cell.start{background:linear-gradient(135deg,#20bf6b,#17a55a);width:36px;height:36px;font-size:13px}
+.grid-cell.end{background:linear-gradient(135deg,#D70C1F,#b80a1a);width:36px;height:36px;font-size:13px}
+.grid-cell.roll_again{background:linear-gradient(135deg,#f0ad4e,#e09a3a);animation:specialPulse 1.5s infinite}
+.grid-cell.lottery{background:linear-gradient(135deg,#ff6b6b,#e05050);animation:specialPulse 1.5s infinite}
+.grid-cell.reward{background:linear-gradient(135deg,#ffcc66,#e6b84f);color:#333;animation:specialPulse 1.5s infinite}
+.grid-cell.active{box-shadow:0 0 20px rgba(255,255,255,.8);z-index:11;transform:translate(-50%,-50%) scale(1.2)}
+.grid-cell .cell-img{width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;z-index:2}
+.grid-cell .cell-num{position:relative;z-index:1;pointer-events:none}
+
+@keyframes specialPulse{
+  0%,100%{box-shadow:0 0 8px rgba(255,255,255,.3)}
+  50%{box-shadow:0 0 18px rgba(255,255,255,.6)}
+}
+
+/* 角色棋 */
+.player-piece{
+  position:absolute;z-index:15;width:36px;height:36px;
+  border-radius:50%;transform:translate(-50%,-50%);
+  transition:left .5s ease,top .5s ease;
+  pointer-events:none;
+  border:2px solid rgba(255,255,255,.5);
+  box-shadow:0 3px 12px rgba(0,0,0,.5);
+  overflow:hidden;
+}
+.player-piece img{width:100%;height:100%;object-fit:cover}
+
+/* 底部面板 */
+.bottom-panel{
+  position:absolute;bottom:12px;left:12px;right:12px;z-index:20;
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:18px;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);
+}
+.dice-btn{
+  width:56px;height:56px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;font-size:26px;cursor:pointer;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(102,126,234,.4);
+  transition:transform .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.dice-btn:active{transform:scale(.92)}
+.dice-btn.rolling{animation:diceShake .5s ease}
+@keyframes diceShake{
+  0%,100%{transform:rotate(0)}
+  25%{transform:rotate(-15deg)}
+  75%{transform:rotate(15deg)}
+}
+.dice-result{
+  font-size:13px;color:#fff;flex:1;text-align:center;
+  line-height:1.5;
+}
+.dice-result .dr-num{font-size:28px;font-weight:800;color:#ffcc66}
+.step-info{color:rgba(255,255,255,.5);font-size:11px}
+
+/* 特效提示 */
+.effect-toast{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;
+  background:rgba(0,0,0,.85);color:#fff;padding:16px 24px;border-radius:16px;
+  font-size:18px;font-weight:700;pointer-events:none;text-align:center;
+  border:1px solid rgba(255,255,255,.2);
+  animation:toastIn .4s ease,toastOut .3s 1.8s ease forwards;
+  display:none;
+}
+.effect-toast.show{display:block}
+.effect-toast img{max-width:80px;max-height:60px;margin:6px auto 0;display:block}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes toastOut{0%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.1)}}
+
+/* 抽奖动画 */
+.effect-toast.lottery-roll .lottery-spin{display:flex}
+.effect-toast .lottery-spin{display:none;flex-direction:column;align-items:center;gap:4px}
+.lottery-spin .ls-icon{font-size:40px;animation:lsBounce .15s infinite alternate}
+@keyframes lsBounce{0%{transform:scale(1)}100%{transform:scale(1.2)}}
+.effect-toast .lottery-final{display:none}
+.effect-toast.lottery-done .lottery-spin{display:none}
+.effect-toast.lottery-done .lottery-final{display:block}
+
+/* 胜利面板 */
+.win-panel{
+  position:absolute;inset:0;z-index:40;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,.75);flex-direction:column;gap:16px;
+}
+.win-panel.show{display:flex}
+.win-text{font-size:28px;font-weight:800;color:#ffcc66;text-shadow:0 2px 12px rgba(255,204,102,.4)}
+.win-sub{color:rgba(255,255,255,.6);font-size:14px}
+.win-btn{
+  padding:12px 36px;border-radius:24px;border:none;font-size:16px;font-weight:600;
+  background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:pointer;
+  box-shadow:0 4px 16px rgba(102,126,234,.4);
+}
+
+/* 积分显示 */
+.points-bar{
+  position:absolute;top:46px;right:14px;z-index:20;
+  color:#ffcc66;font-size:13px;font-weight:700;
+  background:rgba(0,0,0,.5);padding:4px 10px;border-radius:10px;
+}
+
+/* 骰子弹窗 */
+.dice-popup{
+  position:absolute;inset:0;z-index:50;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,.7);flex-direction:column;gap:12px;
+}
+.dice-popup.show{display:flex}
+.dice-popup .dp-dice{
+  width:80px;height:80px;font-size:60px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.1);border-radius:20px;
+  border:2px solid rgba(255,255,255,.2);
+}
+.dice-popup .dp-dice.rolling{animation:diceShake .3s infinite}
+.dice-popup .dp-text{
+  color:#fff;font-size:16px;font-weight:600;
+}
+.dice-popup .dp-result{
+  color:#ffcc66;font-size:40px;font-weight:800;display:none;
+}
+.dice-popup .dp-result.show{display:block}
+.dice-popup .dp-sub{
+  color:rgba(255,255,255,.5);font-size:13px;display:none;
+}
+.dice-popup .dp-sub.show{display:block}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen">
+    <!-- 地图 -->
+    <div class="map-container" id="mapContainer">
+      <img id="mapBg" src="" alt="">
+    </div>
+
+    <!-- 格子覆盖层 -->
+    <div id="gridOverlay" style="position:absolute;inset:0;z-index:10"></div>
+
+    <!-- 角色棋 -->
+    <div class="player-piece" id="player"><img id="playerImg" src="李白待机.gif" alt=""></div>
+
+    <!-- 顶部 -->
+    <div class="topbar">
+      <span class="back-btn" onclick="window.location.href='user-index.html'">← 目录</span>
+      <span class="score-display" id="scoreDisplay">🏆 <span id="pointsVal">0</span></span>
+    </div>
+
+    <!-- 积分条 -->
+    <div class="points-bar" id="pointsBar" style="display:none">💰 积分 +<span id="pointsEarned">0</span></div>
+
+    <!-- 底部 -->
+    <div class="bottom-panel" id="bottomPanel">
+      <button class="dice-btn" id="diceBtn" onclick="rollDice()">🎲</button>
+      <div class="dice-result">
+        <div style="display:none" id="diceNumWrap"><span class="dr-num" id="diceNum">1</span> 步</div>
+        <div class="step-info" id="stepInfo">点击骰子开始冒险</div>
+      </div>
+    </div>
+
+    <!-- 骰子弹窗 -->
+    <div class="dice-popup" id="dicePopup">
+      <div class="dp-text" id="dpText">掷骰子中...</div>
+      <div class="dp-dice rolling" id="dpDice">🎲</div>
+      <div class="dp-result" id="dpResult"></div>
+      <div class="dp-sub" id="dpSub"></div>
+    </div>
+
+    <!-- 特效提示 -->
+    <div class="effect-toast" id="effectToast">
+      <div class="lottery-spin">
+        <div class="ls-icon" id="lsIcon">🎰</div>
+        <div id="lsText" style="color:#ffcc66;font-size:14px">抽奖中...</div>
+      </div>
+      <div class="lottery-final">
+        <div id="effectText"></div>
+        <img id="effectImg" src="" alt="" style="display:none">
+      </div>
+    </div>
+
+    <!-- 胜利 -->
+    <div class="win-panel" id="winPanel">
+      <div class="win-text">🎉 到达终点！</div>
+      <div class="win-sub" id="winSub">获得积分奖励</div>
+      <button class="win-btn" onclick="restartGame()">🔄 再来一局</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 游戏状态 ==========
+var config = null;
+var currentStep = 0;
+var totalPoints = 0;
+var isRolling = false;
+var rollStack = 0;
+
+// 加载 mall 页面选择的角色
+function loadCharacter() {
+  var saved = localStorage.getItem('metaMallRole');
+  var avatar = '李白待机.gif';
+  if (saved) {
+    try { var r = JSON.parse(saved); avatar = r.avatar; } catch(e) {}
+  }
+  document.getElementById('playerImg').src = avatar;
+}
+
+// ========== 初始化 ==========
+function init() {
+  var saved = localStorage.getItem('diceGameUser');
+  if (!saved) {
+    document.getElementById('mapBg').src = '茅台游戏地图.png';
+    document.getElementById('stepInfo').textContent = '暂无配置，请商家设置';
+    return;
+  }
+  try { config = JSON.parse(saved); } catch(e) { return; }
+  if (!config.grids || config.grids.length === 0) {
+    document.getElementById('mapBg').src = '茅台游戏地图.png';
+    document.getElementById('stepInfo').textContent = '暂无格子，请商家配置';
+    return;
+  }
+
+  // 排序：按 num 升序
+  config.grids.sort(function(a, b) { return a.num - b.num; });
+
+  // 加载角色形象
+  loadCharacter();
+
+  // 加载地图：如果是 base64（旧数据）也能显示，文件名直接加载
+  var mapSrc = config.mapImage || '茅台游戏地图.png';
+  document.getElementById('mapBg').src = mapSrc;
+  document.getElementById('mapBg').onerror = function() {
+    this.src = '茅台游戏地图.png';
+  };
+
+  // 渲染格子
+  renderGrids();
+  // 放置角色到起点
+  placePlayer(0);
+  updateUI();
+}
+
+function renderGrids() {
+  var overlay = document.getElementById('gridOverlay');
+  overlay.innerHTML = '';
+  config.grids.forEach(function(g, idx) {
+    var cell = document.createElement('div');
+    cell.className = 'grid-cell ' + g.type;
+    cell.id = 'cell' + idx;
+    cell.style.left = g.x + '%';
+    cell.style.top = g.y + '%';
+
+    // 用类型配置的图片
+    var tInfo = config.gridTypes ? config.gridTypes[g.type] : null;
+    if (tInfo && tInfo.img && tInfo.img.length > 10) {
+      var img = document.createElement('img');
+      img.className = 'cell-img';
+      img.src = tInfo.img;
+      img.onerror = function() { this.remove(); };
+      cell.appendChild(img);
+    }
+    // 编号
+    var num = document.createElement('span');
+    num.className = 'cell-num';
+    num.textContent = g.type === 'end' ? '🏁' : (g.type === 'start' ? '▶' : g.num);
+    cell.appendChild(num);
+    cell.appendChild(num);
+
+    overlay.appendChild(cell);
+  });
+}
+
+function placePlayer(idx) {
+  currentStep = idx;
+  var g = config.grids[idx];
+  if (!g) return;
+  var el = document.getElementById('player');
+  el.style.left = g.x + '%';
+  el.style.top = g.y + '%';
+  // 高亮当前格
+  document.querySelectorAll('.grid-cell.active').forEach(function(c) { c.classList.remove('active'); });
+  var cell = document.getElementById('cell' + idx);
+  if (cell) cell.classList.add('active');
+}
+
+// ========== 掷骰子 ==========
+function rollDice() {
+  if (isRolling) return;
+  isRolling = true;
+  rollStack = 0;  // 手动点击时重置
+
+  // 弹窗展示
+  var popup = document.getElementById('dicePopup');
+  var popDice = document.getElementById('dpDice');
+  var popText = document.getElementById('dpText');
+  var popResult = document.getElementById('dpResult');
+  var popSub = document.getElementById('dpSub');
+  popResult.classList.remove('show'); popSub.classList.remove('show');
+  popDice.classList.add('rolling');
+  popText.textContent = '掷骰子中...';
+  popup.classList.add('show');
+
+  // 底部骰子动画
+  var btn = document.getElementById('diceBtn');
+  btn.classList.add('rolling');
+  document.getElementById('diceNumWrap').style.display = 'none';
+  document.getElementById('stepInfo').textContent = '掷骰子中...';
+
+  // 随机动画
+  var tick = 0, maxTick = 10;
+  var diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+  var interval = setInterval(function() {
+    var face = diceFaces[Math.floor(Math.random()*6)];
+    btn.textContent = face;
+    popDice.textContent = face;
+    tick++;
+    if (tick >= maxTick) {
+      clearInterval(interval);
+      var num = Math.floor(Math.random() * 6) + 1;
+      var resultFace = diceFaces[num-1];
+
+      // 停止动画
+      popDice.classList.remove('rolling');
+      popDice.textContent = resultFace;
+      btn.textContent = resultFace;
+      btn.classList.remove('rolling');
+      document.getElementById('diceNum').textContent = num;
+      document.getElementById('diceNumWrap').style.display = '';
+
+      // 弹窗显示结果
+      popText.textContent = '';
+      popResult.textContent = num;
+      popResult.classList.add('show');
+      popSub.textContent = '前进 ' + num + ' 步';
+      popSub.classList.add('show');
+
+      // 延迟关闭弹窗并移动
+      setTimeout(function() {
+        popup.classList.remove('show');
+        popDice.textContent = '🎲';
+        popText.textContent = '掷骰子中...';
+        btn.textContent = '🎲';  // 底部骰子复原
+        document.getElementById('stepInfo').textContent = '前进中...';
+        movePlayer(num);
+      }, 1000);
+    }
+  }, 100);
+}
+
+function movePlayer(steps) {
+  var target = currentStep + steps;
+  var maxIdx = config.grids.length - 1;
+
+  // 到达或超过终点
+  if (target >= maxIdx) {
+    target = maxIdx;
+    placePlayer(target);
+    document.getElementById('stepInfo').textContent = '到达终点！';
+    isRolling = false;
+    setTimeout(showWin, 600);
+    return;
+  }
+
+  // 逐步动画移动
+  function stepMove(from, to, done) {
+    if (from > to) { done(); return; }
+    placePlayer(from);
+    if (from === to) {
+      setTimeout(function() { done(); }, 300);
+      return;
+    }
+    setTimeout(function() { stepMove(from + 1, to, done); }, 200);
+  }
+
+  var start = currentStep;
+  stepMove(start + 1, target, function() {
+    placePlayer(target);
+    checkCellEffect(target);
+  });
+}
+
+// ========== 格子特效 ==========
+function checkCellEffect(idx) {
+  var g = config.grids[idx];
+  if (!g) return;
+
+  var tInfo = config.gridTypes ? config.gridTypes[g.type] : {};
+  switch (g.type) {
+    case 'normal':
+      isRolling = false;
+      document.getElementById('stepInfo').textContent = '到达 格子 #' + g.num;
+      break;
+
+    case 'lottery':
+      // 抽奖动画：先展示滚动效果
+      var toast = document.getElementById('effectToast');
+      toast.classList.add('show', 'lottery-roll');
+      toast.classList.remove('lottery-done');
+      var icons = ['⭐','🎫','🔰'];
+      var tick = 0;
+      var spinInterval = setInterval(function() {
+        document.getElementById('lsIcon').textContent = icons[tick % 3];
+        tick++;
+      }, 200);
+
+      setTimeout(function() {
+        clearInterval(spinInterval);
+        // 判定结果
+        var hitType = null, hitQty = 0;
+        var lr = g.lotteryRewards;
+        if (lr) {
+          var types = Object.keys(lr);
+          types.forEach(function(k) {
+            if (Math.random() * 100 < (lr[k].prob || 40)) hitType = k;
+          });
+          if (hitType) hitQty = Math.floor(Math.random() * (lr[hitType].max || 1)) + 1;
+        }
+        var ltNames = { points:'积分', coupon:'优惠券', priority:'新品权' };
+        var ltIcons = { points:'⭐', coupon:'🎫', priority:'🔰' };
+        var msg = hitType ? ('🎰 ' + (ltNames[hitType]||hitType) + ' ×' + hitQty) : '😢 未中奖';
+        document.getElementById('lsIcon').textContent = hitType ? (ltIcons[hitType]||'🎉') : '😢';
+        document.getElementById('lsText').textContent = msg;
+        toast.classList.remove('lottery-roll');
+        toast.classList.add('lottery-done');
+        document.getElementById('effectText').textContent = msg;
+        document.getElementById('effectImg').style.display = tInfo.img ? '' : 'none';
+        if (tInfo.img) document.getElementById('effectImg').src = tInfo.img;
+        if (hitType === 'points') { totalPoints += hitQty; updateUI(); }
+        setTimeout(function() {
+          toast.classList.remove('show', 'lottery-done');
+          isRolling = false; rollStack = 0;
+          document.getElementById('stepInfo').textContent = msg;
+        }, 2000);
+      }, 1800);
+      break;
+
+    case 'reward':
+      var rtype = g.rtype || 'points';
+      var rqty = g.quantity || 10;
+      var rtNames = { points:'积分', coupon:'优惠券', priority:'新品权' };
+      var rmsg = '💰 必得 ' + (rtNames[rtype]||rtype) + ' ×' + rqty;
+      showEffect(rmsg, tInfo.img);
+      if (rtype === 'points') { totalPoints += rqty; updateUI(); }
+      setTimeout(function() { isRolling = false; rollStack = 0; document.getElementById('stepInfo').textContent = rmsg; }, 2000);
+      break;
+
+    case 'end':
+      showWin();
+      break;
+  }
+}
+
+function showEffect(text, imgSrc) {
+  var toast = document.getElementById('effectToast');
+  toast.classList.remove('lottery-roll','lottery-done');
+  document.getElementById('effectText').textContent = text;
+  var img = document.getElementById('effectImg');
+  if (imgSrc) { img.src = imgSrc; img.style.display = 'block'; }
+  else img.style.display = 'none';
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2200);
+}
+
+// ========== 胜利 ==========
+function showWin() {
+  isRolling = false;
+  rollStack = 0;
+  totalPoints += 20; // 到达终点奖励
+  updateUI();
+  document.getElementById('winSub').textContent = '本次共获得 ' + totalPoints + ' 积分';
+  document.getElementById('winPanel').classList.add('show');
+}
+
+function restartGame() {
+  currentStep = 0;
+  totalPoints = 0;
+  isRolling = false;
+  rollStack = 0;
+  document.getElementById('winPanel').classList.remove('show');
+  document.getElementById('diceNumWrap').style.display = 'none';
+  document.getElementById('stepInfo').textContent = '点击骰子开始冒险';
+  document.getElementById('diceBtn').textContent = '🎲';
+  document.getElementById('diceBtn').classList.remove('rolling');
+  var pd = document.getElementById('dpDice');
+  if (pd) pd.textContent = '🎲';
+  placePlayer(0);
+  updateUI();
+  document.querySelectorAll('.grid-cell.active').forEach(function(c) { c.classList.remove('active'); });
+}
+
+function updateUI() {
+  document.getElementById('pointsVal').textContent = totalPoints;
+  document.getElementById('scoreDisplay').style.display = totalPoints > 0 ? '' : 'none';
+}
+
+init();
+</script>
+</body>
+</html>
