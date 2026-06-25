@@ -715,7 +715,11 @@ function onTypeChange() {
   var tInfo = config.gridTypes[t] || {};
   var img = document.getElementById('gtypeImg');
   var name = document.getElementById('gtypeName');
-  if (tInfo.img) { img.src = tInfo.img; img.style.display = ''; }
+  if (tInfo.img) {
+    var typeImgSrc = tInfo.img;
+    if (typeImgSrc.indexOf('data:') !== 0 && typeImgSrc.indexOf('blob:') !== 0) { if (typeImgSrc.indexOf('../') !== 0) typeImgSrc = '../' + typeImgSrc; typeImgSrc = encodeURI(typeImgSrc); }
+    img.src = typeImgSrc; img.style.display = '';
+  }
   else img.style.display = 'none';
   name.textContent = tInfo.name || t;
 }
