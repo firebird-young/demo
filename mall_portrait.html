@@ -152,21 +152,23 @@
   }
 
   /* ── 活动悬浮横条 ── */
+  .scene-layer.hidden .event-banner { display:none; }
   .event-banner {
-    position: absolute; top: 50px; left: 16px; right: 16px; z-index: 25;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 8px 16px; border-radius: 20px;
-    background: linear-gradient(135deg, rgba(255,107,107,.9), rgba(254,87,161,.9));
-    color: #fff; font-size: 13px; font-weight: 700;
+    position: absolute; top: 46px; left: 10px; right: 10px; z-index: 25;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 6px 14px; border-radius: 12px;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.18);
+    color: #ffd700; font-size: 12px; font-weight: 700;
     text-decoration: none; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(255,107,107,.4);
     animation: eventBannerPulse 2s ease-in-out infinite;
-    letter-spacing: 1px;
+    letter-spacing: .5px;
   }
-  .event-banner:hover { transform: scale(1.02); }
+  .event-banner:hover { background: rgba(0,0,0,.6); }
   @keyframes eventBannerPulse {
-    0%,100% { box-shadow: 0 4px 16px rgba(255,107,107,.4); }
-    50% { box-shadow: 0 4px 24px rgba(255,107,107,.7); }
+    0%,100% { border-color: rgba(255,255,255,.18); }
+    50% { border-color: rgba(255,215,0,.5); }
   }
 
   /* ── 弹窗返回/关闭按钮 ── */
@@ -527,11 +529,9 @@
   <button class="landscape-btn" onclick="window.location.href='mall.html'">📱 横屏模式</button>
   <div class="phone-screen">
 
-    <!-- 活动悬浮横条 -->
-    <a class="event-banner" href="dice_game.html" onclick="event.stopPropagation()">🎲 本期活动：文旅大联盟</a>
-
     <!-- 场景1：元宇宙地图 -->
     <div class="scene-layer" id="scene1">
+      <a class="event-banner" href="dice_game.html" onclick="event.stopPropagation()">🎲 本期活动：文旅大联盟</a>
       <div class="map-pan" id="mapPan">
         <img id="mapPanImg" src="元宇宙地图_new.png" alt="元宇宙地图">
       </div>
@@ -620,7 +620,6 @@ const SCENES = {
       { x: 10, y: 20, w: 12, h: 10, label: '黄老五食品' },
       { x: 10, y: 50, w: 12, h: 10, label: '五粮液' },
       { x: 70, y: 70, w: 12, h: 10, label: '贵州茅台' },
-      { x: 45, y: 50, w: 12, h: 10, label: '🎲 骰子游戏' },
     ],
     arrows: [
       { to: 4, x: 50, y: 6, rot: 90,  cls: 'top-arrow' },
@@ -891,7 +890,6 @@ function moveTo(sceneId, spotIdx) {
   origin.style.left = cx + '%'; origin.style.top = (cy - 5) + '%';
   window._moveTimer = setTimeout(() => {
     if (spot.label === '贵州茅台') { window.location.href = 'guizhoumaotai_portrait.html'; }
-    else if (spot.label && spot.label.indexOf('骰子') >= 0) { window.location.href = 'dice_game.html'; }
   }, 1700);
 }
 
