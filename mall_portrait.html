@@ -151,6 +151,41 @@
     pointer-events: none;
   }
 
+  /* ── 动画方案按钮 + 弹窗 ── */
+  .anim-btn {
+    position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); z-index: 9999;
+    padding: 8px 18px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(30,30,50,.9), rgba(20,20,40,.9));
+    border: 1px solid rgba(255,215,0,.3);
+    color: #ffd700; font-size: 12px; font-weight: 600; cursor: pointer;
+    letter-spacing: 1px; box-shadow: 0 4px 16px rgba(0,0,0,.5);
+  }
+  .anim-modal-overlay {
+    position: fixed; inset: 0; z-index: 9998; display: none;
+    align-items: flex-start; justify-content: center;
+    background: rgba(0,0,0,.75); padding: 0 8px; overflow-y: auto;
+  }
+  .anim-modal-overlay.show { display: flex; }
+  .anim-modal {
+    background: #1a1a2e; border-radius: 16px; width: 100%; max-width: 400px;
+    margin: 20px 0 40px; padding: 20px 16px; color: #e0e0e0; font-size: 12px;
+    line-height: 1.7; position: relative;
+  }
+  .anim-modal h3 { font-size: 15px; color: #ffd700; margin: 14px 0 8px; }
+  .anim-modal h3:first-child { margin-top: 0; }
+  .anim-modal h4 { font-size: 13px; color: #667eea; margin: 10px 0 4px; }
+  .anim-modal .tag { display: inline-block; padding: 1px 6px; border-radius: 6px; font-size: 10px; margin-right: 4px; }
+  .anim-modal .tag-sprite { background: rgba(102,126,234,.2); color: #667eea; }
+  .anim-modal .tag-css { background: rgba(32,191,107,.2); color: #20bf6b; }
+  .anim-modal .tag-gif { background: rgba(255,107,107,.2); color: #ff6b6b; }
+  .anim-modal .tag-lottie { background: rgba(168,85,247,.2); color: #a855f7; }
+  .anim-modal .tag-particle { background: rgba(255,204,102,.2); color: #ffcc66; }
+  .anim-modal-close {
+    position: sticky; top: 8px; float: right; width: 28px; height: 28px;
+    border-radius: 50%; background: rgba(255,255,255,.1); display: flex;
+    align-items: center; justify-content: center; cursor: pointer; color: #999; font-size: 14px;
+  }
+
   /* ── 活动悬浮横条 ── */
   .scene-layer.hidden .event-banner { display:none; }
   .event-banner {
@@ -597,6 +632,66 @@
   </div>
 </div>
 
+<!-- 动画方案按钮（手机框外） -->
+<div class="anim-btn" onclick="document.getElementById('animModal').classList.add('show')">🎬 动画方案</div>
+
+<!-- 动画方案弹窗 -->
+<div class="anim-modal-overlay" id="animModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="anim-modal">
+    <div class="anim-modal-close" onclick="document.getElementById('animModal').classList.remove('show')">✕</div>
+    <h3>APP 内嵌轻小游戏全套动画实现方案汇总</h3>
+    <p>分 5 大类，适配骰子走棋盘项目</p>
+
+    <h3>一、5 种主流动画方案</h3>
+
+    <h4><span class="tag tag-sprite">序列帧雪碧图</span> 游戏核心动画</h4>
+    <p><b>适用：</b>人物走路、骰子滚动、礼盒开盖、树苗生长</p>
+    <p><b>组成：</b>雪碧图 PNG + JSON 坐标文件</p>
+    <p><b>优点：</b>画质通透、可控性拉满、批量渲染强、体积远小于 GIF</p>
+    <p><b>缺点：</b>美术需 TexturePacker 打包</p>
+    <p><b>你的项目：</b>骰子、角色行走、中奖礼盒开盖</p>
+
+    <h4><span class="tag tag-css">单图+CSS/JS 位移</span> 极简循环微动效</h4>
+    <p><b>适用：</b>上下跳动、左右摇摆、闪烁、悬浮装饰</p>
+    <p><b>组成：</b>1 张静态素材即可</p>
+    <p><b>优点：</b>零额外素材、加载最快、无需图集</p>
+    <p><b>缺点：</b>无法形变（开盖、迈步做不了）</p>
+    <p><b>你的项目：</b>页面角落装饰礼盒、背景浮动光点</p>
+
+    <h4><span class="tag tag-gif">GIF 动图</span> 仅限临时过渡</h4>
+    <p><b>适用：</b>Demo、短期活动、单元素循环</p>
+    <p><b>优点：</b>美术直接导出，前端一行代码</p>
+    <p><b>致命短板：</b>透明锯齿、体积大、无法停帧、多元素卡顿</p>
+    <p><b>定位：</b>仅临时凑活，正式上线全换雪碧图</p>
+
+    <h4><span class="tag tag-lottie">Lottie 矢量动画</span> 精致轻量特效</h4>
+    <p><b>适用：</b>闪光粒子、中奖光效、弹窗彩带、UI 动效</p>
+    <p><b>组成：</b>1 份 JSON 矢量文件</p>
+    <p><b>优点：</b>无限放大不失真、体积极小、自带光影</p>
+    <p><b>缺点：</b>不适合复杂手绘角色行走</p>
+    <p><b>你的项目：</b>踩格子金光、抽奖弹窗彩带、闪烁星光</p>
+
+    <h4><span class="tag tag-particle">原生粒子/代码绘制</span> 零素材</h4>
+    <p><b>适用：</b>飘落花瓣、金币飞溅、光点、烟雾</p>
+    <p><b>优点：</b>体积最小、自定义强度、随时开关</p>
+    <p><b>缺点：</b>只能做简单几何，手绘效果差</p>
+    <p><b>你的项目：</b>中奖金币、花瓣飘落背景</p>
+
+    <h3>二、场景快速匹配</h3>
+    <p><span class="tag tag-sprite">雪碧</span> 人物行走、骰子、礼盒开盖<br>
+    <span class="tag tag-css">CSS</span> 角落悬浮礼盒、星星跳动<br>
+    <span class="tag tag-lottie">Lottie</span> 中奖金光、弹窗彩带<br>
+    <span class="tag tag-particle">粒子</span> 金币炸开、花瓣飘落<br>
+    <span class="tag tag-gif">GIF</span> 仅 Demo 过渡</p>
+
+    <h3>三、最简落地组合</h3>
+    <p><b>核心交互：</b>雪碧图集（角色、骰子、礼盒）<br>
+    <b>装饰微动效：</b>静态图+CSS<br>
+    <b>光效彩带：</b>Lottie<br>
+    <b>粒子和临时：</b>Canvas粒子 / GIF过渡</p>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════
 // 场景配置
@@ -664,8 +759,8 @@ let currentScene = 1;
 // 角色选择
 // ═══════════════════════════════════════════════════════
 const ROLE_DEFAULTS = [
-  { id:1, name:'李白', gender:'male', src:'李白待机.gif', sprite:'李白待机.gif', spriteFrames:1, spriteDir:'horizontal' },
-  { id:2, name:'娲皇宫', gender:'female', src:'娲皇宫待机.gif', sprite:'娲皇宫待机.gif', spriteFrames:1, spriteDir:'horizontal' }
+  { id:1, name:'茅台哥哥', gender:'male', src:'茅台哥哥.png', sprite:'茅台哥哥.png', spriteFrames:1, spriteDir:'horizontal' },
+  { id:2, name:'茅台妹妹', gender:'female', src:'茅台妹妹.png', sprite:'茅台妹妹.png', spriteFrames:1, spriteDir:'horizontal' }
 ];
 // 优先读后台数据，否则用默认
 var roleRaw = JSON.parse(localStorage.getItem('metaMallRoles') || 'null');

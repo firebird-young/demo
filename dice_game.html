@@ -80,15 +80,15 @@ body{
 
 /* 角色棋 */
 .player-piece{
-  position:absolute;z-index:15;width:72px;height:72px;
-  border-radius:50%;transform:translate(-50%,-50%);
+  position:absolute;z-index:99;width:72px;
+  transform:translate(-50%,-50%);
   transition:left .5s ease,top .5s ease;
   pointer-events:none;
-  border:2px solid rgba(255,255,255,.5);
-  box-shadow:0 3px 12px rgba(0,0,0,.5);
-  overflow:hidden;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
 }
-.player-piece img{width:100%;height:100%;object-fit:cover}
+.player-piece #playerSprite{
+  width:100%; background-repeat:no-repeat; background-size:auto 100%;
+}
 
 /* 底部面板 */
 .bottom-panel{
@@ -231,7 +231,7 @@ body{
     <div id="gridOverlay" style="position:absolute;inset:0;z-index:10"></div>
 
     <!-- 角色棋 -->
-    <div class="player-piece" id="player"><img id="playerImg" src="李白待机.gif" alt=""></div>
+    <div class="player-piece" id="player"><div id="playerSprite"></div></div>
 
     <!-- 顶部 -->
     <div class="topbar">
@@ -288,52 +288,45 @@ var totalPoints = 0;
 var isRolling = false;
 var rollStack = 0;
 
-// 加载 mall 页面选择的角色（支持雪碧图动画 + 坐标文件）
+// 加载角色（6帧雪碧图，用像素位移参考李白动画.html）
+var _spriteTimer = null, _spriteFrameIdx = 0, _spriteFrames = 6, _spriteFrameW = 0;
 function loadCharacter() {
-  var saved = localStorage.getItem('metaMallRole');
-  var sprite = '李白待机.gif', frames = 1, dir = 'horizontal', coords = null;
-  if (saved) {
-    try { var r = JSON.parse(saved); sprite = r.sprite || r.avatar || '李白待机.gif'; frames = r.spriteFrames || 1; dir = r.spriteDir || 'horizontal'; coords = r.spriteCoords || null; } catch(e) {}
-  }
-  var playerImg = document.getElementById('playerImg');
-  playerImg.style.display = 'block';
-  playerImg.style.backgroundImage = '';
-  playerImg.style.animation = '';
-
-  if (coords && coords.frames && coords.frames.length > 0) {
-    // 坐标驱动动画模式
-    playerImg.src = '';
-    playerImg.style.width = '100%'; playerImg.style.height = '100%';
-    playerImg.style.backgroundImage = 'url(' + sprite + ')';
-    playerImg.style.backgroundRepeat = 'no-repeat';
-    playerImg.style.backgroundSize = 'auto';
-    var cf = coords.frames;
-    var step = 0, totalFrames = cf.length;
-    clearInterval(playerImg._spriteTimer);
-    playerImg._spriteTimer = setInterval(function() {
-      var f = cf[step % totalFrames];
-      playerImg.style.backgroundPosition = (-f.x) + 'px ' + (-f.y) + 'px';
-      playerImg.style.width = (f.w || coords.frameWidth || 100) + 'px';
-      playerImg.style.height = (f.h || coords.frameHeight || 100) + 'px';
-      step++;
-    }, totalFrames * 15);
-  } else if (frames > 1) {
-    // 均匀分割雪碧图模式
-    playerImg.src = '';
-    playerImg.style.width = '100%'; playerImg.style.height = '100%';
-    playerImg.style.backgroundImage = 'url(' + sprite + ')';
-    playerImg.style.backgroundRepeat = 'no-repeat';
-    playerImg.style.backgroundSize = dir === 'horizontal' ? (frames * 100) + '% 100%' : '100% ' + (frames * 100) + '%';
-    playerImg.style.animation = 'spriteWalk ' + (frames * 0.15) + 's steps(' + frames + ') infinite';
-    if (!document.getElementById('spriteKeyframes')) {
-      var styleEl = document.createElement('style');
-      styleEl.id = 'spriteKeyframes';
-      styleEl.textContent = '@keyframes spriteWalk{ from{background-position:0 0} to{background-position:' + (dir==='horizontal'?'-100% 0':'0 -100%') + '} }';
-      document.head.appendChild(styleEl);
-    }
-  } else {
-    playerImg.src = sprite;
-  }
+  var sprite = '茅台妹妹雪碧图.png';
+  var spDiv = document.getElementById('playerSprite');
+  var probe = new Image();
+  probe.onload = function() {
+    var totalW = probe.naturalWidth, totalH = probe.naturalHeight;
+    var frameW = totalW / 6;
+    _spriteFrameW = frameW;
+    var scale = 72 / frameW;
+    spDiv.style.width = '72px';
+    spDiv.style.height = (totalH * scale) + 'px';
+    spDiv.style.backgroundImage = 'url(' + sprite + ')';
+    spDiv.style.backgroundSize = 'auto 100%';
+    spDiv.style.backgroundPosition = '0 0';
+  };
+  probe.onerror = function() {
+    spDiv.style.backgroundImage = 'url(' + sprite + ')';
+    spDiv.style.backgroundSize = 'auto 100%';
+  };
+  probe.src = sprite;
+}
+function startSpriteAnim() {
+  _spriteFrameIdx = 0;
+  var spDiv = document.getElementById('playerSprite');
+  spDiv.style.backgroundPosition = '0 0';
+  clearInterval(_spriteTimer);
+  var w = _spriteFrameW * _spriteFrames * (72 / _spriteFrameW); // rendered bg width = frames * container width
+  // Actually with bg-size:auto 100% and container w=72, bg renders at 72*frames = 432px
+  _spriteTimer = setInterval(function() {
+    _spriteFrameIdx = (_spriteFrameIdx + 1) % _spriteFrames;
+    spDiv.style.backgroundPosition = (-_spriteFrameIdx * 72) + 'px 0';
+  }, 120);
+}
+function stopSpriteAnim() {
+  clearInterval(_spriteTimer);
+  _spriteFrameIdx = 0;
+  document.getElementById('playerSprite').style.backgroundPosition = '0 0';
 }
 
 // ========== 初始化 ==========
@@ -485,30 +478,35 @@ function movePlayer(steps) {
   var target = currentStep + steps;
   var maxIdx = config.grids.length - 1;
 
+  // 开始移动动画
+  startSpriteAnim();
+
   // 到达或超过终点
   if (target >= maxIdx) {
     target = maxIdx;
     placePlayer(target);
+    stopSpriteAnim();
     document.getElementById('stepInfo').textContent = '到达终点！';
     isRolling = false;
     setTimeout(showWin, 600);
     return;
   }
 
-  // 逐步动画移动
+  // 逐步动画移动（每步600ms）
   function stepMove(from, to, done) {
     if (from > to) { done(); return; }
     placePlayer(from);
     if (from === to) {
-      setTimeout(function() { done(); }, 300);
+      setTimeout(function() { done(); }, 600);
       return;
     }
-    setTimeout(function() { stepMove(from + 1, to, done); }, 200);
+    setTimeout(function() { stepMove(from + 1, to, done); }, 600);
   }
 
   var start = currentStep;
   stepMove(start + 1, target, function() {
     placePlayer(target);
+    stopSpriteAnim();
     checkCellEffect(target);
   });
 }
