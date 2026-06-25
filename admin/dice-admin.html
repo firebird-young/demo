@@ -299,7 +299,7 @@ function init() {
   if (config.mapImage) {
     var prev = document.getElementById('mapPreview');
     var path = config.mapImage;
-    if (path.indexOf('data:') !== 0 && path.indexOf('../') !== 0 && path.indexOf('blob:') !== 0) path = '../' + path;
+    if (path.indexOf('data:') !== 0 && path.indexOf('blob:') !== 0) { if (path.indexOf('../') !== 0) path = '../' + path; path = encodeURI(path); }
     if (prev) { prev.src = path; prev.style.display = 'block'; }
     var txt = document.getElementById('uploadText'); if (txt) txt.style.display = 'none';
     var area = document.getElementById('mapUpload'); if (area) area.classList.add('has-img');
@@ -334,7 +334,7 @@ function renderTypeConfig() {
   keys.forEach(function(k) {
     var t = config.gridTypes[k] || { name: names[k], img: '' };
     var imgSrc = t.img || '';
-    if (imgSrc && imgSrc.indexOf('data:') !== 0 && imgSrc.indexOf('blob:') !== 0 && imgSrc.indexOf('../') !== 0) imgSrc = '../' + imgSrc;
+    if (imgSrc && imgSrc.indexOf('data:') !== 0 && imgSrc.indexOf('blob:') !== 0) { if (imgSrc.indexOf('../') !== 0) imgSrc = '../' + imgSrc; imgSrc = encodeURI(imgSrc); }
     html += '<div class="type-row">';
     html += '<div class="tr-name">' + (names[k] || k) + '</div>';
     html += '<div class="tr-upload">';
@@ -364,7 +364,7 @@ function showEditor() {
   document.getElementById('editorCard').style.display = '';
   // admin 页面在 merchant/ 目录下，图片在根目录，需要加 ../
   var path = config.mapImage || '';
-  if (path.indexOf('data:') !== 0 && path.indexOf('../') !== 0) path = '../' + path;
+  if (path.indexOf('data:') !== 0 && path.indexOf('blob:') !== 0) { if (path.indexOf('../') !== 0) path = '../' + path; path = encodeURI(path); }
   document.getElementById('editorImg').src = path;
   refreshEditor();
 }
@@ -392,7 +392,7 @@ function refreshEditor() {
       var dotImg = document.createElement('img');
       dotImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%';
       var src = dotImgSrc;
-      if (src.indexOf('data:') !== 0 && src.indexOf('blob:') !== 0 && src.indexOf('../') !== 0) src = '../' + src;
+      if (src.indexOf('data:') !== 0 && src.indexOf('blob:') !== 0) { if (src.indexOf('../') !== 0) src = '../' + src; src = encodeURI(src); }
       dotImg.src = src;
       dotImg.onerror = function() { this.style.display = 'none'; };
       dot.appendChild(dotImg);
@@ -586,7 +586,7 @@ function renderGridList() {
     var selected = g.id === selectedGridId ? ' style="background:#fff3cd"' : '';
     var cellImg = g.gridImg || tInfo.img;
     var imgPath = cellImg;
-    if (imgPath && imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0 && imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath;
+    if (imgPath && imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0) { if (imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath; imgPath = encodeURI(imgPath); }
     var imgTag = cellImg ? '<img src="' + imgPath + '" style="width:24px;height:24px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px">' : '';
     var sub = '';
     if (g.type === 'lottery' && g.lotteryRewards) {
@@ -635,7 +635,7 @@ function editGrid(gid) {
   document.getElementById('editGridImgVal').value = g.gridImg || '';
   if (g.gridImg) {
     var imgPath = g.gridImg;
-    if (imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0 && imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath;
+    if (imgPath.indexOf('data:') !== 0 && imgPath.indexOf('blob:') !== 0) { if (imgPath.indexOf('../') !== 0) imgPath = '../' + imgPath; imgPath = encodeURI(imgPath); }
     document.getElementById('editGridImgPreview').src = imgPath;
     document.getElementById('editGridImgPreview').style.display = 'block';
     document.getElementById('editGridImgBtn').textContent = '✓ 已上传';
@@ -829,7 +829,7 @@ function loadConfig() {
       config.gridNumCounter = data.gridNumCounter || 1;
       if (config.mapImage) {
         var path = config.mapImage;
-        if (path.indexOf('data:') !== 0 && path.indexOf('../') !== 0 && path.indexOf('blob:') !== 0) path = '../' + path;
+        if (path.indexOf('data:') !== 0 && path.indexOf('blob:') !== 0) { if (path.indexOf('../') !== 0) path = '../' + path; path = encodeURI(path); }
         document.getElementById('mapPreview').src = path;
         document.getElementById('mapPreview').style.display = 'block';
         document.getElementById('uploadText').style.display = 'none';
@@ -863,3 +863,4 @@ init();
 </script>
 </body>
 </html>
+
