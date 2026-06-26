@@ -961,7 +961,7 @@ function renderScene(sceneId) {
     var tw = this._spriteW, th = this._spriteH;
     var fw = tw / frames;
     // 按单帧长边适配，保持人物不缩太小
-    var size = 150;
+    var size = 100;
     var dotW, dotH;
     if (fw > th) { dotW = size; dotH = size * th / fw; }
     else { dotH = size; dotW = size * fw / th; }
