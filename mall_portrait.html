@@ -328,12 +328,17 @@
   /* ── 场景内雪碧图动画 ── */
   .scene-sprite {
     position: absolute; top: 50%; left: 20%; z-index: 20; width: 60px; pointer-events: none;
-    transform: translateY(-50%) scaleY(0.8);
+    transform: translate(var(--map-dx,0px), calc(-50% + var(--map-dy,0px)));
     filter: drop-shadow(0 3px 8px rgba(0,0,0,.5));
   }
-  .scene-sprite #dufuInner {
-    width: 100%; background-repeat: no-repeat; background-size: auto 100%;
+  .scene-sprite #dufuInner, .scene-sprite #cunchaoInner {
+    width: 100%; background-repeat: no-repeat;
+    image-rendering: pixelated;
+    will-change: background-position;
+    transform: translateZ(0);
   }
+  #dufuSprite { top: 40%; }
+  .scene-sprite.cunchao { left: auto; right: 15%; width: 50px; }
 
   @keyframes ringPulse {
     0% { transform: scale(1); opacity: .6; }
@@ -609,6 +614,7 @@
         <div class="scene-title">文旅区</div>
       </div>
       <div class="scene-sprite" id="dufuSprite"><div id="dufuInner"></div></div>
+      <div class="scene-sprite cunchao" id="cunchaoSprite"><div id="cunchaoInner"></div></div>
     </div>
 
     <!-- 右上角用户信息 -->
@@ -1218,21 +1224,41 @@ if (userRole) {
   initMapDrag();
   // 杜甫雪碧图动画（文旅区4帧）
   (function() {
+    var inner = document.getElementById('dufuInner');
+    if (!inner) return;
     var probe = new Image();
     probe.onload = function() {
-      var tw = probe.naturalWidth, fw = tw / 4;
-      var inner = document.getElementById('dufuInner');
-      if (!inner) return;
+      var fw = probe.naturalWidth / 4;
       inner.style.height = (60 * probe.naturalHeight / fw) + 'px';
-      inner.style.backgroundImage = 'url(杜甫雪碧图.png)';
-      inner.style.backgroundSize = 'auto 100%';
-      var idx = 0;
-      setInterval(function() {
-        idx = (idx + 1) % 4;
-        inner.style.backgroundPosition = (-idx * 60) + 'px 0';
-      }, 350);
     };
     probe.src = '杜甫雪碧图.png';
+    inner.style.backgroundImage = 'url(杜甫雪碧图.png)';
+    inner.style.backgroundSize = '400% 100%';
+    inner.style.backgroundPosition = '0 0';
+    var idx = 0;
+    setInterval(function() {
+      idx = (idx + 1) % 4;
+      inner.style.backgroundPosition = (-idx * 60) + 'px 0';
+    }, 350);
+  })();
+  // 村超雪碧图动画（5帧）
+  (function() {
+    var inner = document.getElementById('cunchaoInner');
+    if (!inner) return;
+    var probe2 = new Image();
+    probe2.onload = function() {
+      var fw = probe2.naturalWidth / 5;
+      inner.style.height = (50 * probe2.naturalHeight / fw) + 'px';
+    };
+    probe2.src = '村超雪碧图.png';
+    inner.style.backgroundImage = 'url(村超雪碧图.png)';
+    inner.style.backgroundSize = '500% 100%';
+    inner.style.backgroundPosition = '0 0';
+    var idx = 0;
+    setInterval(function() {
+      idx = (idx + 1) % 5;
+      inner.style.backgroundPosition = (-idx * 50) + 'px 0';
+    }, 300);
   })();
   var h = window.location.hash;
   if (h === '#2' || h === '#3' || h === '#4') {
