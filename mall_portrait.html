@@ -340,6 +340,7 @@
   #dufuSprite { top: 40%; transform: translate(var(--map-dx,0px), calc(-50% + var(--map-dy,0px))) scaleY(0.8); }
   .scene-sprite.cunchao { left: auto; right: 15%; width: 50px; }
   .cat-lottie { position: absolute; right: 10%; bottom: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
+  .biz-lottie { position: absolute; left: 10%; top: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
 
   @keyframes ringPulse {
     0% { transform: scale(1); opacity: .6; }
@@ -617,6 +618,7 @@
       <div class="scene-sprite" id="dufuSprite"><div id="dufuInner"></div></div>
       <div class="scene-sprite cunchao" id="cunchaoSprite"><div id="cunchaoInner"></div></div>
       <div class="cat-lottie" id="catLottie"></div>
+      <div class="biz-lottie" id="bizLottie"></div>
     </div>
 
     <!-- 右上角用户信息 -->
@@ -1329,6 +1331,40 @@ setTimeout(function() {
   };
   document.head.appendChild(s);
 }, 1000);
+
+// 文旅区商人 Lottie 动画
+setTimeout(function() {
+  if (location.protocol === 'file:') return;
+  var el = document.getElementById('bizLottie');
+  if (!el) return;
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js';
+  s.onload = function() {
+    fetch('Businessman looking for career opportunities.lottie')
+      .then(function(r) { return r.arrayBuffer(); })
+      .then(function(buf) {
+        var zs = document.createElement('script');
+        zs.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+        zs.onload = function() {
+          JSZip.loadAsync(buf).then(function(zip) {
+            var files = Object.keys(zip.files).filter(function(f) { return !zip.files[f].dir; });
+            var jsonFiles = files.filter(function(f) { return f.endsWith('.json'); });
+            var animFile = jsonFiles.find(function(f) { return f !== 'manifest.json'; }) || jsonFiles[0];
+            if (!animFile) throw new Error('No JSON');
+            return zip.file(animFile).async('text');
+          }).then(function(jsonStr) {
+            lottie.loadAnimation({
+              container: el, renderer: 'svg',
+              loop: true, autoplay: true,
+              animationData: JSON.parse(jsonStr)
+            });
+          }).catch(function(e) { console.log('Biz Lottie error:', e); });
+        };
+        document.head.appendChild(zs);
+      });
+  };
+  document.head.appendChild(s);
+}, 1500);
 </script>
 </body>
 </html>
