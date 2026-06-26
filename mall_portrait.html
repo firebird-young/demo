@@ -337,7 +337,7 @@
     will-change: background-position;
     transform: translateZ(0);
   }
-  #dufuSprite { top: 40%; }
+  #dufuSprite { top: 40%; transform: translate(var(--map-dx,0px), calc(-50% + var(--map-dy,0px))) scaleY(0.8); }
   .scene-sprite.cunchao { left: auto; right: 15%; width: 50px; }
 
   @keyframes ringPulse {
