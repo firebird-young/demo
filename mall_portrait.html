@@ -302,6 +302,7 @@
     width: 64px; height: 64px;
     cursor: default;
     z-index: 10;
+    transition: left 4s ease, top 4s ease;
   }
   .origin-dot {
     width: 100%; height: 100%;
@@ -759,8 +760,8 @@ let currentScene = 1;
 // 角色选择
 // ═══════════════════════════════════════════════════════
 const ROLE_DEFAULTS = [
-  { id:1, name:'茅台哥哥', gender:'male', src:'茅台哥哥.png', sprite:'茅台哥哥.png', spriteFrames:1, spriteDir:'horizontal' },
-  { id:2, name:'茅台妹妹', gender:'female', src:'茅台妹妹.png', sprite:'茅台妹妹.png', spriteFrames:1, spriteDir:'horizontal' }
+  { id:1, name:'茅台哥哥', gender:'male', src:'茅台哥哥.png', sprite:'茅台哥哥雪碧图.png', spriteFrames:6, spriteDir:'horizontal' },
+  { id:2, name:'茅台妹妹', gender:'female', src:'茅台妹妹.png', sprite:'茅台妹妹雪碧图.png', spriteFrames:6, spriteDir:'horizontal' }
 ];
 // 优先读后台数据，否则用默认
 var roleRaw = JSON.parse(localStorage.getItem('metaMallRoles') || 'null');
@@ -909,8 +910,68 @@ function renderScene(sceneId) {
   var avatarUrl = (userRole && userRole.avatar) ? userRole.avatar : '李白待机.gif';
   var nick = (userRole && userRole.name) ? userRole.name : '';
   var nameTag = nick ? '<span class="origin-name">' + nick + '</span>' : '';
-  origin.innerHTML = '<div class="origin-ring"></div><div class="origin-ring"></div><div class="origin-ring"></div><div class="origin-dot" style="background-image:url(\''+avatarUrl+'\')"></div>'+nameTag;
+  // 雪碧图动画：如果有角色雪碧图，用头像初始显示，移动时切雪碧图
+  var dotBg = avatarUrl;
+  var hasSprite = userRole && userRole.sprite && userRole.spriteFrames > 1;
+  var spriteImg = hasSprite ? userRole.sprite : '';
+  var spriteFrames = hasSprite ? userRole.spriteFrames : 0;
+  origin.innerHTML = '<div class="origin-ring"></div><div class="origin-ring"></div><div class="origin-ring"></div><div class="origin-dot" style="background-image:url(\''+dotBg+'\')"></div>'+nameTag;
   overlay.appendChild(origin);
+
+  origin._walkTimer = null;
+  origin._spriteLoaded = false;
+  origin._spriteW = 0;
+  origin._spriteH = 0;
+  if (hasSprite) {
+    var probe = new Image();
+    probe.onload = function() {
+      origin._spriteLoaded = true;
+      origin._spriteW = probe.naturalWidth;
+      origin._spriteH = probe.naturalHeight;
+      origin.dataset.spriteFrames = spriteFrames;
+    };
+    probe.src = spriteImg;
+  }
+
+  origin.startWalk = function() {
+    if (!this._spriteLoaded) return;
+    var dot = this.querySelector('.origin-dot');
+    var frames = spriteFrames;
+    var tw = this._spriteW, th = this._spriteH;
+    var fw = tw / frames;
+    // 按单帧长边适配，保持人物不缩太小
+    var size = 100;
+    var dotW, dotH;
+    if (fw > th) { dotW = size; dotH = size * th / fw; }
+    else { dotH = size; dotW = size * fw / th; }
+    dot.style.backgroundImage = 'url(' + spriteImg + ')';
+    dot.style.backgroundSize = 'auto 100%';
+    dot.style.width = dotW + 'px';
+    dot.style.height = dotH + 'px';
+    dot.style.marginLeft = (-(dotW - 64) / 2) + 'px';
+    dot.style.marginTop = (-(dotH - 64) / 2) + 'px';
+    dot.style.borderRadius = '0';
+    dot.style.animation = 'none';
+    var idx = 0;
+    dot.style.backgroundPosition = '0 0';
+    clearInterval(this._walkTimer);
+    this._walkTimer = setInterval(function() {
+      idx = (idx + 1) % frames;
+      dot.style.backgroundPosition = (-idx * dotW) + 'px 0';
+    }, 300);
+  };
+  origin.stopWalk = function() {
+    clearInterval(this._walkTimer);
+    var dot = this.querySelector('.origin-dot');
+    dot.style.backgroundImage = 'url(' + dotBg + ')';
+    dot.style.backgroundSize = 'cover';
+    dot.style.width = '100%';
+    dot.style.height = '100%';
+    dot.style.marginLeft = '0';
+    dot.style.marginTop = '0';
+    dot.style.borderRadius = '50%';
+    dot.style.backgroundPosition = 'center';
+  };
 
   data.spots.forEach((s, i) => {
     const spot = document.createElement('div');
@@ -931,7 +992,8 @@ function renderScene(sceneId) {
         var cx = (s.x || s.left || 0), cy = (s.y || s.top || 0);
         origin.style.left = cx + '%';
         origin.style.top = (cy - 3) + '%';
-        window._moveTimer = setTimeout(function(){ switchScene(s.toScene); }, 1200);
+        origin.startWalk && origin.startWalk();
+        window._moveTimer = setTimeout(function(){ try { origin.stopWalk && origin.stopWalk(); } catch(e){} switchScene(s.toScene); }, 2000);
       } else { moveTo(sceneId, i); }
     });
     overlay.appendChild(spot);
@@ -968,7 +1030,8 @@ function renderScene(sceneId) {
       if (origin) {
         if (window._moveTimer) clearTimeout(window._moveTimer);
         origin.style.left = ax + '%'; origin.style.top = ay + '%';
-        window._moveTimer = setTimeout(function(){ switchScene(ar.to); }, 1700);
+        origin.startWalk && origin.startWalk();
+        window._moveTimer = setTimeout(function(){ try { origin.stopWalk && origin.stopWalk(); } catch(e){} switchScene(ar.to); }, 2000);
       } else { switchScene(ar.to); }
     });
     overlay.appendChild(nextBtn);
@@ -984,9 +1047,11 @@ function moveTo(sceneId, spotIdx) {
   if (window._moveTimer) clearTimeout(window._moveTimer);
   var cx = (spot.x || spot.left || 0), cy = (spot.y || spot.top || 0);
   origin.style.left = cx + '%'; origin.style.top = (cy - 5) + '%';
+  origin.startWalk && origin.startWalk();
   window._moveTimer = setTimeout(() => {
+    try { origin.stopWalk && origin.stopWalk(); } catch(e){}
     if (spot.label === '贵州茅台') { window.location.href = 'guizhoumaotai_portrait.html'; }
-  }, 1700);
+  }, 2000);
 }
 
 // ═══════════════════════════════════════════════════════
