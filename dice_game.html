@@ -99,14 +99,13 @@ body{
   border:1px solid rgba(255,255,255,.1);
 }
 .dice-btn{
-  width:56px;height:56px;border-radius:14px;border:none;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  color:#fff;font-size:26px;cursor:pointer;flex-shrink:0;
+  width:64px;border-radius:14px;border:none;
+  background:transparent;cursor:pointer;flex-shrink:0;
   box-shadow:0 4px 12px rgba(102,126,234,.4);
-  transition:transform .15s;
-  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;overflow:hidden;
 }
 .dice-btn:active{transform:scale(.92)}
+.dice-btn #diceBtnSprite{width:100%;background-repeat:no-repeat;background-size:600% 100%;background-position:0 0}
 .dice-btn.rolling{animation:diceShake .5s ease}
 @keyframes diceShake{
   0%,100%{transform:rotate(0)}
@@ -174,11 +173,12 @@ body{
 }
 .dice-popup.show{display:flex}
 .dice-popup .dp-dice{
-  width:80px;height:80px;font-size:60px;
+  width:100px;
   display:flex;align-items:center;justify-content:center;
   background:rgba(255,255,255,.1);border-radius:20px;
   border:2px solid rgba(255,255,255,.2);
 }
+.dice-popup .dp-dice #dpDiceSprite{width:100%;background-repeat:no-repeat;background-size:600% 100%;background-position:0 0}
 .dice-popup .dp-dice.rolling{animation:diceShake .3s infinite}
 .dice-popup .dp-text{
   color:#fff;font-size:16px;font-weight:600;
@@ -244,7 +244,7 @@ body{
 
     <!-- 底部 -->
     <div class="bottom-panel" id="bottomPanel">
-      <button class="dice-btn" id="diceBtn" onclick="rollDice()">🎲</button>
+      <div class="dice-btn" id="diceBtn" onclick="rollDice()"><div id="diceBtnSprite"></div></div>
       <div class="dice-result">
         <div style="display:none" id="diceNumWrap"><span class="dr-num" id="diceNum">1</span> 步</div>
         <div class="step-info" id="stepInfo">点击骰子开始冒险</div>
@@ -254,7 +254,7 @@ body{
     <!-- 骰子弹窗 -->
     <div class="dice-popup" id="dicePopup">
       <div class="dp-text" id="dpText">掷骰子中...</div>
-      <div class="dp-dice rolling" id="dpDice">🎲</div>
+      <div class="dp-dice" id="dpDice"><div id="dpDiceSprite"></div></div>
       <div class="dp-result" id="dpResult"></div>
       <div class="dp-sub" id="dpSub"></div>
     </div>
@@ -346,8 +346,9 @@ function init() {
   // 排序：按 num 升序
   config.grids.sort(function(a, b) { return a.num - b.num; });
 
-  // 加载角色形象
+  // 加载角色形象 + 骰子雪碧图
   loadCharacter();
+  initDiceSprite();
 
   // 加载地图：如果是 base64（旧数据）也能显示，文件名直接加载
   var mapSrc = config.mapImage || 'ChatGPT Image 2026年6月25日 09_21_39.png';
@@ -410,68 +411,86 @@ function placePlayer(idx) {
   if (cell) cell.classList.add('active');
 }
 
-// ========== 掷骰子 ==========
+// ========== 掷骰子（雪碧图驱动，保持比例） ==========
+var _diceReady=false, _diceFrameH=0;
+function initDiceSprite() {
+  var probe = new Image();
+  probe.onload = function() {
+    var fw = probe.naturalWidth / 6, fh = probe.naturalHeight;
+    // 按钮：宽64，高按比例
+    var btnSp = document.getElementById('diceBtnSprite');
+    btnSp.style.height = (64 * fh / fw) + 'px';
+    btnSp.style.backgroundImage = 'url(骰子雪碧图.png)';
+    btnSp.style.backgroundSize = '600% 100%';
+    btnSp.style.backgroundPosition = '0 0';
+    // 弹窗骰子：宽100
+    var dpSp = document.getElementById('dpDiceSprite');
+    dpSp.style.height = (100 * fh / fw) + 'px';
+    dpSp.style.backgroundImage = 'url(骰子雪碧图.png)';
+    dpSp.style.backgroundSize = '600% 100%';
+    dpSp.style.backgroundPosition = '0 0';
+    _diceFrameH = fh / fw;
+    _diceReady = true;
+  };
+  probe.src = '骰子雪碧图.png';
+}
 function rollDice() {
-  if (isRolling) return;
-  isRolling = true;
-  rollStack = 0;  // 手动点击时重置
+  if (isRolling || !_diceReady) return;
+  isRolling = true; rollStack = 0;
 
-  // 弹窗展示
-  var popup = document.getElementById('dicePopup');
+  var popup   = document.getElementById('dicePopup');
   var popDice = document.getElementById('dpDice');
   var popText = document.getElementById('dpText');
   var popResult = document.getElementById('dpResult');
-  var popSub = document.getElementById('dpSub');
+  var popSub  = document.getElementById('dpSub');
   popResult.classList.remove('show'); popSub.classList.remove('show');
   popDice.classList.add('rolling');
   popText.textContent = '掷骰子中...';
   popup.classList.add('show');
 
-  // 底部骰子动画
   var btn = document.getElementById('diceBtn');
   btn.classList.add('rolling');
   document.getElementById('diceNumWrap').style.display = 'none';
   document.getElementById('stepInfo').textContent = '掷骰子中...';
 
-  // 随机动画
-  var tick = 0, maxTick = 10;
-  var diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+  var btnSp = document.getElementById('diceBtnSprite');
+  var dpSp  = document.getElementById('dpDiceSprite');
+  var result = Math.floor(Math.random() * 6) + 1;
+  var btnW = btnSp.parentElement.clientWidth;
+  var dpW  = dpSp.parentElement.clientWidth;
+
+  var tick = 0, maxTick = 12;
   var interval = setInterval(function() {
-    var face = diceFaces[Math.floor(Math.random()*6)];
-    btn.textContent = face;
-    popDice.textContent = face;
+    var idx = Math.floor(Math.random() * 6);
+    btnSp.style.backgroundPosition = (-idx * btnW) + 'px 0';
+    dpSp.style.backgroundPosition  = (-idx * dpW) + 'px 0';
     tick++;
     if (tick >= maxTick) {
       clearInterval(interval);
-      var num = Math.floor(Math.random() * 6) + 1;
-      var resultFace = diceFaces[num-1];
+      var stopIdx = result - 1;
+      btnSp.style.backgroundPosition = (-stopIdx * btnW) + 'px 0';
+      dpSp.style.backgroundPosition  = (-stopIdx * dpW) + 'px 0';
 
-      // 停止动画
       popDice.classList.remove('rolling');
-      popDice.textContent = resultFace;
-      btn.textContent = resultFace;
       btn.classList.remove('rolling');
-      document.getElementById('diceNum').textContent = num;
+      document.getElementById('diceNum').textContent = result;
       document.getElementById('diceNumWrap').style.display = '';
-
-      // 弹窗显示结果
       popText.textContent = '';
-      popResult.textContent = num;
+      popResult.textContent = result;
       popResult.classList.add('show');
-      popSub.textContent = '前进 ' + num + ' 步';
+      popSub.textContent = '前进 ' + result + ' 步';
       popSub.classList.add('show');
 
-      // 延迟关闭弹窗并移动
       setTimeout(function() {
         popup.classList.remove('show');
-        popDice.textContent = '🎲';
         popText.textContent = '掷骰子中...';
-        btn.textContent = '🎲';  // 底部骰子复原
+        btnSp.style.backgroundPosition = '0 0';
+        dpSp.style.backgroundPosition  = '0 0';
         document.getElementById('stepInfo').textContent = '前进中...';
-        movePlayer(num);
+        movePlayer(result);
       }, 1000);
     }
-  }, 100);
+  }, 80);
 }
 
 function movePlayer(steps) {
@@ -631,10 +650,9 @@ function restartGame() {
   document.getElementById('winPanel').classList.remove('show');
   document.getElementById('diceNumWrap').style.display = 'none';
   document.getElementById('stepInfo').textContent = '点击骰子开始冒险';
-  document.getElementById('diceBtn').textContent = '🎲';
   document.getElementById('diceBtn').classList.remove('rolling');
-  var pd = document.getElementById('dpDice');
-  if (pd) pd.textContent = '🎲';
+  var bsp = document.getElementById('diceBtnSprite'); if (bsp) bsp.style.backgroundPosition = '0 0';
+  var dsp = document.getElementById('dpDiceSprite'); if (dsp) dsp.style.backgroundPosition = '0 0';
   placePlayer(0);
   updateUI();
   document.querySelectorAll('.grid-cell.active').forEach(function(c) { c.classList.remove('active'); });
