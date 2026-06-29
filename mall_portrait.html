@@ -341,6 +341,7 @@
   .scene-sprite.cunchao { left: auto; right: 15%; width: 50px; }
   .cat-lottie { position: absolute; right: 10%; bottom: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
   .biz-lottie { position: absolute; left: 10%; top: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
+  .particle-canvas { position: absolute; inset: 0; z-index: 16; pointer-events: none; width: 100%; height: 100%; }
 
   @keyframes ringPulse {
     0% { transform: scale(1); opacity: .6; }
@@ -619,6 +620,7 @@
       <div class="scene-sprite cunchao" id="cunchaoSprite"><div id="cunchaoInner"></div></div>
       <div class="cat-lottie" id="catLottie"></div>
       <div class="biz-lottie" id="bizLottie"></div>
+      <canvas class="particle-canvas" id="particleCanvas"></canvas>
     </div>
 
     <!-- 右上角用户信息 -->
@@ -1295,6 +1297,78 @@ function updateOnlineCount() {
   generateOnlineUsers(); renderOnlinePanel();
 }
 (function(){ generateOnlineUsers(); renderOnlinePanel(); setInterval(updateOnlineCount, 2000+Math.random()*2000); })();
+
+// 文旅区粒子系统（光点+花瓣）
+(function() {
+  var canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var W = 430, H = 860; // 手机屏幕尺寸
+
+  function resize() {
+    var s4 = document.getElementById('scene4');
+    if (s4 && s4.clientWidth) { W = s4.clientWidth; H = s4.clientHeight; }
+    canvas.width = W; canvas.height = H;
+  }
+  resize();
+  setInterval(resize, 2000);
+
+  function createLight() {
+    return { type:'light', x:Math.random()*W, y:Math.random()*H, r:Math.random()*3+1,
+      vx:(Math.random()-0.5)*0.5, vy:(Math.random()-0.5)*0.5-0.3,
+      alpha:Math.random()*0.6+0.2, da:(Math.random()-0.5)*0.02,
+      color:Math.random()<0.5?'255,215,0':'255,255,200' };
+  }
+  function createPetal() {
+    return { type:'petal', x:Math.random()*W, y:-10, r:Math.random()*5+4,
+      vx:(Math.random()-0.5)*1.2, vy:Math.random()*1+0.5,
+      rot:Math.random()*360, dr:(Math.random()-0.5)*2, alpha:0.8,
+      color:['#ffb7c5','#ff9a9e','#fecfef','#ffd1dc'][Math.floor(Math.random()*4)] };
+  }
+
+  for (var i=0;i<30;i++) particles.push(createLight());
+  for (var i=0;i<15;i++) particles.push(createPetal());
+
+  function drawLight(p) {
+    ctx.save(); ctx.globalAlpha=p.alpha;
+    var g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3);
+    g.addColorStop(0,'rgba('+p.color+',1)'); g.addColorStop(0.5,'rgba('+p.color+',0.4)'); g.addColorStop(1,'rgba('+p.color+',0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  function drawPetal(p) {
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.globalAlpha=p.alpha;
+    ctx.fillStyle=p.color; ctx.beginPath(); ctx.ellipse(0,0,p.r,p.r*0.6,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function update() {
+    resize();
+    ctx.clearRect(0,0,W,H);
+    if (Math.random()<0.3) particles.push(createLight());
+    if (Math.random()<0.15) particles.push(createPetal());
+
+    for (var i=particles.length-1;i>=0;i--) {
+      var p=particles[i];
+      if (p.type==='light') {
+        p.x+=p.vx;p.y+=p.vy;p.alpha+=p.da;
+        if (p.alpha<=0||p.alpha>=1) p.da=-p.da;
+        drawLight(p);
+      } else {
+        p.x+=p.vx;p.y+=p.vy;p.rot+=p.dr;p.alpha-=0.003;
+        drawPetal(p);
+      }
+      if (p.alpha<=0||p.y>H+30||p.x<-30||p.x>W+30) particles.splice(i,1);
+    }
+    if (particles.length>80) particles.splice(0,10);
+
+    var s4=document.getElementById('scene4');
+    if (s4 && !s4.classList.contains('hidden')) requestAnimationFrame(update);
+    else setTimeout(function(){requestAnimationFrame(update)},1000);
+  }
+  requestAnimationFrame(update);
+})();
 
 // 文旅区猫 Lottie 动画（需 HTTP 服务器：npx serve .）
 setTimeout(function() {
