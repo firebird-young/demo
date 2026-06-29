@@ -82,7 +82,6 @@
     .deco-field.show { display: block; }
     .deco-param { display: none; }
     .deco-param.show { display: block; }
-    .form-row { display: flex; gap: 12px; align-items: flex-end; }
     .jump-field { display: none; }
     .jump-field.show { display: block; }
 
@@ -173,7 +172,7 @@
       <div class="card">
         <div class="card-title"><span>地图热区标注</span></div>
         <div class="map-editor" id="mapEditor">
-          <img id="mapImage" src="../元宇宙地图_new.png" alt="主地图" style="display:none">
+          <img id="mapImage" src="../元宇宙地图_new.png" alt="主地图">
         </div>
         <div class="empty-state" id="emptyMap" style="display:none">
           <div class="empty-text">请先上传主地图图片</div>
@@ -384,10 +383,11 @@
       if (saved) { try { mapData = JSON.parse(saved); } catch(e) {} }
       if (!mapData.hotspots) mapData.hotspots = [];
       if (!mapData.scale) mapData.scale = 130;
+      if (!mapData.image || mapData.image.indexOf('data:') === 0) mapData.image = '../元宇宙地图_new.png';
       document.getElementById('mapScale').value = mapData.scale;
       var img = document.getElementById('mapImage');
-      img.src = mapData.image || '';
-      img.style.display = mapData.image ? 'block' : 'none';
+      img.src = '../元宇宙地图_new.png';
+      img.style.display = 'block';
       document.getElementById('emptyMap').style.display = mapData.image ? 'none' : 'block';
       renderHotspots();
       renderHotspotList();
@@ -436,7 +436,7 @@
         box.className = 'hotspot-box' + (isDeco ? ' deco' : '') + (isStart ? ' start' : '');
         box.style.left = h.x + '%'; box.style.top = h.y + '%';
         box.style.width = (h.w || 8) + '%'; box.style.height = (h.h || 10) + '%';
-        } else if (isDeco && h.decoImg) {
+        if (isDeco && h.decoImg) {
           box.innerHTML = '<img src="' + h.decoImg + '" alt="' + (h.name || '装饰') + '" title="' + (h.name || '装饰') + '">';
         } else if (isStart) {
           box.innerHTML = '<div class="hotspot-box-label">🚶 ' + (h.name || '起始位置') + '</div>';
@@ -510,6 +510,8 @@
       document.getElementById('typeBtnStart').classList.toggle('active', type === 'start');
       document.getElementById('jumpField').classList.toggle('show', type === 'jump');
       document.getElementById('decoField').classList.toggle('show', type === 'deco');
+      if (type === 'start') document.getElementById('hotspotEditName').value = '人物起始位置';
+      else if (type === 'deco') document.getElementById('hotspotEditName').value = '';
     }
 
 
@@ -596,17 +598,8 @@
       document.getElementById('cssImgInput').value = '';
     }
 
-    // 上传装饰图片（旧版兼容，已废弃）
-    function uploadDecoImage() {
-      var f = document.getElementById('decoImgInput').files[0];
-      if (!f) return;
-      var r = new FileReader();
-      r.onload = function(e) {
-        document.getElementById('hotspotDecoImg').value = e.target.result;
-      };
-      r.readAsDataURL(f);
-      document.getElementById('decoImgInput').value = '';
-    }
+    // 上传装饰图片（已废弃，保留避免报错）
+    function uploadDecoImage() {}
 
     // 构建目标选择器（使用optgroup按场景分组）
     function buildTargetSelect() {
