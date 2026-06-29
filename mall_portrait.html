@@ -339,9 +339,19 @@
   }
   #dufuSprite { top: 40%; transform: translate(var(--map-dx,0px), calc(-50% + var(--map-dy,0px))) scaleY(0.8); }
   .scene-sprite.cunchao { left: auto; right: 15%; width: 50px; }
-  .cat-lottie { position: absolute; right: 10%; bottom: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
-  .biz-lottie { position: absolute; left: 10%; top: 15%; width: 150px; height: 150px; z-index: 50; pointer-events: none; }
+  .cat-lottie { position: absolute; right: 10%; bottom: 15%; width: 150px; height: 150px; z-index: 60; pointer-events: none; }
+  .biz-lottie { position: absolute; left: 10%; top: 15%; width: 150px; height: 150px; z-index: 60; pointer-events: none; }
   .particle-canvas { position: absolute; inset: 0; z-index: 16; pointer-events: none; width: 100%; height: 100%; }
+  .building-glow {
+    position: absolute; right: 1%; top: 10%; z-index: 3; width: 240px; pointer-events: none;
+    transform: translate(var(--map-dx,0px), var(--map-dy,0px));
+    animation: bldPulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(255,215,0,.6));
+  }
+  @keyframes bldPulse {
+    0%,100% { transform: translate(var(--map-dx,0px), var(--map-dy,0px)) scale(1); }
+    50% { transform: translate(var(--map-dx,0px), var(--map-dy,0px)) scale(1.05); filter: drop-shadow(0 0 20px rgba(255,215,0,.9)); }
+  }
 
   @keyframes ringPulse {
     0% { transform: scale(1); opacity: .6; }
@@ -615,6 +625,7 @@
       <div class="map-pan"><img src="scene2_new.png" alt="文旅区"></div>
       <div class="scene-overlay" data-scene="4">
         <div class="scene-title">文旅区</div>
+        <img class="building-glow" src="王者荣耀建筑.png" alt="">
       </div>
       <div class="scene-sprite" id="dufuSprite"><div id="dufuInner"></div></div>
       <div class="scene-sprite cunchao" id="cunchaoSprite"><div id="cunchaoInner"></div></div>
