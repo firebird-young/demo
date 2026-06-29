@@ -290,6 +290,10 @@
         <input type="hidden" id="hotspotEditId">
         <input type="hidden" id="hotspotDecoImg" value="">
         <div class="form-group">
+          <label class="form-label">热区名称</label>
+          <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
+        </div>
+        <div class="form-group">
           <label class="form-label">热区类型</label>
           <div class="type-toggle">
             <div class="type-btn active" onclick="switchHotspotType('jump')" id="typeBtnJump">📍 跳转热区</div>
@@ -302,10 +306,6 @@
             <label class="form-label">跳转目标（商家）</label>
             <select class="form-select" id="hotspotJumpTarget" onchange="onJumpTargetChange()"></select>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">热区名称</label>
-          <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
         </div>
         <div class="form-group" id="imgUploadField">
           <label class="form-label">装饰图片（非必填）</label>

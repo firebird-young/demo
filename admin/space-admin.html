@@ -253,26 +253,26 @@
       </div>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="hotspotEditId">
-      <input type="hidden" id="hotspotDecoImg" value="">
-      <div class="form-group">
-        <label class="form-label">热区类型</label>
-        <div class="type-toggle">
-          <div class="type-btn active" onclick="switchHotspotType('jump')" id="typeBtnJump">📍 跳转热区</div>
-          <div class="type-btn" onclick="switchHotspotType('deco')" id="typeBtnDeco">🎨 装饰热区</div>
-          <div class="type-btn" onclick="switchHotspotType('start')" id="typeBtnStart">🚶 起始位置</div>
-        </div>
-      </div>
-      <div class="type-field show" id="jumpField">
+        <input type="hidden" id="hotspotEditId">
+        <input type="hidden" id="hotspotDecoImg" value="">
         <div class="form-group">
-          <label class="form-label">跳转目标（项目）</label>
-          <select class="form-select" id="hotspotJumpTarget" onchange="onJumpTargetChange()"></select>
+          <label class="form-label">热区名称</label>
+          <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">热区名称</label>
-        <input class="form-input" id="hotspotEditName" placeholder="输入热区名称">
-      </div>
+        <div class="form-group">
+          <label class="form-label">热区类型</label>
+          <div class="type-toggle">
+            <div class="type-btn active" onclick="switchHotspotType('jump')" id="typeBtnJump">📍 跳转热区</div>
+            <div class="type-btn" onclick="switchHotspotType('deco')" id="typeBtnDeco">🎨 装饰热区</div>
+            <div class="type-btn" onclick="switchHotspotType('start')" id="typeBtnStart">🚶 起始位置</div>
+          </div>
+        </div>
+        <div class="type-field show" id="jumpField">
+          <div class="form-group">
+            <label class="form-label">跳转目标（项目）</label>
+            <select class="form-select" id="hotspotJumpTarget" onchange="onJumpTargetChange()"></select>
+          </div>
+        </div>
       <div class="form-group" id="imgUploadField">
         <label class="form-label">装饰图片（非必填）</label>
         <div class="deco-upload" id="decoUpload" onclick="document.getElementById('hsDecoImgInput').click()">
