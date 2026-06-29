@@ -99,6 +99,8 @@
     .deco-upload.has-img { padding: 8px; }
     .deco-upload img { max-width: 100%; max-height: 120px; border-radius: 4px; }
     .deco-upload-text { font-size: 14px; color: #999; }
+    .deco-param { display: none; }
+    .deco-param.show { display: block; }
 
     /* 热区编辑 */
     .hotspot-editor { position: relative; background: #f9f9f9; border-radius: 12px; overflow: hidden; }
@@ -313,6 +315,104 @@
           </div>
           <input type="file" id="hsDecoImgInput" accept="image/*" onchange="uploadHsDecoImg()" style="display:none">
           <div style="margin-top:6px;font-size:12px;color:#D70C1F;cursor:pointer;display:none" id="hsDecoClear" onclick="clearHsDecoImg()">✕ 移除图片</div>
+        </div>
+        <div class="deco-type-field" id="decoTypeField" style="display:none">
+          <div class="form-group">
+            <label class="form-label">装饰类型</label>
+            <select class="form-select" id="decoSubtype" onchange="switchDecoSubtype()">
+              <option value="sprite">🖼️ 雪碧图动画</option>
+              <option value="lottie">🎬 Lottie 动画</option>
+              <option value="css">✨ CSS 动画</option>
+              <option value="particle">🌟 原生粒子</option>
+            </select>
+          </div>
+          <!-- 雪碧图 -->
+          <div class="deco-param" id="decoParamSprite">
+            <div class="form-group">
+              <label class="form-label">雪碧图文件</label>
+              <input type="hidden" id="decoSpriteImg" value="">
+              <div class="deco-upload" id="spriteUpload" onclick="document.getElementById('spriteImgInput').click()">
+                <div class="deco-upload-text" id="spriteEmptyText">点击上传雪碧图</div>
+                <img id="spritePreview" src="" alt="" style="display:none">
+              </div>
+              <input type="file" id="spriteImgInput" accept="image/*" onchange="uploadSpriteImage()" style="display:none">
+            </div>
+            <div class="form-group">
+              <label class="form-label">坐标文件（JSON，非必填）</label>
+              <input type="file" id="spriteCoordInput" accept=".json" onchange="uploadSpriteCoord()">
+            </div>
+            <div class="form-row" style="display:flex;gap:12px">
+              <div class="form-group" style="flex:1;margin-bottom:0">
+                <label class="form-label">帧数</label>
+                <input class="form-input" id="decoSpriteFrames" type="number" min="1" max="64" value="6">
+              </div>
+              <div class="form-group" style="flex:1;margin-bottom:0">
+                <label class="form-label">帧速(ms)</label>
+                <input class="form-input" id="decoSpriteSpeed" type="number" min="50" max="2000" value="300">
+              </div>
+            </div>
+          </div>
+          <!-- Lottie -->
+          <div class="deco-param" id="decoParamLottie" style="display:none">
+            <div class="form-group">
+              <input type="hidden" id="decoLottieData" value="">
+              <div class="deco-upload" id="lottieUpload" onclick="document.getElementById('lottieFileInput').click()">
+                <div class="deco-upload-text" id="lottieEmptyText">点击上传 .lottie 文件</div>
+                <div id="lottieFileName" style="font-size:13px;color:#20bf6b;display:none"></div>
+              </div>
+              <input type="file" id="lottieFileInput" accept=".lottie,.json" onchange="uploadLottieFile()" style="display:none">
+            </div>
+          </div>
+          <!-- CSS动画 -->
+          <div class="deco-param" id="decoParamCss" style="display:none">
+            <div class="form-group">
+              <label class="form-label">静态图片</label>
+              <input type="hidden" id="decoCssImg" value="">
+              <div class="deco-upload" id="cssUpload" onclick="document.getElementById('cssImgInput').click()">
+                <div class="deco-upload-text" id="cssEmptyText">点击上传图片</div>
+                <img id="cssPreview" src="" alt="" style="display:none">
+              </div>
+              <input type="file" id="cssImgInput" accept="image/*" onchange="uploadCssImage()" style="display:none">
+            </div>
+            <div class="form-group">
+              <label class="form-label">CSS 动画效果</label>
+              <select class="form-select" id="decoCssAnim">
+                <option value="pulse">脉冲缩放</option>
+                <option value="float">上下浮动</option>
+                <option value="sway">左右摇摆</option>
+                <option value="glow">光晕呼吸</option>
+                <option value="rotate">旋转闪烁</option>
+                <option value="bounce">弹跳弹入</option>
+              </select>
+            </div>
+          </div>
+          <!-- 原生粒子 -->
+          <div class="deco-param" id="decoParamParticle" style="display:none">
+            <div class="form-group">
+              <label class="form-label">粒子类型</label>
+              <select class="form-select" id="decoParticleType">
+                <option value="light-gold">金色光点</option>
+                <option value="light-blue">蓝色星光</option>
+                <option value="petal-pink">粉色花瓣</option>
+                <option value="petal-red">红色花瓣</option>
+                <option value="snow">飘雪粒子</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">生成率 (0~1)</label>
+              <input class="form-input" id="decoParticleRate" type="number" min="0" max="1" step="0.01" value="0.3">
+            </div>
+          </div>
+          <div class="form-row" style="display:flex;gap:12px">
+            <div class="form-group" style="flex:1;margin-bottom:0">
+              <label class="form-label">宽度(px)</label>
+              <input class="form-input" id="decoWidth" type="number" min="20" max="500" value="240">
+            </div>
+            <div class="form-group" style="flex:1;margin-bottom:0">
+              <label class="form-label">Z轴序号 <span style="font-weight:400;font-size:11px;color:#999">（越大越靠上）</span></label>
+              <input class="form-input" id="decoZIndex" type="number" min="1" max="99" value="5">
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -571,9 +671,9 @@
       document.getElementById('typeBtnDeco').classList.toggle('active', type === 'deco');
       document.getElementById('typeBtnStart').classList.toggle('active', type === 'start');
       document.getElementById('jumpField').classList.toggle('show', type === 'jump');
-      document.getElementById('imgUploadField').style.display = (type === 'start') ? 'none' : '';
-      // 装饰热区必填，跳转热区非必填
-      document.querySelector('#imgUploadField .form-label').textContent = type === 'deco' ? '装饰图片（必填）' : '装饰图片（非必填）';
+      document.getElementById('imgUploadField').style.display = 'none';
+      document.getElementById('decoTypeField').style.display = (type === 'deco') ? 'block' : 'none';
+      if (type === 'deco') { switchDecoSubtype(); }
       // 自动填充名称
       if (type === 'start') document.getElementById('hotspotEditName').value = '人物起始位置';
       else if (type === 'deco') document.getElementById('hotspotEditName').value = '';
@@ -619,6 +719,109 @@
       document.getElementById('decoUpload').classList.remove('has-img');
       document.getElementById('hsDecoClear').style.display = 'none';
     }
+    // ── 装饰子类型 ──
+    function switchDecoSubtype() {
+      var v = document.getElementById('decoSubtype').value;
+      ['decoParamSprite','decoParamLottie','decoParamCss','decoParamParticle'].forEach(function(id) {
+        document.getElementById(id).style.display = 'none';
+      });
+      document.getElementById('decoParam'+v.charAt(0).toUpperCase()+v.slice(1)).style.display = 'block';
+    }
+    function uploadSpriteImage() {
+      var f = document.getElementById('spriteImgInput').files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) {
+        document.getElementById('decoSpriteImg').value = e.target.result;
+        document.getElementById('spritePreview').src = e.target.result;
+        document.getElementById('spritePreview').style.display = 'block';
+        document.getElementById('spriteEmptyText').style.display = 'none';
+      };
+      r.readAsDataURL(f);
+    }
+    function uploadCssImage() {
+      var f = document.getElementById('cssImgInput').files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) {
+        document.getElementById('decoCssImg').value = e.target.result;
+        document.getElementById('cssPreview').src = e.target.result;
+        document.getElementById('cssPreview').style.display = 'block';
+        document.getElementById('cssEmptyText').style.display = 'none';
+      };
+      r.readAsDataURL(f);
+    }
+    function uploadLottieFile() {
+      var f = document.getElementById('lottieFileInput').files[0]; if (!f) return;
+      document.getElementById('decoLottieData').value = f.name;
+      document.getElementById('lottieFileName').textContent = '✓ ' + f.name;
+      document.getElementById('lottieFileName').style.display = 'block';
+      document.getElementById('lottieEmptyText').style.display = 'none';
+    }
+    function uploadSpriteCoord() {
+      var f = document.getElementById('spriteCoordInput').files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) { window._hsSpriteCoord = e.target.result; };
+      r.readAsText(f);
+    }
+    function resetDecoTypeField() {
+      document.getElementById('decoSubtype').value = 'sprite';
+      switchDecoSubtype();
+      ['sprite','css','lottie'].forEach(function(t) {
+        var p = document.getElementById(t+'Preview'); if (p) { p.src = ''; p.style.display = 'none'; }
+        var e = document.getElementById(t+'EmptyText'); if (e) e.style.display = '';
+        var u = document.getElementById(t+'Upload'); if (u) u.classList.remove('has-img');
+      });
+      document.getElementById('decoSpriteImg').value = '';
+      document.getElementById('decoCssImg').value = '';
+      document.getElementById('decoLottieData').value = '';
+      document.getElementById('lottieFileName').style.display = 'none';
+      document.getElementById('lottieEmptyText').style.display = '';
+      document.getElementById('spriteCoordInput').value = '';
+      window._hsSpriteCoord = '';
+    }
+    function fillDecoFields(h) {
+      h.decoSubtype = document.getElementById('decoSubtype').value;
+      h.decoZIndex = parseInt(document.getElementById('decoZIndex').value) || 5;
+      h.decoWidth = parseInt(document.getElementById('decoWidth').value) || 240;
+      var ds = h.decoSubtype;
+      if (ds === 'sprite') {
+        h.decoSpriteImg = document.getElementById('decoSpriteImg').value || h.decoSpriteImg || '';
+        h.decoSpriteFrames = parseInt(document.getElementById('decoSpriteFrames').value) || 6;
+        h.decoSpriteSpeed = parseInt(document.getElementById('decoSpriteSpeed').value) || 300;
+        h.decoSpriteCoord = window._hsSpriteCoord || h.decoSpriteCoord || '';
+      } else if (ds === 'lottie') {
+        h.decoLottieFile = document.getElementById('decoLottieData').value || h.decoLottieFile || '';
+      } else if (ds === 'css') {
+        h.decoCssImg = document.getElementById('decoCssImg').value || h.decoCssImg || '';
+        h.decoCssAnim = document.getElementById('decoCssAnim').value;
+      } else if (ds === 'particle') {
+        h.decoParticleType = document.getElementById('decoParticleType').value;
+        h.decoParticleRate = parseFloat(document.getElementById('decoParticleRate').value) || 0.3;
+      }
+    }
+    function loadDecoFields(h) {
+      var ds = h.decoSubtype || 'sprite';
+      document.getElementById('decoSubtype').value = ds;
+      switchDecoSubtype();
+      document.getElementById('decoZIndex').value = h.decoZIndex || 5;
+      document.getElementById('decoWidth').value = h.decoWidth || 240;
+      if (ds === 'sprite') {
+        document.getElementById('decoSpriteImg').value = h.decoSpriteImg || '';
+        document.getElementById('decoSpriteFrames').value = h.decoSpriteFrames || 6;
+        document.getElementById('decoSpriteSpeed').value = h.decoSpriteSpeed || 300;
+        if (h.decoSpriteImg) { document.getElementById('spritePreview').src = h.decoSpriteImg; document.getElementById('spritePreview').style.display = 'block'; document.getElementById('spriteEmptyText').style.display = 'none'; }
+        window._hsSpriteCoord = h.decoSpriteCoord || '';
+      } else if (ds === 'lottie') {
+        document.getElementById('decoLottieData').value = h.decoLottieFile || '';
+        if (h.decoLottieFile) { document.getElementById('lottieFileName').textContent = '✓ ' + h.decoLottieFile; document.getElementById('lottieFileName').style.display = 'block'; document.getElementById('lottieEmptyText').style.display = 'none'; }
+      } else if (ds === 'css') {
+        document.getElementById('decoCssImg').value = h.decoCssImg || '';
+        document.getElementById('decoCssAnim').value = h.decoCssAnim || 'pulse';
+        if (h.decoCssImg) { document.getElementById('cssPreview').src = h.decoCssImg; document.getElementById('cssPreview').style.display = 'block'; document.getElementById('cssEmptyText').style.display = 'none'; }
+      } else if (ds === 'particle') {
+        document.getElementById('decoParticleType').value = h.decoParticleType || 'light-gold';
+        document.getElementById('decoParticleRate').value = h.decoParticleRate || 0.3;
+      }
+    }
     function editHotspot(hotspotId) {
       var hotspot = selectedScene.hotspots.find(function(h) { return h.id === hotspotId; });
       if (!hotspot) return;
@@ -644,6 +847,7 @@
       else type = hotspot.type || 'jump';
 
       switchHotspotType(type);
+      if (type === 'deco') { resetDecoTypeField(); loadDecoFields(hotspot); }
       buildJumpTargetSelect();
       if (type === 'jump' && mid && mid !== 'start_position' && mid !== 'deco_element') {
         document.getElementById('hotspotJumpTarget').value = mid;
@@ -664,15 +868,22 @@
       var name = document.getElementById('hotspotEditName').value.trim();
       var decoImg = document.getElementById('hotspotDecoImg').value;
       if (!name) { showToast('请输入热区名称', 'error'); return; }
-      if (type === 'deco' && !decoImg) { showToast('装饰热区必须上传装饰图片', 'error'); return; }
+      // 装饰热区校验（lottie/particle 不需要图片）
+      if (type === 'deco') {
+        var ds = document.getElementById('decoSubtype').value;
+        if (ds === 'sprite' && !document.getElementById('decoSpriteImg').value) { showToast('雪碧图必须上传图片', 'error'); return; }
+        if (ds === 'css' && !document.getElementById('decoCssImg').value) { showToast('CSS动画必须上传图片', 'error'); return; }
+      }
       if (editId) {
         var h = selectedScene.hotspots.find(function(x) { return x.id === editId; });
-        if (h) { h.merchantId = merchantId; h.name = name; h.decoImg = decoImg; h.type = type; }
+        if (h) { h.merchantId = merchantId; h.name = name; h.decoImg = decoImg; h.type = type; if (type === 'deco') fillDecoFields(h); }
         showToast('热区已更新', 'success');
       } else {
         var x = parseFloat(modal.dataset.tempX), y = parseFloat(modal.dataset.tempY);
         var w = parseFloat(modal.dataset.tempWidth), ht = parseFloat(modal.dataset.tempHeight);
-        selectedScene.hotspots.push({ id: 'h' + Date.now(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, width: Math.round(w), height: Math.round(ht), merchantId: merchantId, name: name, decoImg: decoImg, type: type });
+        var newH = { id: 'h' + Date.now(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, width: Math.round(w), height: Math.round(ht), merchantId: merchantId, name: name, decoImg: decoImg, type: type };
+        if (type === 'deco') fillDecoFields(newH);
+        selectedScene.hotspots.push(newH);
         showToast('热区已添加', 'success');
       }
       closeHotspotModal();
@@ -701,7 +912,10 @@
         var mid = hotspot.merchantId || '';
         var typeLabel = '';
         if (isStart) typeLabel = '🚶 人物起始位置';
-        else if (isDecoE) typeLabel = '🎨 装饰元素';
+        else if (isDecoE) {
+          var sub = { sprite:'🖼️雪碧图', lottie:'🎬Lottie', css:'✨CSS动效', particle:'🌟粒子' }[hotspot.decoSubtype||'sprite'] || '🖼️雪碧图';
+          typeLabel = '🎨 装饰元素 ' + sub + ' | z:' + (hotspot.decoZIndex||5);
+        }
         else if (mid) { var m = merchants.find(function(x) { return x.id === mid; }); typeLabel = m ? '→ ' + m.name : '未关联'; }
         else typeLabel = '未设置跳转';
         var hasImg = hotspot.decoImg ? ' 📷' : '';
