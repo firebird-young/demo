@@ -45,15 +45,10 @@
     .form-input:focus { border-color: #D70C1F; }
     .form-select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
 
-    /* ── 箭头位置选择 ── */
-    .arrow-position-group { margin-top: 8px; }
-    .pos-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .pos-row:last-child { margin-bottom: 0; }
-    .pos-label { font-size: 12px; color: #666; width: 60px; }
-    .pos-buttons { display: flex; gap: 8px; }
-    .pos-btn { padding: 6px 16px; font-size: 12px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; }
-    .pos-btn:hover { background: #f5f5f5; }
-    .pos-btn.active { background: #D70C1F; color: #fff; border-color: #D70C1F; }
+    /* ── 箭头位置标注 ── */
+    .arrow-img-wrap { position: relative; display: inline-block; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; cursor: crosshair; }
+    .arrow-img-wrap img { display: block; max-width: 100%; max-height: 600px; }
+    .arrow-marker { position: absolute; width: 16px; height: 16px; background: #D70C1F; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 6px rgba(0,0,0,.4); pointer-events: none; display: none; }
 
     /* ── 跳转路径设置 ── */
     .path-list { margin-top: 16px; }
@@ -68,7 +63,7 @@
     /* ── 模态框 ── */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-overlay.show { display: flex; }
-    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 900px; max-height: 85vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
     .modal-title { font-size: 16px; font-weight: 600; }
     .modal-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -153,7 +148,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label class="form-label">从图片</label>
-          <select class="form-select" id="pathFrom">
+          <select class="form-select" id="pathFrom" onchange="loadArrowPreview()">
             <option value="">请选择起始图片</option>
           </select>
         </div>
@@ -164,27 +159,21 @@
           </select>
         </div>
         <div class="form-group">
+          <label class="form-label">箭头名称</label>
+          <input class="form-input" id="pathArrowName" placeholder="例如：前往文旅区">
+        </div>
+        <div class="form-group">
           <label class="form-label">箭头区域</label>
           <div class="arrow-position-group">
-            <div class="pos-row">
-              <label class="pos-label">垂直位置</label>
-              <div class="pos-buttons">
-                <button class="pos-btn" onclick="setPathArrowPosition('v', 'top')">上</button>
-                <button class="pos-btn" onclick="setPathArrowPosition('v', 'center')">中</button>
-                <button class="pos-btn" onclick="setPathArrowPosition('v', 'bottom')">下</button>
-              </div>
+            <div style="font-size:12px;color:#999;margin-bottom:8px">点击图片设置箭头位置</div>
+            <div class="arrow-img-wrap" id="arrowImgWrap" onclick="clickArrowImage(event)">
+              <img id="arrowPreviewImg" src="" alt="" style="display:none">
+              <div class="arrow-marker" id="arrowMarker"></div>
             </div>
-            <div class="pos-row">
-              <label class="pos-label">水平位置</label>
-              <div class="pos-buttons">
-                <button class="pos-btn" onclick="setPathArrowPosition('h', 'left')">左</button>
-                <button class="pos-btn" onclick="setPathArrowPosition('h', 'center')">中</button>
-                <button class="pos-btn" onclick="setPathArrowPosition('h', 'right')">右</button>
-              </div>
-            </div>
+            <div style="font-size:11px;color:#666;margin-top:4px">箭头坐标：<span id="arrowPosText">未设置</span></div>
           </div>
-          <input type="hidden" id="pathArrowV">
-          <input type="hidden" id="pathArrowH">
+          <input type="hidden" id="pathArrowX" value="">
+          <input type="hidden" id="pathArrowY" value="">
         </div>
         <div class="form-group">
           <label class="form-label">箭头倾斜角度（默认朝上为0°）</label>
@@ -201,14 +190,14 @@
   <script>
     var scenes = [
       { id: 'scene1', name: '食品区',
-        images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1.png' }] },
+        images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1_new.png' }] },
       { id: 'scene2', name: '文旅区',
         images: [
-          { imgId: 'img_1', name: '文旅区主图', src: '../scene2.png' },
-          { imgId: 'img_2', name: '文旅区副图', src: '../scene1.png' }
+          { imgId: 'img_1', name: '文旅区主图', src: '../scene2_new.png' },
+          { imgId: 'img_2', name: '文旅区副图', src: '../scene1_new.png' }
         ] },
       { id: 'scene3', name: '影视区',
-        images: [{ imgId: 'img_1', name: '影视区主图', src: '../scene3.png' }] }
+        images: [{ imgId: 'img_1', name: '影视区主图', src: '../scene3_new.png' }] }
     ];
 
     // paths: { id, fromScene, fromImg, toScene, toImg, arrowV, arrowH, arrowAngle }
@@ -245,13 +234,13 @@
       container.innerHTML = paths.map(function(p) {
         var fromLabel = getImageLabel(p.fromScene, p.fromImg);
         var toLabel = getImageLabel(p.toScene, p.toImg);
-        var arrowV = p.arrowV ? getPositionLabel(p.arrowV) : '-';
-        var arrowH = p.arrowH ? getPositionLabel(p.arrowH) : '-';
+        var posInfo = (p.arrowX !== undefined && p.arrowY !== undefined) ? ('X:' + p.arrowX + '% Y:' + p.arrowY + '%') : '-';
+        var nameDisplay = p.arrowName ? '<span style="color:#D70C1F">' + p.arrowName + '</span> · ' : '';
         return '<div class="path-item">' +
           '<div class="path-from">' + fromLabel + '</div>' +
           '<div class="path-arrow">→</div>' +
           '<div class="path-to">' + toLabel + '</div>' +
-          '<div class="path-info">' + arrowV + arrowH + ' · ' + (p.arrowAngle || 0) + '°</div>' +
+          '<div class="path-info">' + nameDisplay + posInfo + ' · ' + (p.arrowAngle || 0) + '°</div>' +
           '<div class="path-delete" onclick="deletePath(\'' + p.id + '\')">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></div>';
       }).join('');
@@ -268,20 +257,53 @@
       document.getElementById('pathTo').innerHTML = opts;
       document.getElementById('pathFrom').value = '';
       document.getElementById('pathTo').value = '';
-      document.getElementById('pathArrowV').value = '';
-      document.getElementById('pathArrowH').value = '';
+      document.getElementById('pathArrowName').value = '';
+      document.getElementById('pathArrowX').value = '';
+      document.getElementById('pathArrowY').value = '';
       document.getElementById('pathArrowAngle').value = '0';
-      document.querySelectorAll('.pos-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('arrowPreviewImg').style.display = 'none';
+      document.getElementById('arrowMarker').style.display = 'none';
+      document.getElementById('arrowPosText').textContent = '未设置';
       document.getElementById('pathModal').classList.add('show');
     }
 
     function closePathModal() { document.getElementById('pathModal').classList.remove('show'); }
 
-    function setPathArrowPosition(axis, pos) {
-      if (axis === 'v') document.getElementById('pathArrowV').value = pos;
-      else document.getElementById('pathArrowH').value = pos;
-      var btns = document.querySelectorAll('.pos-buttons:nth-of-type(' + (axis === 'v' ? 1 : 2) + ') .pos-btn');
-      btns.forEach(function(b) { b.classList.toggle('active', b.textContent === getPositionLabel(pos)); });
+    function loadArrowPreview() {
+      var fromVal = document.getElementById('pathFrom').value;
+      if (!fromVal) {
+        document.getElementById('arrowPreviewImg').style.display = 'none';
+        return;
+      }
+      var fp = fromVal.split('|');
+      var s = scenes.find(function(x) { return x.id === fp[0]; });
+      if (!s) return;
+      var img = (s.images || []).find(function(x) { return x.imgId === fp[1]; });
+      if (!img) return;
+      document.getElementById('arrowPreviewImg').src = img.src;
+      document.getElementById('arrowPreviewImg').style.display = 'block';
+      // 重置标注
+      document.getElementById('pathArrowX').value = '';
+      document.getElementById('pathArrowY').value = '';
+      document.getElementById('arrowMarker').style.display = 'none';
+      document.getElementById('arrowPosText').textContent = '未设置';
+    }
+
+    function clickArrowImage(e) {
+      var img = document.getElementById('arrowPreviewImg');
+      if (!img.style.display || img.style.display === 'none') return;
+      var rect = img.getBoundingClientRect();
+      var xPct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+      var yPct = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+      xPct = Math.max(0, Math.min(100, xPct));
+      yPct = Math.max(0, Math.min(100, yPct));
+      document.getElementById('pathArrowX').value = xPct;
+      document.getElementById('pathArrowY').value = yPct;
+      var marker = document.getElementById('arrowMarker');
+      marker.style.left = xPct + '%';
+      marker.style.top = yPct + '%';
+      marker.style.display = 'block';
+      document.getElementById('arrowPosText').textContent = 'X:' + xPct + '% Y:' + yPct + '%';
     }
 
     function savePath() {
@@ -291,8 +313,9 @@
       if (fromVal === toVal) { showToast('起始和目标不能相同', 'error'); return; }
       var fp = fromVal.split('|'), tp = toVal.split('|');
       var fromScene = fp[0], fromImg = fp[1], toScene = tp[0], toImg = tp[1];
-      var arrowV = document.getElementById('pathArrowV').value;
-      var arrowH = document.getElementById('pathArrowH').value;
+      var arrowName = document.getElementById('pathArrowName').value.trim();
+      var arrowX = parseInt(document.getElementById('pathArrowX').value) || 0;
+      var arrowY = parseInt(document.getElementById('pathArrowY').value) || 0;
       var arrowAngle = parseInt(document.getElementById('pathArrowAngle').value) || 0;
 
       var exists = paths.some(function(p) {
@@ -300,7 +323,7 @@
       });
       if (exists) { showToast('该路径已存在', 'error'); return; }
 
-      paths.push({ id: 'path' + Date.now(), fromScene, fromImg, toScene, toImg, arrowV, arrowH, arrowAngle });
+      paths.push({ id: 'path' + Date.now(), fromScene, fromImg, toScene, toImg, arrowX, arrowY, arrowAngle, arrowName });
       showToast('路径添加成功', 'success');
       closePathModal();
       renderPathList();
