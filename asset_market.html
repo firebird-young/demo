@@ -115,6 +115,13 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
       <div class="filter-dropdown-item" data-value="asc" onclick="selectFilter('date', 'asc', this)"><span>最早发行</span><span class="check"></span></div>
     </div>
   </div>
+  <div class="filter-wrap">
+    <button class="filter-btn" id="followBtn" onclick="toggleDropdown('follow')">全部 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="filter-dropdown" id="followDropdown">
+      <div class="filter-dropdown-item" data-value="" onclick="selectFilter('follow', '', this)"><span>全部</span><span class="check on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+      <div class="filter-dropdown-item" data-value="followed" onclick="selectFilter('follow', 'followed', this)"><span>⭐ 已关注</span><span class="check"></span></div>
+    </div>
+  </div>
 </div>
 
 <!-- 资产列表 -->
@@ -148,18 +155,19 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 </div>
 
 <script>
+const merchantAssetMap = { 'maotai':'贵州茅台', 'wzry':'王者荣耀', 'wuliangye':'五粮液', 'dufu':'杜甫草堂', 'haidilao':'海底捞', 'guichuideng':'鬼吹灯', 'santi':'三体' };
 const assets = [
-  { id: 0, name: '茅台1935·时光窖藏', img: '茅台1935.png', cat: 'food', sale: 'combo', price: 599, total: 1935, sold: 677, date: '2026-06-01' },
-  { id: 1, name: '飞天茅台·元宇宙酒票', img: '飞天茅台·元宇宙酒票.png', cat: 'food', sale: 'lottery', price: 299, total: 3000, sold: 2280, date: '2026-05-20' },
-  { id: 2, name: '王者荣耀·传说皮肤', img: '王者荣耀·传说皮肤.png', cat: 'ent', sale: 'all', price: 999, total: 999, sold: 450, date: '2026-06-05' },
-  { id: 3, name: '五粮液·数字珍藏', img: '五粮液·数字珍藏.png', cat: 'food', sale: 'lottery', price: 599, total: 2024, sold: 607, date: '2026-05-15' },
-  { id: 4, name: '杜甫草堂·文旅数字藏品', img: '杜甫草堂·文旅数字藏品.png', cat: 'tour', sale: 'prior', price: 99, total: 5000, sold: 4400, date: '2026-06-10' },
-  { id: 5, name: '巴拿马金奖·复刻', img: '巴拿马金奖·复刻.png', cat: 'food', sale: 'prior', price: 1999, total: 500, sold: 160, date: '2026-05-01' },
-  { id: 6, name: '国酒·数字徽章', img: '国酒·数字徽章.png', cat: 'food', sale: 'all', price: 99, total: 8888, sold: 3210, date: '2026-04-20' },
-  { id: 7, name: '茅台生肖兔·典藏', img: '茅台生肖兔·典藏.png', cat: 'food', sale: 'combo', price: 2999, total: 365, sold: 289, date: '2026-03-15' },
-  { id: 8, name: '海底捞·黑海会员数字卡', img: '海底捞·黑海会员数字卡.png', cat: 'food', sale: 'combo', price: 199, total: 888, sold: 195, date: '2026-04-01' },
-  { id: 9, name: '鬼吹灯·数字资产', img: '鬼吹灯.png', cat: 'film', sale: 'lottery', price: 499, total: 888, sold: 128, date: '2026-06-10' },
-  { id: 10, name: '三体·数字资产', img: '三体.png', cat: 'film', sale: 'prior', price: 699, total: 666, sold: 256, date: '2026-06-12' },
+  { id: 0, name: '茅台1935·时光窖藏', img: '茅台1935.png', cat: 'food', sale: 'combo', price: 599, total: 1935, sold: 677, date: '2026-06-01', mid: 'maotai' },
+  { id: 1, name: '飞天茅台·元宇宙酒票', img: '飞天茅台·元宇宙酒票.png', cat: 'food', sale: 'lottery', price: 299, total: 3000, sold: 2280, date: '2026-05-20', mid: 'maotai' },
+  { id: 2, name: '王者荣耀·传说皮肤', img: '王者荣耀·传说皮肤.png', cat: 'ent', sale: 'all', price: 999, total: 999, sold: 450, date: '2026-06-05', mid: 'wzry' },
+  { id: 3, name: '五粮液·数字珍藏', img: '五粮液·数字珍藏.png', cat: 'food', sale: 'lottery', price: 599, total: 2024, sold: 607, date: '2026-05-15', mid: 'wuliangye' },
+  { id: 4, name: '杜甫草堂·文旅数字藏品', img: '杜甫草堂·文旅数字藏品.png', cat: 'tour', sale: 'prior', price: 99, total: 5000, sold: 4400, date: '2026-06-10', mid: 'dufu' },
+  { id: 5, name: '巴拿马金奖·复刻', img: '巴拿马金奖·复刻.png', cat: 'food', sale: 'prior', price: 1999, total: 500, sold: 160, date: '2026-05-01', mid: 'maotai' },
+  { id: 6, name: '国酒·数字徽章', img: '国酒·数字徽章.png', cat: 'food', sale: 'all', price: 99, total: 8888, sold: 3210, date: '2026-04-20', mid: 'maotai' },
+  { id: 7, name: '茅台生肖兔·典藏', img: '茅台生肖兔·典藏.png', cat: 'food', sale: 'combo', price: 2999, total: 365, sold: 289, date: '2026-03-15', mid: 'maotai' },
+  { id: 8, name: '海底捞·黑海会员数字卡', img: '海底捞·黑海会员数字卡.png', cat: 'food', sale: 'combo', price: 199, total: 888, sold: 195, date: '2026-04-01', mid: 'haidilao' },
+  { id: 9, name: '鬼吹灯·数字资产', img: '鬼吹灯.png', cat: 'film', sale: 'lottery', price: 499, total: 888, sold: 128, date: '2026-06-10', mid: 'guichuideng' },
+  { id: 10, name: '三体·数字资产', img: '三体.png', cat: 'film', sale: 'prior', price: 699, total: 666, sold: 256, date: '2026-06-12', mid: 'santi' },
 ];
 
 const catLabels = { food: '酒水食品', ent: '文娱', tour: '文旅', film: '影视' };
@@ -170,6 +178,7 @@ const metaSaleCls = { all: 'meta-sale-all', prior: 'meta-sale-prior', lottery: '
 let currentCategory = '';
 let currentDateSort = '';
 let currentSale = '';
+let currentFollow = '';
 
 function render() {
   const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -177,6 +186,7 @@ function render() {
   if (searchTerm) list = list.filter(a => a.name.includes(searchTerm));
   if (currentCategory) list = list.filter(a => a.cat === currentCategory);
   if (currentSale) list = list.filter(a => a.sale === currentSale);
+  if (currentFollow === 'followed') list = list.filter(a => localStorage.getItem('follow_' + a.mid) === '1');
   if (currentDateSort === 'desc') list.sort((a, b) => b.date.localeCompare(a.date));
   else if (currentDateSort === 'asc') list.sort((a, b) => a.date.localeCompare(b.date));
   const grid = document.getElementById('goodsGrid');
@@ -211,6 +221,10 @@ function selectFilter(type, value, el) {
   if (type === 'category') currentCategory = value;
   else if (type === 'date') currentDateSort = value;
   else if (type === 'sale') currentSale = value;
+  else if (type === 'follow') {
+    currentFollow = value;
+    document.getElementById('followBtn').innerHTML = (value === 'followed' ? '⭐ 已关注' : '全部') + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  }
   document.getElementById(dropdownId).classList.remove('show');
   render();
 }
