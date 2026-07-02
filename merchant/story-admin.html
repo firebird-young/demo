@@ -80,6 +80,7 @@
     .editor-area:focus { border-color: #667eea; }
     .editor-area h3 { font-size: 16px; margin: 8px 0 4px; }
     .editor-area ul, .editor-area ol { padding-left: 20px; margin: 4px 0; }
+    .editor-area img { max-width: 100%; border-radius: 6px; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-overlay.show { display: flex; }
@@ -206,6 +207,9 @@
             <button type="button" class="et-btn" onclick="execCmd('formatBlock','h3')" title="小标题">H</button>
             <button type="button" class="et-btn" onclick="execCmd('insertUnorderedList')" title="无序列表">≡</button>
             <button type="button" class="et-btn" onclick="execCmd('insertOrderedList')" title="有序列表">≣</button>
+            <span class="et-sep"></span>
+            <button type="button" class="et-btn" onclick="document.getElementById('editorImgInput').click()" title="插入图片">🖼</button>
+            <input type="file" id="editorImgInput" accept="image/*" onchange="insertEditorImage()" style="display:none">
           </div>
           <div class="editor-area" id="storyEditor" contenteditable="true"></div>
         </div>
@@ -227,6 +231,19 @@
     function navigateTo(url) { window.location.href = url; }
 
     function execCmd(cmd, arg) { document.execCommand(cmd, false, arg || null); document.getElementById('storyEditor').focus(); }
+
+    function insertEditorImage() {
+      var f = document.getElementById('editorImgInput').files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(e) {
+        document.execCommand('insertImage', false, e.target.result);
+        document.getElementById('storyEditor').focus();
+      };
+      r.readAsDataURL(f);
+      document.getElementById('editorImgInput').value = '';
+    }
+
+
 
 
 
