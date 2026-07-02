@@ -26,6 +26,10 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 .mh-stats .star { color: #f5a623; }
 .mh-desc { font-size: 11px; color: rgba(255,255,255,0.55); position: relative; z-index: 1; }
 
+.follow-btn { display: inline-block; position: relative; z-index: 1; margin: 6px 0; padding: 6px 24px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,.5); background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .25s; }
+.follow-btn:hover { background: rgba(255,255,255,.15); }
+.follow-btn.followed { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.7); }
+
 /* ── 商户介绍 ── */
 .intro-card { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.04); margin-bottom: 12px; }
 .intro-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -106,7 +110,8 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 <div class="merchant-header">
   <img class="mh-logo" src="贵州茅台.jpg" alt="贵州茅台">
   <div class="mh-name">贵州茅台</div>
-  <div class="mh-stats">23.6万 关注</div>
+  <div class="mh-stats"><span id="followCount">23.6万</span> 关注</div>
+  <button class="follow-btn" id="followBtn" onclick="toggleFollow()">+ 关注</button>
   <div class="mh-desc">中国酱香型白酒 · 数字酒庄 · 元宇宙空间</div>
 </div>
 
@@ -167,6 +172,34 @@ body { margin: 0; background: #2c2c2e; font-family: -apple-system, 'PingFang SC'
 </div>
 
 <script>
+// 关注功能
+var isFollowed = localStorage.getItem('follow_maotai') === '1';
+var followNum = 236000;
+
+function updateFollowUI() {
+  var btn = document.getElementById('followBtn');
+  var count = document.getElementById('followCount');
+  if (isFollowed) {
+    btn.textContent = '✓ 已关注';
+    btn.className = 'follow-btn followed';
+    count.textContent = formatNum(followNum + 1);
+  } else {
+    btn.textContent = '+ 关注';
+    btn.className = 'follow-btn';
+    count.textContent = formatNum(followNum);
+  }
+}
+
+function toggleFollow() {
+  isFollowed = !isFollowed;
+  localStorage.setItem('follow_maotai', isFollowed ? '1' : '0');
+  updateFollowUI();
+}
+
+function formatNum(n) { return n >= 10000 ? (n / 10000).toFixed(1) + '万' : n; }
+
+updateFollowUI();
+
 const assets = [
   { id: 0, name: '茅台1935·时光窖藏', img: '茅台1935.png', price: 599, total: 1935, sold: 677, date: '2026-06-01' },
   { id: 1, name: '飞天茅台·元宇宙酒票', img: '飞天茅台·元宇宙酒票.png', price: 299, total: 3000, sold: 2280, date: '2026-05-20' },

@@ -7,6 +7,8 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; background: #e8e9ee; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; color: #333; display: flex; justify-content: center; }
+.wrapper { display: flex; gap: 40px; align-items: flex-start; justify-content: center; padding: 40px 20px; }
+.page { flex-shrink: 0; }
 .page { max-width: 430px; min-width: 320px; min-height: 100vh; background: #f5f6fa; padding: 0 16px 20px; width: 100%; }
 
 .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
@@ -48,9 +50,22 @@ body { margin: 0; background: #e8e9ee; font-family: -apple-system, 'PingFang SC'
 .detail-footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #ccc; text-align: center; }
 
 .empty { text-align: center; padding: 60px 0; color: #ccc; font-size: 13px; }
+
+/* ── 功能说明面板 ── */
+.desc-panel { width: 640px; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); position: sticky; top: 20px; font-size: 13px; color: #555; line-height: 1.7; flex-shrink: 0; }
+.desc-panel h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; }
+.desc-panel h4 { font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 8px; }
+.desc-panel ul { padding-left: 18px; }
+.desc-panel li { margin-bottom: 6px; }
+.desc-panel strong { color: #333; }
+.desc-panel .tag-demo { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+.desc-panel .tag-platform { background: #E8F5E9; color: #2e7d32; }
+.desc-panel .tag-activity { background: #FFF3E0; color: #e65100; }
+@media (max-width: 860px) { .wrapper { flex-direction: column; align-items: center; } .desc-panel { width: 100%; max-width: 430px; } }
 </style>
 </head>
 <body>
+<div class="wrapper">
 <div class="page" id="mainPage">
 
 <!-- ═══ 列表视图 ═══ -->
@@ -64,7 +79,8 @@ body { margin: 0; background: #e8e9ee; font-family: -apple-system, 'PingFang SC'
   </div>
 
   <div class="tabs">
-    <div class="tab on" id="tabPlatform" onclick="switchTab('platform')">平台消息<span class="badge" id="badgePlatform">3</span></div>
+    <div class="tab on" id="tabAll" onclick="switchTab('all')">全部消息<span class="badge" id="badgeAll">7</span></div>
+    <div class="tab" id="tabPlatform" onclick="switchTab('platform')">平台消息<span class="badge" id="badgePlatform">3</span></div>
     <div class="tab" id="tabActivity" onclick="switchTab('activity')">活动消息<span class="badge" id="badgeActivity">4</span></div>
   </div>
 
@@ -85,6 +101,29 @@ body { margin: 0; background: #e8e9ee; font-family: -apple-system, 'PingFang SC'
 
 </div>
 
+<!-- 功能说明面板 -->
+<div class="desc-panel" id="descPanel">
+  <h3>📖 功能说明</h3>
+
+  <h4>一、消息列表</h4>
+  <ul>
+    <li>顶部展示"消息中心"标题，左侧返回按钮，点击后返回首页，右侧"全部已读"一键标记全部消息为已读状态</li>
+    <li>消息按类别分三个 Tab 切换：<strong>全部消息</strong>、<span class="tag-demo tag-platform">平台消息</span>、<span class="tag-demo tag-activity">活动消息</span>，每个 Tab 显示未读数量徽章</li>
+    <li>每条消息展示：类型标签、标题、发布时间</li>
+    <li>未读消息左侧显示红色圆点标记，已读消息标题变灰</li>
+    <li>列表按时间倒序排列</li>
+    <li>数据来源后台"消息管理"发布的消息</li>
+  </ul>
+
+  <h4>二、消息详情</h4>
+  <ul>
+    <li>点击列表项进入详情页，顶部展示返回按钮和"消息详情"标题</li>
+    <li>详情卡片展示：消息类型标签、消息标题、发布时间、消息正文（支持多段落和图片）</li>
+    <li>进入详情后自动标记为已读</li>
+  </ul>
+</div>
+</div>
+
 <script>
 var messages = [
   { type:'platform', title:'系统版本更新通知', body:'数字资产平台 V3.2.0 版本已正式上线。\n\n本次更新主要内容：\n1. 新增资产转赠功能，支持持有资产一键转赠给其他用户\n2. 优化资产详情页展示，增加规格缩略图与核销状态可视化\n3. 消息中心全新改版，支持分类筛选与全部已读\n4. 修复若干已知 Bug，提升系统稳定性\n\n请及时更新至最新版本，享受更流畅的数字资产交易体验。', time:'2026-06-10 10:00', read:false },
@@ -96,19 +135,20 @@ var messages = [
   { type:'activity', title:'平台周年庆活动预告', body:'庆祝深圳文化产权交易所数字资产平台上线一周年！\n\n【活动时间】2026年6月15日-6月21日\n\n周年庆期间将推出以下系列活动：\n1. 限时优惠券大放送，满减优惠享不停\n2. 幸运大转盘抽奖，100%中奖\n3. 新用户注册即送数字徽章\n4. 转赠免手续费（活动期间）\n5. 老用户专属空投福利\n\n多重好礼，敬请期待！', time:'2026-06-07 10:00', read:true }
 ];
 
-var currentTab = 'platform';
+var currentTab = 'all';
 var detailId = null;
 
 // ═══ 列表 ═══
 function switchTab(tab){
   currentTab = tab;
+  document.getElementById('tabAll').className = 'tab' + (tab==='all'?' on':'');
   document.getElementById('tabPlatform').className = 'tab' + (tab==='platform'?' on':'');
   document.getElementById('tabActivity').className = 'tab' + (tab==='activity'?' on':'');
   renderList();
 }
 
 function renderList(){
-  var list = messages.filter(function(m){ return m.type === currentTab; });
+  var list = currentTab==='all' ? messages.slice() : messages.filter(function(m){ return m.type === currentTab; });
   list.sort(function(a,b){ return b.time.localeCompare(a.time); });
 
   if(!list.length){
@@ -169,8 +209,10 @@ function markAllRead(){
 }
 
 function updateBadges(){
+  var all = messages.filter(function(m){ return !m.read; }).length;
   var p = messages.filter(function(m){ return m.type==='platform' && !m.read; }).length;
   var a = messages.filter(function(m){ return m.type==='activity' && !m.read; }).length;
+  document.getElementById('badgeAll').textContent = all || 0;
   document.getElementById('badgePlatform').textContent = p || 0;
   document.getElementById('badgeActivity').textContent = a || 0;
 }
