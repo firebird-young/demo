@@ -142,12 +142,27 @@
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
     @keyframes slideIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    /* ── 功能说明浮窗 ── */
+    .f-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 520px; max-height: 80vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.2); z-index: 9999; padding: 24px; display: none; }
+    .f-modal.show { display: block; }
+    .f-modal .fm-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .f-modal .fm-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #666; border: none; }
+    .f-modal .fm-close:hover { background: #e8e8e8; }
+    .f-modal .fm-body { font-size: 13px; color: #555; line-height: 1.8; }
+    .f-modal .fm-body h4 { font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 16px 0 8px; }
+    .f-modal .fm-body h4:first-child { margin-top: 0; }
+    .f-modal .fm-body ul { padding-left: 18px; margin: 0 0 12px; }
+    .f-modal .fm-body li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="header-title">元宇宙商城 - 后台管理</div>
-    <div class="header-user">管理员</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-default" onclick="toggleFuncModal()" style="font-size:12px;padding:4px 12px;border-radius:6px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)">📖 功能说明</button>
+      <div class="header-user">管理员</div>
+    </div>
   </div>
   <div class="main-container">
     <div class="sidebar">
@@ -208,6 +223,7 @@
           <div class="empty-text">暂无热区，请在图片上拖拽绘制热区</div>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -422,7 +438,95 @@
     </div>
   </div>
 
+  <!-- ====== 功能说明浮窗 ====== -->
+  <div class="f-modal" id="funcModal">
+    <div class="fm-title">
+      <span>📖 功能说明</span>
+      <button class="fm-close" onclick="toggleFuncModal()">✕</button>
+    </div>
+    <div class="fm-body">
+      <h4>一、场景管理</h4>
+      <ul>
+        <li><strong>场景列表</strong>：网格卡片展示所有场景，每张卡片显示封面缩略图、场景名称、热区数量、图片张数</li>
+        <li><strong>场景选择</strong>：点击场景封面或"标注"按钮进入热区编辑模式，选中场景高亮</li>
+        <li><strong>上传场景</strong>：弹窗上传，可输入名称、描述，并支持一次性添加多张图片（每张独立命名 + 缩放比例）</li>
+        <li><strong>编辑场景</strong>：修改名称/描述，增删图片（每张支持独立命名和缩放）</li>
+        <li><strong>删除场景</strong>：确认后删除场景及关联热区数据</li>
+      </ul>
+      <h4>二、热区编辑</h4>
+      <ul>
+        <li><strong>图片切换</strong>：场景有多张图片时，顶部显示图片切换 Tab</li>
+        <li><strong>热区编辑器</strong>：场景图片上显示所有已标注热区（矩形范围框），点击选中热区高亮</li>
+        <li><strong>拖拽绘制</strong>：在图片上拖拽生成新热区（矩形框 + dashed 边框 + 半透明背景）</li>
+        <li><strong>三种热区类型</strong>：
+          <ul>
+            <li><strong>📍跳转热区</strong>：点击跳转到商家空间，需关联商家</li>
+            <li><strong>🎨装饰热区</strong>：纯视觉装饰元素，需配置装饰子类型</li>
+            <li><strong>🚶起始位置</strong>：角色初始站位，自动填入名称"人物起始位置"</li>
+          </ul>
+        </li>
+        <li><strong>装饰子类型配置</strong>（4种）：
+          <ul>
+            <li><strong>🖼️雪碧图动画</strong>：上传雪碧图 + 坐标JSON（可选）+ 帧数 + 帧速</li>
+            <li><strong>🎬Lottie动画</strong>：上传 .lottie 文件</li>
+            <li><strong>✨CSS动效</strong>：上传图片 + 选择效果（脉冲/浮动/摇摆/光晕/旋转/弹跳）</li>
+            <li><strong>🌟原生粒子</strong>：选择粒子类型（金色光点/蓝色星光/粉色花瓣/红色花瓣/飘雪）+ 生成率</li>
+            <li style="list-style:none;margin-top:4px">所有子类型均支持配置 宽度(px) 和 Z轴序号（数值越大越靠上）</li>
+          </ul>
+        </li>
+      </ul>
+      <h4>三、热区列表</h4>
+      <ul>
+        <li>热区列表显示名称、类型、关联商家、Z轴序号、宽度、坐标位置</li>
+        <li>支持编辑和删除热区</li>
+      </ul>
+    </div>
+  </div>
+
   <script>
+    function toggleFuncModal() {
+      var el = document.getElementById('funcModal');
+      el.classList.toggle('show');
+      if (el.classList.contains('show') && !el.dataset.dragged) {
+        el.style.left = '50%'; el.style.top = '50%'; el.style.transform = 'translate(-50%,-50%)';
+      }
+    }
+
+    // 功能说明浮窗拖拽
+    (function() {
+      var modal, titleBar, offX, offY, dragging = false;
+      document.addEventListener('DOMContentLoaded', function() {
+        modal = document.getElementById('funcModal');
+        titleBar = modal.querySelector('.fm-title');
+        titleBar.style.cursor = 'grab';
+        titleBar.addEventListener('mousedown', startDrag);
+        titleBar.addEventListener('touchstart', startDragTouch, {passive:true});
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDragTouch, {passive:true});
+        document.addEventListener('touchend', endDrag);
+      });
+      function startDrag(e) {
+        modal.dataset.dragged = '1';
+        modal.style.transform = '';
+        var rect = modal.getBoundingClientRect();
+        offX = e.clientX - rect.left; offY = e.clientY - rect.top;
+        dragging = true;
+        titleBar.style.cursor = 'grabbing';
+      }
+      function startDragTouch(e) {
+        var t = e.touches[0];
+        modal.dataset.dragged = '1';
+        modal.style.transform = '';
+        var rect = modal.getBoundingClientRect();
+        offX = t.clientX - rect.left; offY = t.clientY - rect.top;
+        dragging = true;
+      }
+      function onDrag(e) { if (!dragging) return; modal.style.left = (e.clientX - offX) + 'px'; modal.style.top = (e.clientY - offY) + 'px'; }
+      function onDragTouch(e) { if (!dragging) return; var t = e.touches[0]; modal.style.left = (t.clientX - offX) + 'px'; modal.style.top = (t.clientY - offY) + 'px'; }
+      function endDrag() { dragging = false; if (titleBar) titleBar.style.cursor = 'grab'; }
+    })();
+
     // ── 场景数据 ──
     var scenes = [
       { id: 'scene1', name: '食品区', desc: '食品区场景',
