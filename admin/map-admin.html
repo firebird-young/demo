@@ -132,12 +132,28 @@
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
     @keyframes slideIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    /* ── 功能说明浮窗 ── */
+    .f-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 500px; max-height: 80vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.2); z-index: 9999; padding: 24px; display: none; }
+    .f-modal.show { display: block; }
+    .f-modal .fm-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
+    .f-modal .fm-title:active { cursor: grabbing; }
+    .f-modal .fm-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #666; border: none; flex-shrink: 0; }
+    .f-modal .fm-close:hover { background: #e8e8e8; }
+    .f-modal .fm-body { font-size: 13px; color: #555; line-height: 1.8; }
+    .f-modal .fm-body h4 { font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 16px 0 8px; }
+    .f-modal .fm-body h4:first-child { margin-top: 0; }
+    .f-modal .fm-body ul { padding-left: 18px; margin: 0 0 12px; }
+    .f-modal .fm-body li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="header-title">元宇宙商城 - 后台管理</div>
-    <div class="header-user">管理员</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-default" onclick="toggleFuncModal()" style="font-size:12px;padding:4px 12px;border-radius:6px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)">📖 功能说明</button>
+      <div class="header-user">管理员</div>
+    </div>
   </div>
 
   <div class="main-container">
@@ -357,7 +373,75 @@
     </div>
   </div>
 
+  <!-- ====== 功能说明浮窗 ====== -->
+  <div class="f-modal" id="funcModal">
+    <div class="fm-title">
+      <span>📖 功能说明</span>
+      <button class="fm-close" onclick="toggleFuncModal()">✕</button>
+    </div>
+    <div class="fm-body">
+      <p style="margin:0 0 12px;color:#666">该功能是管理元宇宙主地图上的热区标注，用户端在主地图上点击热区可跳转到对应场景或查看装饰元素</p>
+      <h4>一、地图管理</h4>
+      <ul>
+        <li><strong>上传地图</strong>：点击"更换地图图片"上传主地图底图，支持 PNG/JPG 格式</li>
+        <li><strong>缩放配置</strong>：设置地图缩放比例（100%~300%），控制用户端地图的拖拽范围</li>
+      </ul>
+      <h4>二、热区标注</h4>
+      <ul>
+        <li><strong>拖拽绘制</strong>：在地图上拖拽生成矩形热区区域，实时预览位置和大小</li>
+        <li><strong>三种热区类型</strong>：
+          <ul>
+            <li><strong>📍跳转热区</strong>：点击跳转到指定场景图片，需关联跳转目标</li>
+            <li><strong>🎨装饰热区</strong>：纯视觉装饰元素，配置子类型和参数</li>
+            <li><strong>🚶起始位置</strong>：角色初始站位，自动填入名称"人物起始位置"</li>
+          </ul>
+        </li>
+        <li><strong>装饰子类型</strong>（4种）：
+          <ul>
+            <li><strong>🖼️雪碧图动画</strong>：上传雪碧图 + 坐标JSON（可选）+ 帧数 + 帧速</li>
+            <li><strong>🎬Lottie动画</strong>：上传 .lottie 文件</li>
+            <li><strong>✨CSS动效</strong>：上传图片 + 选择效果（脉冲/浮动/摇摆/光晕/旋转/弹跳）</li>
+            <li><strong>🌟原生粒子</strong>：选择粒子类型 + 生成率</li>
+            <li style="list-style:none;margin-top:4px">均支持宽度(px) 和 Z轴序号配置</li>
+          </ul>
+        </li>
+      </ul>
+      <h4>三、热区列表</h4>
+      <ul>
+        <li>按类型分三列展示：跳转热区 / 装饰热区 / 起始位置</li>
+        <li>每列显示热区名称、类型标识、Z轴序号、宽度、坐标位置</li>
+        <li>支持编辑和删除热区</li>
+      </ul>
+    </div>
+  </div>
+
   <script>
+    function toggleFuncModal() {
+      var el = document.getElementById('funcModal');
+      el.classList.toggle('show');
+      if (el.classList.contains('show') && !el.dataset.dragged) {
+        el.style.left = '50%'; el.style.top = '50%'; el.style.transform = 'translate(-50%,-50%)';
+      }
+    }
+    (function() {
+      var modal, titleBar, offX, offY, dragging = false;
+      document.addEventListener('DOMContentLoaded', function() {
+        modal = document.getElementById('funcModal');
+        titleBar = modal.querySelector('.fm-title');
+        titleBar.addEventListener('mousedown', startDrag);
+        titleBar.addEventListener('touchstart', startDragTouch, {passive:true});
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDragTouch, {passive:true});
+        document.addEventListener('touchend', endDrag);
+      });
+      function startDrag(e) { modal.dataset.dragged = '1'; modal.style.transform = ''; var rect = modal.getBoundingClientRect(); offX = e.clientX - rect.left; offY = e.clientY - rect.top; dragging = true; titleBar.style.cursor = 'grabbing'; }
+      function startDragTouch(e) { var t = e.touches[0]; modal.dataset.dragged = '1'; modal.style.transform = ''; var rect = modal.getBoundingClientRect(); offX = t.clientX - rect.left; offY = t.clientY - rect.top; dragging = true; }
+      function onDrag(e) { if (!dragging) return; modal.style.left = (e.clientX - offX) + 'px'; modal.style.top = (e.clientY - offY) + 'px'; }
+      function onDragTouch(e) { if (!dragging) return; var t = e.touches[0]; modal.style.left = (t.clientX - offX) + 'px'; modal.style.top = (t.clientY - offY) + 'px'; }
+      function endDrag() { dragging = false; if (titleBar) titleBar.style.cursor = 'grab'; }
+    })();
+
     // 场景数据（供跳转选择用）
     var scenes = [
       { id: 'scene1', name: '食品区',

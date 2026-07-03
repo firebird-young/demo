@@ -82,13 +82,29 @@
     .toast.success { background: rgba(7, 193, 96, 0.9); color: #fff; }
     .toast.error { background: rgba(215, 12, 31, 0.9); color: #fff; }
     @keyframes slideIn { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    /* ── 功能说明浮窗 ── */
+    .f-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 500px; max-height: 80vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.2); z-index: 9999; padding: 24px; display: none; }
+    .f-modal.show { display: block; }
+    .f-modal .fm-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
+    .f-modal .fm-title:active { cursor: grabbing; }
+    .f-modal .fm-close { width: 28px; height: 28px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #666; border: none; flex-shrink: 0; }
+    .f-modal .fm-close:hover { background: #e8e8e8; }
+    .f-modal .fm-body { font-size: 13px; color: #555; line-height: 1.8; }
+    .f-modal .fm-body h4 { font-size: 14px; font-weight: 600; color: #1a1a2e; margin: 16px 0 8px; }
+    .f-modal .fm-body h4:first-child { margin-top: 0; }
+    .f-modal .fm-body ul { padding-left: 18px; margin: 0 0 12px; }
+    .f-modal .fm-body li { margin-bottom: 4px; }
   </style>
 </head>
 <body>
   <!-- 顶部导航 -->
   <div class="header">
     <div class="header-title">元宇宙商城 - 后台管理</div>
-    <div class="header-user">管理员</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn btn-default" onclick="toggleFuncModal()" style="font-size:12px;padding:4px 12px;border-radius:6px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)">📖 功能说明</button>
+      <div class="header-user">管理员</div>
+    </div>
   </div>
 
   <!-- 主布局 -->
@@ -187,7 +203,67 @@
     </div>
   </div>
 
+  <!-- ====== 功能说明浮窗 ====== -->
+  <div class="f-modal" id="funcModal">
+    <div class="fm-title">
+      <span>📖 功能说明</span>
+      <button class="fm-close" onclick="toggleFuncModal()">✕</button>
+    </div>
+    <div class="fm-body">
+      <p style="margin:0 0 12px;color:#666">该功能是设置元宇宙场景图片之间的跳转逻辑</p>
+      <h4>一、路径列表</h4>
+      <ul>
+        <li>卡片列表展示所有已配置的跳转路径，每条显示起点图片、箭头、终点图片、箭头名称、箭头坐标、倾斜角度</li>
+        <li>支持删除路径</li>
+      </ul>
+      <h4>二、添加路径</h4>
+      <ul>
+        <li>弹窗配置，选择"从图片"和"跳转到图片"，图片即场景配置中的图片，选择后展示"从图片"的图片用于标注</li>
+        <li>填写箭头名称（如"前往文旅区"）</li>
+        <li>鼠标点击图片标注箭头位置（红色标记点），记录坐标</li>
+        <li>设置箭头倾斜角度（0°朝上，可设置90°/180°/270°等）</li>
+        <li>保存后路径出现在列表中</li>
+      </ul>
+    </div>
+  </div>
+
   <script>
+    function toggleFuncModal() {
+      var el = document.getElementById('funcModal');
+      el.classList.toggle('show');
+      if (el.classList.contains('show') && !el.dataset.dragged) {
+        el.style.left = '50%'; el.style.top = '50%'; el.style.transform = 'translate(-50%,-50%)';
+      }
+    }
+    (function() {
+      var modal, titleBar, offX, offY, dragging = false;
+      document.addEventListener('DOMContentLoaded', function() {
+        modal = document.getElementById('funcModal');
+        titleBar = modal.querySelector('.fm-title');
+        titleBar.addEventListener('mousedown', startDrag);
+        titleBar.addEventListener('touchstart', startDragTouch, {passive:true});
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDragTouch, {passive:true});
+        document.addEventListener('touchend', endDrag);
+      });
+      function startDrag(e) {
+        modal.dataset.dragged = '1'; modal.style.transform = '';
+        var rect = modal.getBoundingClientRect();
+        offX = e.clientX - rect.left; offY = e.clientY - rect.top;
+        dragging = true; titleBar.style.cursor = 'grabbing';
+      }
+      function startDragTouch(e) {
+        var t = e.touches[0]; modal.dataset.dragged = '1'; modal.style.transform = '';
+        var rect = modal.getBoundingClientRect();
+        offX = t.clientX - rect.left; offY = t.clientY - rect.top;
+        dragging = true;
+      }
+      function onDrag(e) { if (!dragging) return; modal.style.left = (e.clientX - offX) + 'px'; modal.style.top = (e.clientY - offY) + 'px'; }
+      function onDragTouch(e) { if (!dragging) return; var t = e.touches[0]; modal.style.left = (t.clientX - offX) + 'px'; modal.style.top = (t.clientY - offY) + 'px'; }
+      function endDrag() { dragging = false; if (titleBar) titleBar.style.cursor = 'grab'; }
+    })();
+
     var scenes = [
       { id: 'scene1', name: '食品区',
         images: [{ imgId: 'img_1', name: '食品区主图', src: '../scene1_new.png' }] },

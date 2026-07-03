@@ -118,15 +118,16 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 .cal-day-hdr{font-size:12px;font-weight:700;color:#1a1a2e;padding:4px 0 6px;display:flex;align-items:center;gap:6px}
 .cal-day-hdr::before{content:'';width:14px;height:14px;border-radius:50%;border:3px solid #D70C1F;background:#fff;flex-shrink:0}
 .cal-day-hdr::after{content:'';flex:1;height:1px;background:#f0f0f0;margin-left:0}
-.cal-prod{display:flex;align-items:center;gap:10px;padding:6px 0 6px 8px;border-left:2px solid #f5f5f7;margin-left:6px;cursor:pointer;transition:background .12s}
+.cal-prod{padding:6px 0 6px 8px;border-left:2px solid #f5f5f7;margin-left:6px;cursor:pointer;transition:background .12s}
 .cal-day-block:last-child .cal-prod:last-child{border-left-color:transparent}
 .cal-prod:active{background:#fafafa}
+.cal-prod-time-top{font-size:11px;font-weight:700;color:#D70C1F;margin-bottom:4px;padding:2px 8px;background:rgba(215,12,31,.08);border-radius:4px;display:inline-block}
+.cal-prod-row{display:flex;align-items:center;gap:10px}
 .cal-prod-img{width:44px;height:54px;border-radius:8px;background-position:center;background-size:cover;flex-shrink:0}
 .cal-prod-info{flex:1;min-width:0}
 .cal-prod-name{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cal-prod-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
 .cal-prod-tags span{font-size:9px;padding:1px 6px;border-radius:3px;font-weight:500}
-.cal-prod-time{font-size:10px;color:#bbb}
 .cal-prod-price{font-size:15px;font-weight:700;color:#D70C1F;flex-shrink:0}
 .cal-prod-price small{font-size:10px;font-weight:400;color:#999}
 
@@ -151,10 +152,10 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 .cal-modal-item .cmi-info .cmi-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
 .cal-modal-item .cmi-info .cmi-meta .cmi-badge{font-size:9px;padding:2px 6px;border-radius:3px;color:#fff;font-weight:500}
 .cal-modal-item .cmi-info .cmi-meta .cmi-limit{font-size:10px;color:#999}
-.cal-modal-item .cmi-info .cmi-time{font-size:11px;color:#aaa}
+.cal-modal-item .cmi-info .cmi-time-top{font-size:12px;font-weight:700;color:#D70C1F;margin-bottom:3px;padding:1px 8px;background:rgba(215,12,31,.08);border-radius:4px;display:inline-block}
 .cal-modal-item .cmi-price{font-size:16px;font-weight:700;color:#D70C1F;flex-shrink:0;align-self:center}
 .cal-modal-item .cmi-price small{font-size:10px;font-weight:400;color:#999}
-.cal-status-open{font-size:10px;color:#00b894;font-weight:600;margin-top:2px}
+.cal-status-open{font-size:10px;color:#00b894;font-weight:600;margin-top:3px}
 
 /* ── 动画 ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -383,11 +384,11 @@ body{margin:0;background:#2c2c2e;font-family:-apple-system,'PingFang SC','Micros
 <script>
 // ═══ 发售日历数据 ═══
 var calendarData = [
-  { date:'06月11日', time:'14:00', name:'茅台1935·乙巳蛇年', img:'茅台1935.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量999份', price:'¥899', status:'开启优先购' },
-  { date:'06月11日', time:'12:00', name:'王者荣耀·限定史诗', img:'王者荣耀·传说皮肤.png', cat:'ent', catLabel:'文娱', sale:'抽签购', saleCls:'t-sale-lottery', limit:'限量2000份', price:'¥499', status:'开启抽签' },
-  { date:'06月10日', time:'14:00', name:'妙可蓝多·星球创世', img:'妙可蓝多.jpeg', cat:'food', catLabel:'酒水食品', sale:'组合购', saleCls:'t-sale-combo', limit:'限量888份', price:'¥1299', status:'开启组合购' },
-  { date:'06月10日', time:'12:00', name:'飞天茅台·甲辰龙年', img:'飞天茅台·元宇宙酒票.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量666份', price:'¥2999', status:'开启优先购' },
-  { date:'06月12日', time:'10:00', name:'杜甫草堂·周年典藏', img:'杜甫草堂·文旅数字藏品.png', cat:'tour', catLabel:'文旅', sale:'全民购', saleCls:'t-sale-all', limit:'限量3000份', price:'¥199', status:'即将开启' }
+  { date:'06月11日', time:'14:00', name:'茅台1935·乙巳蛇年', img:'茅台1935.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量999份', price:'¥899', status:'优先购' },
+  { date:'06月11日', time:'12:00', name:'王者荣耀·限定史诗', img:'王者荣耀·传说皮肤.png', cat:'ent', catLabel:'文娱', sale:'抽签购', saleCls:'t-sale-lottery', limit:'限量2000份', price:'¥499', status:'抽签购' },
+  { date:'06月10日', time:'14:00', name:'妙可蓝多·星球创世', img:'妙可蓝多.jpeg', cat:'food', catLabel:'酒水食品', sale:'组合购', saleCls:'t-sale-combo', limit:'限量888份', price:'¥1299', status:'组合购' },
+  { date:'06月10日', time:'12:00', name:'飞天茅台·甲辰龙年', img:'飞天茅台·元宇宙酒票.png', cat:'food', catLabel:'酒水食品', sale:'优先购', saleCls:'t-sale-prior', limit:'限量666份', price:'¥2999', status:'优先购' },
+  { date:'06月12日', time:'10:00', name:'杜甫草堂·周年典藏', img:'杜甫草堂·文旅数字藏品.png', cat:'tour', catLabel:'文旅', sale:'全民购', saleCls:'t-sale-all', limit:'限量3000份', price:'¥199', status:'全民购' }
 ];
 
 var catBadgeCls = { food:'ba-food', ent:'ba-ent', tour:'ba-tour' };
@@ -407,6 +408,8 @@ function renderCalendarPreview(){
     grouped[date].forEach(function(item){
       html +=
         '<div class="cal-prod" onclick="showCalendarModal()">'+
+          '<div class="cal-prod-time-top">'+item.time+'</div>'+
+          '<div class="cal-prod-row">'+
           '<div class="cal-prod-img" style="background-image:url(\''+item.img+'\')"></div>'+
           '<div class="cal-prod-info">'+
             '<div class="cal-prod-name">'+item.name+'</div>'+
@@ -414,9 +417,9 @@ function renderCalendarPreview(){
               '<span class="'+item.saleCls+'">'+item.sale+'</span>'+
               '<span style="color:#999;background:#f5f5f7">'+item.limit+'</span>'+
             '</div>'+
-            '<div class="cal-prod-time">'+item.time+' · '+item.status+'</div>'+
           '</div>'+
           '<div class="cal-prod-price">'+item.price+'</div>'+
+          '</div>'+
         '</div>';
     });
     html += '</div>';
@@ -439,12 +442,12 @@ function renderCalendarFull(){
         '<div class="cal-modal-item">'+
           '<div class="cmi-img" style="background-image:url(\''+item.img+'\')"></div>'+
           '<div class="cmi-info">'+
+            '<div class="cmi-time-top">'+item.time+'</div>'+
             '<div class="cmi-name">'+item.name+'</div>'+
             '<div class="cmi-meta">'+
               '<span class="cmi-badge '+catBadgeCls[item.cat]+'">'+item.catLabel+'</span>'+
               '<span class="cmi-limit">'+item.limit+'</span>'+
             '</div>'+
-            '<div class="cmi-time">'+item.time+' · '+item.sale+'</div>'+
             '<div class="cal-status-open">'+item.status+'</div>'+
           '</div>'+
           '<div class="cmi-price">'+item.price+'</div>'+
