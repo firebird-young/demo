@@ -324,15 +324,13 @@ function viewOrder(id) {
   if (!o) return;
   var st = o.status === 'pending' ? '待付款' : o.status === 'completed' ? '已完成' : '已取消';
   var stCls = o.status === 'pending' ? 'status-pending' : o.status === 'completed' ? 'status-completed' : 'status-cancelled';
-  var bCls = o.benefitStatus === '全部已核销' ? 'benefit-used' : o.benefitStatus === '全部未核销' ? 'benefit-unused' : 'benefit-partial';
 
   var h = '';
   h += '<div class="detail-section"><div class="detail-title">订单信息</div>';
   h += '<div class="detail-row"><span class="detail-label">订单编号</span><span class="detail-value">' + o.id + '</span></div>';
   h += '<div class="detail-row"><span class="detail-label">下单时间</span><span class="detail-value">' + o.date + '</span></div>';
   h += '<div class="detail-row"><span class="detail-label">支付时间</span><span class="detail-value">' + (o.payTime||'-') + '</span></div>';
-  h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status ' + stCls + '">' + st + '</span></span></div>';
-  h += '<div class="detail-row"><span class="detail-label">权益状态</span><span class="detail-value"><span class="benefit-status ' + bCls + '">' + (o.benefitStatus||'-') + '</span></span></div>';
+      h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status ' + stCls + '">' + st + '</span></span></div>';
   h += '</div>';
 
   h += '<div class="detail-section"><div class="detail-title">买家信息</div>';
@@ -350,7 +348,7 @@ function viewOrder(id) {
   h += '<div class="detail-section"><div class="detail-title">权益详情</div><div class="benefits-detail"><div class="benefits-detail-title">包含权益</div>';
   if (o.benefits && o.benefits.length > 0) {
     o.benefits.forEach(function(b) {
-      h += '<div class="benefit-detail-item"><span class="benefit-detail-name">' + b.name + '</span><span class="benefit-detail-status ' + (b.status==='used'?'benefit-used':'benefit-unused') + '">' + (b.status==='used'?'已核销':'未核销') + '</span></div>';
+      h += '<div class="benefit-detail-item"><span class="benefit-detail-name">' + b.name + '</span></div>';
     });
   } else {
     h += '<div style="font-size:12px;color:#999;padding:12px 0">暂无权益信息</div>';

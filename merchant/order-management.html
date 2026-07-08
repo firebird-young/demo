@@ -947,7 +947,6 @@
         <div class="order-right">
           <div class="order-price">¥2,599.00</div>
           <div class="order-status status-completed">已完成</div>
-          <div class="benefit-status benefit-partial">部分核销</div>
           <div class="order-actions">
             <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401140001')">查看详情</button>
           </div>
@@ -975,7 +974,6 @@
         <div class="order-right">
           <div class="order-price">¥3,999.00</div>
           <div class="order-status status-completed">已完成</div>
-          <div class="benefit-status benefit-partial">部分核销</div>
           <div class="order-actions">
             <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401130001')">查看详情</button>
           </div>
@@ -1003,7 +1001,6 @@
         <div class="order-right">
           <div class="order-price">¥100.00</div>
           <div class="order-status status-completed">已完成</div>
-          <div class="benefit-status benefit-used">已核销</div>
           <div class="order-actions">
             <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401120001')">查看详情</button>
           </div>
@@ -1031,7 +1028,6 @@
         <div class="order-right">
           <div class="order-price">¥3,897.00</div>
           <div class="order-status status-completed">已完成</div>
-          <div class="benefit-status benefit-unused">未核销</div>
           <div class="order-actions">
             <button class="action-btn" onclick="event.stopPropagation(); viewOrder('O202401110001')">查看详情</button>
           </div>
@@ -1184,8 +1180,6 @@
       if (!data) return;
       var st = data.status === 'pending' ? '待付款' : data.status === 'completed' ? '已完成' : '已取消';
       var stCls = data.status === 'pending' ? 'status-pending' : data.status === 'completed' ? 'status-completed' : 'status-cancelled';
-      var bCls = data.benefitStatus === '全部已核销' ? 'benefit-used' : data.benefitStatus === '全部未核销' ? 'benefit-unused' : 'benefit-partial';
-      
       var h = '';
       h += '<div class="detail-section">';
       h += '<div class="detail-title">订单信息</div>';
@@ -1193,7 +1187,6 @@
       h += '<div class="detail-row"><span class="detail-label">下单时间</span><span class="detail-value">'+data.orderTime+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">支付时间</span><span class="detail-value">'+data.payTime+'</span></div>';
       h += '<div class="detail-row"><span class="detail-label">订单状态</span><span class="detail-value"><span class="order-status '+stCls+'">'+st+'</span></span></div>';
-      h += '<div class="detail-row"><span class="detail-label">权益状态</span><span class="detail-value"><span class="benefit-status '+bCls+'">'+data.benefitStatus+'</span></span></div>';
       h += '</div>';
       
       h += '<div class="detail-section">';
@@ -1218,7 +1211,7 @@
       h += '<div class="benefits-detail">';
       h += '<div class="benefits-detail-title">包含权益</div>';
       data.benefits.forEach(function(b) {
-        h += '<div class="benefit-detail-item"><span class="benefit-detail-name">'+b.name+'</span><span class="benefit-detail-status '+(b.status==='used'?'benefit-used':'benefit-unused')+'">'+(b.status==='used'?'已核销':'未核销')+'</span></div>';
+        h += '<div class="benefit-detail-item"><span class="benefit-detail-name">'+b.name+'</span></div>';
       });
       h += '</div></div>';
       
