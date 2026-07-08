@@ -356,7 +356,7 @@ data.list.forEach(function(inst, idx){
       '<div class="ai-header-row2">'+
         '<span class="ai-time">'+inst.t+'</span>'+
         '<span class="ai-dot">·</span>'+
-        '<span class="ai-hash" onclick="event.stopPropagation();copyIt(\''+inst.h+'\',\'链上哈希\')" title="点击复制">'+inst.h.substring(0,12)+'...</span>'+
+        '<a class="ai-hash" style="text-decoration:none" href="https://can.ihaichain.com/item?params=0x82a595e8c7d3b479ce9af9b797cbc9224656ec4d&token_id='+(Math.floor(Math.random()*51))+'" target="_blank" title="查看链上记录">'+inst.h.substring(0,12)+'...</a>'+
       '</div>'+
     '</div>'+
     '<div class="ai-benefits" id="bf_'+idx+'">'+bfRows+'</div>';
